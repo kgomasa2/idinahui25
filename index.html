@@ -2,53 +2,80 @@
 <html lang="uk">
 <head>
     <meta charset="UTF-8">
-    <title>Olympia Gallery - Cinema Mode</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Olympia Gallery - Mobile & Audio Fix</title>
     <style>
-        body { margin: 0; overflow: hidden; background-color: #000; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; }
+        body { margin: 0; overflow: hidden; background-color: #000; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; touch-action: none; }
         
-        #instructions {
-            position: absolute; top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            text-align: center; color: white; pointer-events: none;
-            background: rgba(0, 0, 0, 0.8); padding: 40px; border-radius: 4px; 
-            border: 1px solid rgba(255,255,255,0.3);
-            z-index: 10; backdrop-filter: blur(10px);
-            transition: opacity 0.5s;
+        #start-screen {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85); z-index: 50;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            color: white; text-align: center; backdrop-filter: blur(10px);
         }
-        h1 { font-weight: 800; letter-spacing: 2px; text-transform: uppercase; font-size: 1.5rem; margin-bottom: 15px; }
-        p { color: #ccc; font-size: 0.9rem; line-height: 1.6; }
+        
+        #start-btn {
+            margin-top: 30px; padding: 15px 40px; font-size: 1.5rem; font-weight: bold;
+            color: black; background: white; border: none; border-radius: 50px;
+            cursor: pointer; text-transform: uppercase; letter-spacing: 2px;
+            transition: transform 0.2s, background 0.2s;
+        }
+        #start-btn:hover { transform: scale(1.05); background: #ffff00; }
+
+        #instructions {
+            margin-top: 20px; color: #ccc; font-size: 0.9rem; line-height: 1.6; max-width: 90%;
+        }
         .key { display: inline-block; border: 1px solid #777; padding: 2px 6px; border-radius: 3px; font-size: 0.8em; color: #fff; }
 
+        /* UI для гри */
         #cursor {
             position: absolute; top: 50%; left: 50%;
             width: 6px; height: 6px; background: white;
             border-radius: 50%; transform: translate(-50%, -50%);
             opacity: 0.8; pointer-events: none; mix-blend-mode: difference;
-            z-index: 5;
-            transition: transform 0.15s;
+            z-index: 5; transition: transform 0.15s;
         }
         .hover-active { transform: translate(-50%, -50%) scale(2.5) !important; background: #00ff66 !important; }
 
+        #sit-hint {
+            position: absolute; bottom: 100px; left: 50%; transform: translateX(-50%);
+            color: white; background: rgba(0,0,0,0.6); padding: 10px 20px;
+            border-radius: 20px; font-size: 0.9rem; display: none; pointer-events: none; z-index: 20;
+        }
+        
+        /* МОБІЛЬНЕ УПРАВЛІННЯ */
+        .joystick-zone {
+            position: absolute; bottom: 20px; width: 140px; height: 140px;
+            background: rgba(255, 255, 255, 0.1); border-radius: 50%;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            display: none; /* JS ввімкне на мобільному */
+            z-index: 40; touch-action: none;
+        }
+        #stick-left { left: 30px; }
+        #stick-right { right: 30px; }
+        .stick-knob {
+            position: absolute; top: 50%; left: 50%; width: 50px; height: 50px;
+            background: rgba(255, 255, 255, 0.5); border-radius: 50%;
+            transform: translate(-50%, -50%); pointer-events: none;
+        }
+        
         #artwork-modal {
             display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(255, 255, 255, 0.98); z-index: 20;
+            background: rgba(255, 255, 255, 0.98); z-index: 60;
             flex-direction: column; align-items: center; justify-content: center;
             text-align: center; cursor: pointer;
         }
-        #modal-img { max-height: 75vh; max-width: 90%; box-shadow: 0 20px 50px rgba(0,0,0,0.3); margin-bottom: 25px; }
+        #modal-img { max-height: 70vh; max-width: 90%; box-shadow: 0 20px 50px rgba(0,0,0,0.3); margin-bottom: 25px; }
         #modal-info { color: #000; max-width: 600px; padding: 0 20px; }
-        #modal-title { font-weight: 800; font-size: 1.8rem; margin: 0 0 10px 0; text-transform: uppercase; letter-spacing: -0.5px; }
-        #modal-desc { font-size: 1.1rem; color: #444; margin: 0; line-height: 1.4; }
+        #modal-title { font-weight: 800; font-size: 1.5rem; margin: 0 0 10px 0; text-transform: uppercase; }
         
-        #sit-hint {
-            position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
-            color: white; background: rgba(0,0,0,0.6); padding: 10px 20px;
-            border-radius: 20px; font-size: 0.9rem; display: none; pointer-events: none;
-        }
-
-        #error-debug {
-            position: absolute; top: 0; left: 0; color: red; background: rgba(0,0,0,0.8); 
-            padding: 10px; display: none; z-index: 100; max-width: 50%; font-family: monospace;
+        /* Мобільна кнопка "СІСТИ" */
+        #mobile-sit-btn {
+            position: absolute; right: 30px; bottom: 180px; 
+            width: 60px; height: 60px; border-radius: 50%;
+            background: rgba(255,255,255,0.2); border: 2px solid white;
+            color: white; font-weight: bold; display: none; z-index: 45;
+            align-items: center; justify-content: center; cursor: pointer;
         }
     </style>
     
@@ -64,16 +91,20 @@
 <body>
     <div id="cursor"></div>
     <div id="sit-hint">Натисни <span class="key">C</span> щоб сісти</div>
-    <div id="error-debug"></div>
     
-    <div id="instructions">
+    <div id="start-screen">
         <h1>EXHIBITION 2025</h1>
-        <p>Клікни екраном, щоб увійти</p>
-        <p><span class="key">WASD</span> рух &nbsp; <span class="key">SPACE</span> стрибок &nbsp; <span class="key">SHIFT</span> біг</p>
-        <p><span class="key">C</span> сісти (біля лавки)</p>
-        <p style="margin-top: 15px; font-size: 0.8em; color: #888;">Іди до кінця (5 залів)</p>
-        <p style="color: #ffff00; font-size: 0.7em; margin-top: 10px;">Музика почнеться після кліку</p>
+        <div id="instructions">
+            <p>ПК: <span class="key">WASD</span> рух &nbsp; <span class="key">C</span> сісти</p>
+            <p>Мобільний: Джойстики на екрані</p>
+            <p>Іди до кінця (5 залів)</p>
+        </div>
+        <button id="start-btn">УВІЙТИ В ГАЛЕРЕЮ</button>
     </div>
+
+    <div id="stick-left" class="joystick-zone"><div class="stick-knob"></div></div>
+    <div id="stick-right" class="joystick-zone"><div class="stick-knob"></div></div>
+    <div id="mobile-sit-btn">SIT</div>
 
     <audio id="bgMusic" loop>
         <source src="assets/song.mp3" type="audio/mpeg">
@@ -91,23 +122,18 @@
         <div id="modal-info">
             <div id="modal-title">TITLE</div>
             <p id="modal-desc">Description</p>
-            <p style="font-size: 0.8rem; margin-top: 30px; color: #bbb; text-transform: uppercase; letter-spacing: 1px;">Click to close</p>
+            <p style="font-size: 0.8rem; margin-top: 30px; color: #bbb;">TAP TO CLOSE</p>
         </div>
     </div>
-
-    <script>
-        window.onerror = function(msg, source, lineno) {
-            const el = document.getElementById('error-debug');
-            el.style.display = 'block';
-            el.innerHTML += `Error: ${msg} at line ${lineno}<br>`;
-        }
-    </script>
 
     <script type="module">
         import * as THREE from 'three';
         import { PointerLockControls } from 'three/addons/controls/PointerLockControls.js';
         import { RectAreaLightUniformsLib } from 'three/addons/lights/RectAreaLightUniformsLib.js';
         import { FBXLoader } from 'three/addons/loaders/FBXLoader.js';
+
+        // --- ДЕТЕКЦІЯ МОБІЛЬНОГО ---
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
         // --- 1. СЦЕНА ---
         const scene = new THREE.Scene();
@@ -118,21 +144,8 @@
 
         const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 100);
         camera.position.set(0, 1.7, 8); 
-
-        const listener = new THREE.AudioListener();
-        camera.add(listener);
-        const sound = new THREE.Audio(listener);
-        const audioLoader = new THREE.AudioLoader();
-        
-        // Змінна для музики, щоб керувати гучністю
-        let bgSoundObj = null;
-
-        audioLoader.load('assets/song.mp3', function(buffer) {
-            sound.setBuffer(buffer);
-            sound.setLoop(true);
-            sound.setVolume(0.5);
-            bgSoundObj = sound;
-        }, undefined, (err) => console.log("Музика не знайдена, перевірте assets/song.mp3"));
+        // Порядок обертання для коректної роботи кастомного управління на мобільному
+        camera.rotation.order = 'YXZ'; 
 
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
@@ -140,18 +153,19 @@
         renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         document.body.appendChild(renderer.domElement);
 
+        // --- АУДІО ---
+        const bgMusic = document.getElementById('bgMusic');
+        bgMusic.volume = 0.5; // Початкова гучність
+
         // --- 2. МАТЕРІАЛИ ТА ТЕКСТУРИ ---
         const textureLoader = new THREE.TextureLoader();
-        
         const concreteUrl = 'https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/plaster_grey_04/plaster_grey_04_diff_1k.jpg';
         const concreteTex = textureLoader.load(concreteUrl);
-        concreteTex.wrapS = THREE.RepeatWrapping;
-        concreteTex.wrapT = THREE.RepeatWrapping;
-        concreteTex.repeat.set(10, 40);
-        concreteTex.colorSpace = THREE.SRGBColorSpace;
+        concreteTex.wrapS = THREE.RepeatWrapping; concreteTex.wrapT = THREE.RepeatWrapping;
+        concreteTex.repeat.set(10, 40); concreteTex.colorSpace = THREE.SRGBColorSpace;
 
-        const wallMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.5, metalness: 0.0 });
-        const floorMat = new THREE.MeshStandardMaterial({ map: concreteTex, roughness: 0.8, metalness: 0.1, color: 0xaaaaaa });
+        const wallMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.5 });
+        const floorMat = new THREE.MeshStandardMaterial({ map: concreteTex, roughness: 0.8, color: 0xaaaaaa });
         const darkWallMat = new THREE.MeshStandardMaterial({ color: 0x050505, roughness: 0.9 });
         const darkFloorMat = new THREE.MeshStandardMaterial({ color: 0x020202, roughness: 0.9 });
         const tvFrameMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.2 });
@@ -167,7 +181,6 @@
 
         const collidableObjects = []; 
         const postersArray = []; 
-        let posterIdx = 0;
         let revolvingStage = null;
         const animatedModels = [];
 
@@ -178,18 +191,18 @@
             const id = currentImageId;
             const url = `assets/image${id}.png`;
             const title = `Artwork #${id}`;
-            currentImageId++;
-            if (currentImageId > totalImages) currentImageId = 1; 
+            currentImageId++; if (currentImageId > totalImages) currentImageId = 1; 
             return { url, title, id };
         }
 
+        // --- 3. ФУНКЦІЇ БУДІВНИЦТВА ---
         function addPoster(x, y, z, ry, w, h) {
             const data = getNextImage();
             const geo = new THREE.PlaneGeometry(w, h);
             const loader = new THREE.TextureLoader();
             const mat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.4 }); 
             const mesh = new THREE.Mesh(geo, mat);
-            loader.load(data.url, (tex) => { tex.colorSpace = THREE.SRGBColorSpace; mat.map = tex; mat.needsUpdate = true; }, undefined, () => console.warn(`Missing: ${data.url}`));
+            loader.load(data.url, (tex) => { tex.colorSpace = THREE.SRGBColorSpace; mat.map = tex; mat.needsUpdate = true; }, undefined, () => {});
             mesh.position.set(x, y, z); mesh.rotation.y = ry;
             mesh.userData = { isPoster: true, url: data.url, title: data.title, year: "2025", desc: "Collection" };
             scene.add(mesh); postersArray.push(mesh); 
@@ -198,11 +211,9 @@
         function createBox(x, y, z, w, h, d, isWall = true, isDark = false, customMat = null) {
             let mat = customMat ? customMat : (isDark ? (isWall ? darkWallMat : darkFloorMat) : (isWall ? wallMat : floorMat));
             const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
-            mesh.position.set(x, y, z);
-            mesh.receiveShadow = true;
+            mesh.position.set(x, y, z); mesh.receiveShadow = true;
             if(isWall) {
-                mesh.castShadow = !isDark; 
-                mesh.updateMatrixWorld();
+                mesh.castShadow = !isDark; mesh.updateMatrixWorld();
                 collidableObjects.push({ box: new THREE.Box3().setFromObject(mesh) });
             }
             scene.add(mesh);
@@ -216,39 +227,21 @@
         }
 
         function createHangingTV(x, z, ceilingHeight, rotationY = 0) {
-            const tex = videoTex2;
-            
-            // === ПЛАЗМИ ЩЕ +10% (від попереднього розміру) ===
-            // Попередній: 1.62 x 2.88
-            // Новий: 1.62 * 1.1 = 1.78
-            // Новий: 2.88 * 1.1 = 3.16
-            const tvW = 1.78; 
-            const tvH = 3.16;  
-            const tvD = 0.1;
-            
+            const tvW = 1.78; const tvH = 3.16; const tvD = 0.1;
             const tvGeo = new THREE.BoxGeometry(tvW, tvH, tvD);
-            const screenMat = new THREE.MeshBasicMaterial({ map: tex });
+            const screenMat = new THREE.MeshBasicMaterial({ map: videoTex2 });
             const materials = [tvFrameMat, tvFrameMat, tvFrameMat, tvFrameMat, screenMat, tvFrameMat];
-            
             const tv = new THREE.Mesh(tvGeo, materials);
-            // Піднімаємо ще трохи, бо вони стали дуже довгі
             const tvY = 3.0; 
-            
-            tv.position.set(x, tvY, z);
-            tv.rotation.y = rotationY;
-            scene.add(tv);
-            
+            tv.position.set(x, tvY, z); tv.rotation.y = rotationY; scene.add(tv);
             const tvTopY = tvY + (tvH / 2);
             const cableLen = ceilingHeight - tvTopY;
             const cableGeo = new THREE.CylinderGeometry(0.01, 0.01, cableLen > 0 ? cableLen : 0.1);
             cableGeo.translate(0, cableLen / 2, 0); 
-            
             const c1 = new THREE.Mesh(cableGeo, cableMat); c1.position.set(-tvW*0.3, tvH/2, 0); tv.add(c1);
             const c2 = new THREE.Mesh(cableGeo, cableMat); c2.position.set(tvW*0.3, tvH/2, 0); tv.add(c2);
-            
             const screenLight = new THREE.PointLight(0xffffff, 8, 7);
             screenLight.position.set(0, 0, 1.0); tv.add(screenLight);
-            
             tv.userData.isObstacle = true; 
             collidableObjects.push({ customType: 'cylinder', mesh: tv, radius: 0.4, position: tv.position });
         }
@@ -308,145 +301,80 @@
                 mesh.userData = { isPoster: true, url: data.url, title: data.title, year: "2025", desc: "Mounted Installation" };
                 structureGroup.add(mesh); postersArray.push(mesh);
             }
-
-            const topPipeLevel = h - 0.2; 
-            const posterCenterY = h / 2;
-
+            const topPipeLevel = h - 0.2; const posterCenterY = h / 2;
             mountPoster(0, posterCenterY, d/2, 0, 2, 2.5, topPipeLevel); 
             mountPoster(-w/2, posterCenterY, 0, Math.PI/2, 2, 2.5, topPipeLevel); 
             mountPoster(0, posterCenterY, -d/2, Math.PI, 2.5, 1.8, topPipeLevel); 
-            
             revolvingStage.add(structureGroup); scene.add(revolvingStage);
         }
 
-        // --- ЗАВАНТАЖЕННЯ МОДЕЛЕЙ ---
-        const modelFiles = [
-            'output.fbx', 
-            'output2.fbx', 
-            'output3.fbx',
-            'output4.fbx',
-            'output5.fbx',
-            'output6.fbx',
-            'output9.fbx' 
-        ];
-
+        const modelFiles = ['output.fbx', 'output2.fbx', 'output3.fbx', 'output4.fbx', 'output5.fbx', 'output6.fbx', 'output9.fbx'];
         function loadAllModels(roomCenterX, roomCenterZ) {
             const fbxLoader = new FBXLoader();
-
             modelFiles.forEach((filename, index) => {
                 const angle = (index / modelFiles.length) * Math.PI * 2;
                 const radius = 5; 
-                const offsetX = Math.cos(angle) * radius;
-                const offsetZ = Math.sin(angle) * radius;
-
+                const offsetX = Math.cos(angle) * radius; const offsetZ = Math.sin(angle) * radius;
                 const fullPath = `assets/${filename}`;
-
-                fbxLoader.load(
-                    fullPath, 
-                    (object) => {
-                        console.log(`--- ЗАВАНТАЖЕНО: ${filename} ---`);
-
-                        object.scale.set(1, 1, 1); 
-                        const box = new THREE.Box3().setFromObject(object);
-                        const size = new THREE.Vector3();
-                        box.getSize(size);
-
-                        const maxDim = Math.max(size.x, size.y, size.z);
-                        let targetScale = 1.0;
-                        if (maxDim > 5) { targetScale = 3.0 / maxDim; } 
-                        else if (maxDim < 0.5) { targetScale = 2.0 / maxDim; }
-                        
-                        let multiplier = 2.3; 
-
-                        if (filename === 'output3.fbx') { multiplier *= 0.8; }
-                        // === OUTPUT9: БІЛЬШИЙ НА 40% ===
-                        if (filename === 'output9.fbx') { 
-                            multiplier = (1.9 / 4.0) * 1.4; 
-                        }
-                        if (filename === 'output5.fbx' || filename === 'output6.fbx') { multiplier = 1.9; }
-
-                        targetScale *= multiplier;
-                        object.scale.set(targetScale, targetScale, targetScale);
-
-                        object.traverse((child) => {
-                            if (child.isMesh) {
-                                child.castShadow = true;
-                                child.receiveShadow = true;
-                            }
+                fbxLoader.load(fullPath, (object) => {
+                    object.scale.set(1, 1, 1); 
+                    const box = new THREE.Box3().setFromObject(object);
+                    const size = new THREE.Vector3(); box.getSize(size);
+                    const maxDim = Math.max(size.x, size.y, size.z);
+                    let targetScale = 1.0;
+                    if (maxDim > 5) { targetScale = 3.0 / maxDim; } else if (maxDim < 0.5) { targetScale = 2.0 / maxDim; }
+                    let multiplier = 2.3; 
+                    if (filename === 'output3.fbx') { multiplier *= 0.8; }
+                    if (filename === 'output9.fbx') { multiplier = (1.9 / 4.0) * 1.4; }
+                    if (filename === 'output5.fbx' || filename === 'output6.fbx') { multiplier = 1.9; }
+                    targetScale *= multiplier;
+                    object.scale.set(targetScale, targetScale, targetScale);
+                    object.traverse((child) => { if (child.isMesh) { child.castShadow = true; child.receiveShadow = true; } });
+                    if (filename === 'output3.fbx') { object.rotation.set(0, 0, 0); } else { object.rotation.set(-Math.PI / 2, 0, 0); }
+                    if (filename === 'output4.fbx') { animatedModels.push(object); }
+                    if (filename === 'output9.fbx') { object.rotation.set(-Math.PI / 2, 0, 0); }
+                    object.updateMatrixWorld(); 
+                    const newBox = new THREE.Box3().setFromObject(object);
+                    object.position.set(roomCenterX + offsetX, -newBox.min.y, roomCenterZ + offsetZ);
+                    scene.add(object);
+                    collidableObjects.push({ box: new THREE.Box3().setFromObject(object) });
+                    if (filename === 'output6.fbx') {
+                        const loader7 = new FBXLoader();
+                        loader7.load('assets/output7.fbx', (obj7) => {
+                            const smallScale = targetScale / 4;
+                            obj7.scale.set(smallScale, smallScale, smallScale); 
+                            obj7.rotation.set(-Math.PI / 2, 0, 0);
+                            animatedModels.push(obj7);
+                            obj7.traverse((child) => { if (child.isMesh) { child.castShadow = true; child.receiveShadow = true; } });
+                            const box6 = new THREE.Box3().setFromObject(object);
+                            const topY = box6.max.y;
+                            obj7.updateMatrixWorld();
+                            const box7 = new THREE.Box3().setFromObject(obj7);
+                            const heightOffset7 = -box7.min.y; 
+                            obj7.position.set(object.position.x, topY + 0.05 + heightOffset7, object.position.z);
+                            scene.add(obj7);
                         });
-
-                        if (filename === 'output3.fbx') {
-                            object.rotation.set(0, 0, 0); 
-                        } else {
-                            object.rotation.set(-Math.PI / 2, 0, 0); 
-                        }
-
-                        if (filename === 'output4.fbx') { animatedModels.push(object); }
-                        
-                        // === OUTPUT9: ПОВЕРНУТИ НА 90 ГРАДУСІВ (НА ПІДЛОЗІ) ===
-                        if (filename === 'output9.fbx') {
-                            // Було -Math.PI / 2 (X), 0 (Y), Math.PI / 2 (Z)
-                            // Просили повернути ще на 90. 
-                            object.rotation.set(-Math.PI / 2, 0, 0); // Повернули назад в 0 (це +90 від попереднього)
-                        }
-
-                        object.updateMatrixWorld(); 
-                        const newBox = new THREE.Box3().setFromObject(object);
-                        object.position.set(roomCenterX + offsetX, -newBox.min.y, roomCenterZ + offsetZ);
-
-                        scene.add(object);
-                        collidableObjects.push({ box: new THREE.Box3().setFromObject(object) });
-
-                        // STACKED output7
-                        if (filename === 'output6.fbx') {
-                            const loader7 = new FBXLoader();
-                            loader7.load('assets/output7.fbx', (obj7) => {
-                                console.log("--- ЗАВАНТАЖЕНО: output7.fbx (stacked) ---");
-                                const smallScale = targetScale / 4;
-                                obj7.scale.set(smallScale, smallScale, smallScale); 
-                                obj7.rotation.set(-Math.PI / 2, 0, 0);
-                                animatedModels.push(obj7);
-                                obj7.traverse((child) => { if (child.isMesh) { child.castShadow = true; child.receiveShadow = true; } });
-                                const box6 = new THREE.Box3().setFromObject(object);
-                                const topY = box6.max.y;
-                                obj7.updateMatrixWorld();
-                                const box7 = new THREE.Box3().setFromObject(obj7);
-                                const heightOffset7 = -box7.min.y; 
-                                obj7.position.set(object.position.x, topY + 0.05 + heightOffset7, object.position.z);
-                                scene.add(obj7);
-                            });
-                        }
-                    },
-                    (xhr) => { },
-                    (error) => { console.error(`ПОМИЛКА ЗАВАНТАЖЕННЯ ${filename}:`, error); }
-                );
+                    }
+                });
             });
         }
 
-        // --- OUTPUT8: HANGING CENTER ---
         function createHangingModel8(x, z, roomCeiling) {
             const fbxLoader = new FBXLoader();
             fbxLoader.load('assets/output8.fbx', (object) => {
-                console.log("--- ЗАВАНТАЖЕНО: output8.fbx (hanging) ---");
                 object.scale.set(1, 1, 1);
                 const box = new THREE.Box3().setFromObject(object);
                 const size = new THREE.Vector3(); box.getSize(size);
                 const maxDim = Math.max(size.x, size.y, size.z);
                 let targetScale = (maxDim > 5) ? 3.0 / maxDim : (maxDim < 0.5 ? 2.0 / maxDim : 1.0);
-                
-                // === OUTPUT8: МЕНШЕ НА 20% ===
                 targetScale *= 1.2; 
                 object.scale.set(targetScale, targetScale, targetScale);
-
                 object.traverse((child) => { if (child.isMesh) { child.castShadow = true; child.receiveShadow = true; } });
-
                 object.rotation.set(-Math.PI/2, 0, 0);
-
                 const hangY = 2.5;
                 object.position.set(x, hangY, z);
                 scene.add(object);
                 collidableObjects.push({ box: new THREE.Box3().setFromObject(object) });
-
                 const cableLen = roomCeiling - hangY;
                 const cableGeo = new THREE.CylinderGeometry(0.01, 0.01, cableLen);
                 cableGeo.translate(0, cableLen/2, 0);
@@ -455,7 +383,6 @@
                 scene.add(cable);
             });
         }
-
 
         // --- 5. ГЕНЕРАЦІЯ СВІТУ ---
         const roomSize = 20; const roomHeight = 6; const roomsCount = 5;
@@ -470,7 +397,6 @@
         for (let i = 0; i < roomsCount; i++) {
             const zCenter = -(i * roomSize);
             const isDarkRoom = (i === roomsCount - 1);
-
             if (!isDarkRoom) {
                 const rectLightLeft = new THREE.RectAreaLight(0xffffff, 6.0, roomSize - 2, 0.5);
                 rectLightLeft.position.set(-8, 5.5, zCenter); rectLightLeft.lookAt(-20, 1, zCenter); scene.add(rectLightLeft);
@@ -478,15 +404,12 @@
                 rectLightRight.position.set(8, 5.5, zCenter); rectLightRight.lookAt(20, 1, zCenter); scene.add(rectLightRight);
                 const fillLight = new THREE.PointLight(0xffffff, 2, 20); fillLight.position.set(0, 5, zCenter); scene.add(fillLight);
             }
-
             createBox(-roomSize/2, roomHeight/2, zCenter, 0.5, roomHeight, roomSize, true, isDarkRoom); 
             createBox(roomSize/2, roomHeight/2, zCenter, 0.5, roomHeight, roomSize, true, isDarkRoom); 
-
             if (!isDarkRoom) {
                 const ceiling = new THREE.Mesh(new THREE.PlaneGeometry(roomSize, roomSize), wallMat);
                 ceiling.rotation.x = Math.PI / 2; ceiling.position.set(0, roomHeight, zCenter); scene.add(ceiling);
             }
-
             if (i === 0) {
                 createBox(0, roomHeight/2, zCenter + roomSize/2, roomSize, roomHeight, 0.5, true, isDarkRoom);
                 createDoorWall(zCenter - roomSize/2, roomSize, roomHeight, isDarkRoom);
@@ -499,41 +422,21 @@
             } else {
                 createDoorWall(zCenter - roomSize/2, roomSize, roomHeight, false);
             }
-
-            // --- КОНТЕНТ ---
             if (!isDarkRoom) {
-                
-                // === КІМНАТА 1 (i=0): Старт ===
-                if (i === 0) {
-                    createHangingTV(0, zCenter, roomHeight, 0); 
-                } 
-                // === КІМНАТА 2 (i=1): МОДЕЛІ ===
-                else if (i === 1) {
-                    loadAllModels(0, zCenter);
-                    createHangingModel8(0, zCenter, roomHeight);
-                } 
-                // === КІМНАТА 3 (i=2): МЕТАЛЕВА КОНСТРУКЦІЯ ===
-                else if (i === 2) {
-                    createScaffoldingStructure(0, zCenter);
-                } 
-                // === ІНШІ КІМНАТИ ===
-                else {
-                    let rotation = Math.random() * Math.PI;
-                    createHangingTV(0, zCenter, roomHeight, rotation);
-                }
+                if (i === 0) { createHangingTV(0, zCenter, roomHeight, 0); } 
+                else if (i === 1) { loadAllModels(0, zCenter); createHangingModel8(0, zCenter, roomHeight); } 
+                else if (i === 2) { createScaffoldingStructure(0, zCenter); } 
+                else { let rotation = Math.random() * Math.PI; createHangingTV(0, zCenter, roomHeight, rotation); }
                 
                 const standardW = 2.6; const standardH = 3.25; 
-                const postersPerSide = 6; 
-                const sideSpacing = 3.0; 
+                const postersPerSide = 6; const sideSpacing = 3.0; 
                 const sideWallLength = postersPerSide * sideSpacing;
                 const startZ = zCenter + (sideWallLength / 2) - (sideSpacing / 2); 
-
                 for (let k = 0; k < postersPerSide; k++) {
                     const zPos = startZ - (k * sideSpacing);
                     addPoster(-9.7, 2.7, zPos, Math.PI/2, standardW, standardH);
                     addPoster(9.7, 2.7, zPos, -Math.PI/2, standardW, standardH);
                 }
-
                 const offsetX = 6.0; const offsetZ = 0.3; 
                 addPoster(-offsetX, 2.7, zCenter - roomSize/2 + offsetZ, 0, standardW, standardH);
                 addPoster(offsetX, 2.7, zCenter - roomSize/2 + offsetZ, 0, standardW, standardH);
@@ -542,7 +445,6 @@
                    addPoster(offsetX, 2.7, zCenter + roomSize/2 - offsetZ, Math.PI, standardW, standardH);
                 }
             } else {
-                // ТЕМНА КІМНАТА
                 const projW = 9.0; const projH = 5.06;
                 const wallDist = (roomSize/2) - 0.4;
                 createProjection(-wallDist, 3, zCenter, projW, projH, Math.PI/2, videoTex1);
@@ -551,42 +453,133 @@
             }
         }
 
-        // === ПЕРЕСЛІДУВАЧ ===
-        const followerTex = textureLoader.load('assets/gerb.png', undefined, undefined, (err) => console.error("НЕ ЗНАЙДЕНО assets/gerb.png!"));
+        const followerTex = textureLoader.load('assets/gerb.png', undefined, undefined, (err) => console.error("Missing gerb.png"));
         followerTex.colorSpace = THREE.SRGBColorSpace;
         const followerGeo = new THREE.PlaneGeometry(3, 3);
         const followerMat = new THREE.MeshBasicMaterial({ map: followerTex, side: THREE.DoubleSide, transparent: true });
         const follower = new THREE.Mesh(followerGeo, followerMat);
         follower.position.set(0, 2.5, 0); scene.add(follower);
+        const ambientLight = new THREE.AmbientLight(0xffffff, 1.5); scene.add(ambientLight);
 
-        const ambientLight = new THREE.AmbientLight(0xffffff, 1.5);
-        scene.add(ambientLight);
-
-        // --- ЛОГІКА ---
+        // --- УПРАВЛІННЯ ---
         const controls = new PointerLockControls(camera, document.body);
-        const instructions = document.getElementById('instructions');
+        const startScreen = document.getElementById('start-screen');
+        const startBtn = document.getElementById('start-btn');
         const sitHint = document.getElementById('sit-hint');
+        const mobileSitBtn = document.getElementById('mobile-sit-btn');
         const modal = document.getElementById('artwork-modal');
         const raycaster = new THREE.Raycaster();
         const center = new THREE.Vector2(0, 0);
         const cursor = document.getElementById('cursor');
 
         let isModalOpen = false;
-        let isVideoPlaying = false; 
         let isSitting = false;
+        let isGameActive = false;
 
-        document.addEventListener('click', () => {
-            if (!isVideoPlaying) {
-                if (listener.context.state === 'suspended') { listener.context.resume(); }
-                if (sound.buffer && !sound.isPlaying) { sound.play(); }
-                video1.play().catch(e => console.log("Video blocked"));
-                video2.play().catch(e => console.log("Video blocked"));
-                isVideoPlaying = true;
+        // ВМИКАННЯ ГРИ
+        startBtn.addEventListener('click', () => {
+            startScreen.style.display = 'none';
+            isGameActive = true;
+            
+            // Вмикаємо звук та відео (автозапуск)
+            bgMusic.play().catch(e => console.log("Audio block", e));
+            video1.play().catch(e => console.log("Video1 block", e));
+            video2.play().catch(e => console.log("Video2 block", e));
+
+            if (!isMobile) {
+                controls.lock();
+            } else {
+                // Показати мобільні стіки
+                document.getElementById('stick-left').style.display = 'block';
+                document.getElementById('stick-right').style.display = 'block';
             }
-            if (isModalOpen) closeModal();
-            else { if (controls.isLocked) checkIntersectionAndClick(); else controls.lock(); }
         });
 
+        // Мобільне керування (Touch)
+        const joystickL = { active: false, id: null, startX: 0, startY: 0, moveX: 0, moveY: 0 };
+        const joystickR = { active: false, id: null, startX: 0, startY: 0, deltaX: 0, deltaY: 0 };
+        const stickL = document.getElementById('stick-left');
+        const stickR = document.getElementById('stick-right');
+        const knobL = stickL.querySelector('.stick-knob');
+        const knobR = stickR.querySelector('.stick-knob');
+
+        if(isMobile) {
+            function handleTouch(e, type) {
+                e.preventDefault();
+                for (let i = 0; i < e.changedTouches.length; i++) {
+                    const t = e.changedTouches[i];
+                    
+                    // Left Stick
+                    if (type === 'start' && !joystickL.active && t.clientX < window.innerWidth / 2) {
+                        joystickL.active = true; joystickL.id = t.identifier;
+                        joystickL.startX = t.clientX; joystickL.startY = t.clientY;
+                        stickL.style.left = (t.clientX - 70) + 'px';
+                        stickL.style.bottom = (window.innerHeight - t.clientY - 70) + 'px';
+                    }
+                    if (joystickL.active && t.identifier === joystickL.id) {
+                        if (type === 'move') {
+                            const dx = t.clientX - joystickL.startX;
+                            const dy = t.clientY - joystickL.startY;
+                            const dist = Math.min(50, Math.sqrt(dx*dx + dy*dy));
+                            const angle = Math.atan2(dy, dx);
+                            joystickL.moveX = (Math.cos(angle) * dist) / 50; 
+                            joystickL.moveY = (Math.sin(angle) * dist) / 50;
+                            knobL.style.transform = `translate(calc(-50% + ${Math.cos(angle)*dist}px), calc(-50% + ${Math.sin(angle)*dist}px))`;
+                        } else if (type === 'end') {
+                            joystickL.active = false; joystickL.moveX = 0; joystickL.moveY = 0;
+                            knobL.style.transform = `translate(-50%, -50%)`;
+                            stickL.style.left = '30px'; stickL.style.bottom = '20px';
+                        }
+                    }
+
+                    // Right Stick (Camera)
+                    if (type === 'start' && !joystickR.active && t.clientX > window.innerWidth / 2) {
+                        joystickR.active = true; joystickR.id = t.identifier;
+                        joystickR.startX = t.clientX; joystickR.startY = t.clientY;
+                        stickR.style.right = 'auto'; stickR.style.left = (t.clientX - 70) + 'px';
+                        stickR.style.bottom = (window.innerHeight - t.clientY - 70) + 'px';
+                    }
+                    if (joystickR.active && t.identifier === joystickR.id) {
+                        if (type === 'move') {
+                            joystickR.deltaX = (t.clientX - joystickR.startX) * 0.005;
+                            joystickR.deltaY = (t.clientY - joystickR.startY) * 0.005;
+                            // Reset start for continuous rotation
+                            joystickR.startX = t.clientX; joystickR.startY = t.clientY; 
+                        } else if (type === 'end') {
+                            joystickR.active = false; joystickR.deltaX = 0; joystickR.deltaY = 0;
+                            stickR.style.left = 'auto'; stickR.style.right = '30px'; stickR.style.bottom = '20px';
+                        }
+                    }
+                }
+            }
+            document.addEventListener('touchstart', e => handleTouch(e, 'start'), {passive: false});
+            document.addEventListener('touchmove', e => handleTouch(e, 'move'), {passive: false});
+            document.addEventListener('touchend', e => handleTouch(e, 'end'));
+            
+            // Мобільна взаємодія (клік)
+            document.addEventListener('click', () => {
+                if (isGameActive && !isModalOpen) checkIntersectionAndClick();
+                if (isModalOpen) closeModal();
+            });
+            
+            mobileSitBtn.addEventListener('click', (e) => {
+                e.stopPropagation(); // Щоб не клікати по сцені
+                toggleSit();
+            });
+        } else {
+            // Desktop clicks
+            document.addEventListener('click', () => {
+                if (isGameActive) {
+                    if (isModalOpen) closeModal();
+                    else {
+                        if (controls.isLocked) checkIntersectionAndClick();
+                        else controls.lock();
+                    }
+                }
+            });
+        }
+
+        // --- ЛОГІКА СИДІННЯ І КЛІКІВ ---
         function checkIntersectionAndClick() {
             raycaster.setFromCamera(center, camera);
             const intersects = raycaster.intersectObjects(postersArray);
@@ -594,17 +587,48 @@
         }
 
         function openModal(data) {
-            isModalOpen = true; controls.unlock();
+            isModalOpen = true; 
+            if (!isMobile) controls.unlock();
             document.getElementById('modal-img').src = data.url;
             document.getElementById('modal-title').innerText = data.title;
             document.getElementById('modal-desc').innerText = `${data.year} • ${data.desc}`;
-            modal.style.display = 'flex'; instructions.style.display = 'none';
+            modal.style.display = 'flex';
         }
 
-        function closeModal() { isModalOpen = false; modal.style.display = 'none'; controls.lock(); }
+        function closeModal() { 
+            isModalOpen = false; modal.style.display = 'none'; 
+            if (!isMobile) controls.lock(); 
+        }
 
-        controls.addEventListener('lock', () => { if(!isModalOpen) instructions.style.display = 'none'; });
-        controls.addEventListener('unlock', () => { if(!isModalOpen) instructions.style.display = 'block'; });
+        // Функція перемикання сидіння
+        function toggleSit() {
+            if (isSitting) { 
+                // ВСТАТИ
+                isSitting = false; 
+                camera.position.y = 1.7; 
+                camera.fov = 70; camera.updateProjectionMatrix();
+                bgMusic.volume = 0.5;
+                if(video1) video1.muted = true;
+                if(isMobile) mobileSitBtn.style.display = 'none';
+            } else {
+                // СІСТИ
+                const dist = camera.position.distanceTo(new THREE.Vector3(benchPosition.x, camera.position.y, benchPosition.z));
+                if (dist < 5.0) {
+                    isSitting = true; 
+                    camera.position.set(benchPosition.x, benchPosition.y + 1.2, benchPosition.z); 
+                    velocity.set(0, 0, 0);
+                    camera.lookAt(0, 3, benchPosition.z + 20); 
+                    camera.fov = 40; camera.updateProjectionMatrix();
+                    bgMusic.volume = 0.05;
+                    if(video1) { video1.muted = false; video1.volume = 1.0; }
+                    
+                    if(isMobile) {
+                        mobileSitBtn.style.display = 'flex';
+                        mobileSitBtn.innerText = "UP";
+                    }
+                }
+            }
+        }
 
         const move = { f: false, b: false, l: false, r: false, shift: false };
         const velocity = new THREE.Vector3();
@@ -617,49 +641,7 @@
             if(e.code === 'KeyD') move.r = true;
             if(e.code === 'ShiftLeft') move.shift = true;
             if(e.code === 'Space' && canJump && !isSitting) { velocity.y += 12; canJump = false; }
-            
-            // === ЛОГІКА СИДІННЯ І КІНОТЕАТРУ ===
-            if(e.code === 'KeyC') {
-                if (isSitting) { 
-                    // ВСТАТИ
-                    isSitting = false; 
-                    camera.position.y = 1.7; 
-                    
-                    // Повертаємо FOV
-                    camera.fov = 70;
-                    camera.updateProjectionMatrix();
-
-                    // Повертаємо звук
-                    if(bgSoundObj) bgSoundObj.setVolume(0.5);
-                    if(video1) video1.muted = true; // Вимикаємо звук кіно
-                } 
-                else {
-                    // СІСТИ
-                    const dist = camera.position.distanceTo(new THREE.Vector3(benchPosition.x, camera.position.y, benchPosition.z));
-                    if (dist < 5.0) { // Трохи збільшив радіус
-                        isSitting = true; 
-                        
-                        // Сідаємо
-                        camera.position.set(benchPosition.x, benchPosition.y + 1.2, benchPosition.z); 
-                        velocity.set(0, 0, 0);
-
-                        // == CINEMA MODE ==
-                        // Дивимось на екран (вглиб темної кімнати)
-                        camera.lookAt(0, 3, benchPosition.z + 20); // Приблизно на центр екрану
-                        
-                        // "Наїзд" камерою (зменшуємо FOV)
-                        camera.fov = 40; 
-                        camera.updateProjectionMatrix();
-
-                        // Звук
-                        if(bgSoundObj) bgSoundObj.setVolume(0.05); // Фонова музика дуже тихо
-                        if(video1) {
-                            video1.muted = false; // Вмикаємо звук відео
-                            video1.volume = 1.0;
-                        }
-                    }
-                }
-            }
+            if(e.code === 'KeyC') toggleSit();
         });
 
         document.addEventListener('keyup', (e) => {
@@ -673,62 +655,127 @@
         let prevTime = performance.now();
         function animate() {
             requestAnimationFrame(animate);
-            if (controls.isLocked) {
-                const time = performance.now();
-                const delta = (time - prevTime) / 1000;
-                
-                if (revolvingStage) { revolvingStage.rotation.y += 0.1 * delta; }
-                
-                // === ОБЕРТАННЯ МОДЕЛЕЙ (output4 та output7) ===
-                animatedModels.forEach(model => {
-                    model.rotation.z -= 1.0 * delta; 
-                });
+            
+            // Якщо гра не почалась або модалка відкрита - не рухаємось
+            if (!isGameActive) return;
 
-                follower.lookAt(camera.position);
-                const distToPlayer = follower.position.distanceTo(camera.position);
-                if (distToPlayer > 3.0) {
-                    const direction = new THREE.Vector3().subVectors(camera.position, follower.position).normalize();
-                    follower.position.add(direction.multiplyScalar(2.5 * delta));
-                    follower.position.y = 2.5;
+            const time = performance.now();
+            const delta = (time - prevTime) / 1000;
+            
+            if (revolvingStage) { revolvingStage.rotation.y += 0.1 * delta; }
+            animatedModels.forEach(model => { model.rotation.z -= 1.0 * delta; });
+            follower.lookAt(camera.position);
+            if (follower.position.distanceTo(camera.position) > 3.0) {
+                const direction = new THREE.Vector3().subVectors(camera.position, follower.position).normalize();
+                follower.position.add(direction.multiplyScalar(2.5 * delta));
+                follower.position.y = 2.5;
+            }
+
+            // --- РУХ ---
+            if (!isSitting) {
+                const distToBench = camera.position.distanceTo(new THREE.Vector3(benchPosition.x, camera.position.y, benchPosition.z));
+                
+                // Показуємо підказку (на ПК) або кнопку (на мобільному)
+                if (distToBench < 5.0) {
+                    if (isMobile) {
+                        mobileSitBtn.style.display = 'flex'; mobileSitBtn.innerText = "SIT";
+                    } else {
+                        sitHint.style.display = 'block';
+                    }
+                } else {
+                    sitHint.style.display = 'none';
+                    if (isMobile && !isSitting) mobileSitBtn.style.display = 'none';
                 }
-                if (!isSitting) {
-                    const distToBench = camera.position.distanceTo(new THREE.Vector3(benchPosition.x, camera.position.y, benchPosition.z));
-                    sitHint.style.display = (distToBench < 5.0) ? 'block' : 'none';
-                    velocity.x -= velocity.x * 10.0 * delta;
-                    velocity.z -= velocity.z * 10.0 * delta;
-                    velocity.y -= 30.0 * delta; 
-                    const speed = move.shift ? 150 : 80;
-                    const direction = new THREE.Vector3();
+
+                velocity.x -= velocity.x * 10.0 * delta;
+                velocity.z -= velocity.z * 10.0 * delta;
+                velocity.y -= 30.0 * delta; 
+                
+                const speed = (move.shift ? 150 : 80);
+                const direction = new THREE.Vector3();
+
+                // INPUT: Desktop vs Mobile
+                if (isMobile) {
+                    // Mobile movement
+                    if (joystickL.active) {
+                        // moveY < 0 is forward on joystick usually
+                        direction.z = joystickL.moveY; 
+                        direction.x = joystickL.moveX; 
+                    }
+                    
+                    // Mobile rotation
+                    if (joystickR.active) {
+                        camera.rotation.y -= joystickR.deltaX * 300 * delta; // Yaw
+                        // Optional pitch limit could go here
+                        // camera.rotation.x -= joystickR.deltaY; 
+                    }
+                } else {
+                    // Desktop movement
                     direction.z = Number(move.f) - Number(move.b);
                     direction.x = Number(move.r) - Number(move.l);
-                    direction.normalize();
+                }
+                
+                direction.normalize();
+
+                // Застосовуємо рух відносно погляду камери
+                if (isMobile) {
+                     // На мобільному треба вручну рахувати Forward/Right вектори
+                     if (joystickL.active) {
+                         const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion);
+                         forward.y = 0; forward.normalize();
+                         const right = new THREE.Vector3(1, 0, 0).applyQuaternion(camera.quaternion);
+                         right.y = 0; right.normalize();
+                         
+                         // joystickL.moveY (up is negative) -> forward
+                         // joystickL.moveX (right is positive) -> right
+                         velocity.x += (right.x * joystickL.moveX + forward.x * joystickL.moveY) * speed * delta;
+                         velocity.z += (right.z * joystickL.moveX + forward.z * joystickL.moveY) * speed * delta;
+                     }
+                } else {
                     if (move.f || move.b) velocity.z -= direction.z * speed * delta;
                     if (move.l || move.r) velocity.x -= direction.x * speed * delta;
                     controls.moveRight(-velocity.x * delta);
                     controls.moveForward(-velocity.z * delta);
-                    camera.position.y += velocity.y * delta;
-                    if (camera.position.y < 1.7) { velocity.y = 0; camera.position.y = 1.7; canJump = true; }
-                    const pPos = camera.position;
-                    const pBox = new THREE.Box3(new THREE.Vector3(pPos.x-0.4, pPos.y-1, pPos.z-0.4), new THREE.Vector3(pPos.x+0.4, pPos.y+1, pPos.z+0.4));
-                    let hit = false;
-                    for(let obj of collidableObjects) {
-                        if (obj.box && pBox.intersectsBox(obj.box)) hit = true;
-                        if (obj.customType === 'cylinder') {
-                            const dist = Math.sqrt(Math.pow(pPos.x - obj.position.x, 2) + Math.pow(pPos.z - obj.position.z, 2));
-                            if (dist < obj.radius) hit = true;
-                        }
-                    }
-                    if(hit) { controls.moveForward(velocity.z * delta); controls.moveRight(velocity.x * delta); }
-                } else {
-                    sitHint.style.display = 'none';
-                    velocity.set(0,0,0);
                 }
-                raycaster.setFromCamera(center, camera);
-                const intersects = raycaster.intersectObjects(postersArray);
-                if (intersects.length > 0 && intersects[0].distance < 6) cursor.classList.add('hover-active');
-                else cursor.classList.remove('hover-active');
-                prevTime = time;
-            } else { prevTime = performance.now(); }
+
+                if(isMobile) {
+                    camera.position.add(new THREE.Vector3(velocity.x * delta, 0, velocity.z * delta));
+                }
+
+                camera.position.y += velocity.y * delta;
+                if (camera.position.y < 1.7) { velocity.y = 0; camera.position.y = 1.7; canJump = true; }
+                
+                // Колізії
+                const pPos = camera.position;
+                const pBox = new THREE.Box3(new THREE.Vector3(pPos.x-0.4, pPos.y-1, pPos.z-0.4), new THREE.Vector3(pPos.x+0.4, pPos.y+1, pPos.z+0.4));
+                let hit = false;
+                for(let obj of collidableObjects) {
+                    if (obj.box && pBox.intersectsBox(obj.box)) hit = true;
+                    if (obj.customType === 'cylinder') {
+                        const dist = Math.sqrt(Math.pow(pPos.x - obj.position.x, 2) + Math.pow(pPos.z - obj.position.z, 2));
+                        if (dist < obj.radius) hit = true;
+                    }
+                }
+                // Простий відкат при колізії
+                if(hit) { 
+                    if(isMobile) {
+                        camera.position.sub(new THREE.Vector3(velocity.x * delta, 0, velocity.z * delta));
+                    } else {
+                        controls.moveForward(velocity.z * delta); controls.moveRight(velocity.x * delta); 
+                    }
+                }
+            } else {
+                sitHint.style.display = 'none';
+                velocity.set(0,0,0);
+            }
+
+            // Курсор активний?
+            raycaster.setFromCamera(center, camera);
+            const intersects = raycaster.intersectObjects(postersArray);
+            if (intersects.length > 0 && intersects[0].distance < 6) cursor.classList.add('hover-active');
+            else cursor.classList.remove('hover-active');
+            
+            prevTime = time;
             renderer.render(scene, camera);
         }
         animate();

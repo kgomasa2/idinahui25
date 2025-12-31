@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Olympia Gallery - Ultra Optimized</title>
+    <title>Olympia Gallery - Performance Fix</title>
     <style>
         body { margin: 0; overflow: hidden; background-color: #000; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; touch-action: none; user-select: none; -webkit-user-select: none; }
         
@@ -154,7 +154,6 @@
             setTimeout(() => {
                 document.getElementById('loading-screen').style.display = 'none';
                 document.getElementById('start-screen').style.display = 'flex';
-                // Починаємо вантажити першу кімнату (Lazy Load) для всіх
                 checkRoomLoad(0);
             }, 500);
         };
@@ -178,7 +177,7 @@
         } else {
             renderer.shadowMap.enabled = true;
             renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5)); // Оптимізація для ПК теж
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5)); 
         }
         
         document.body.appendChild(renderer.domElement);
@@ -186,7 +185,55 @@
         const bgMusic = document.getElementById('bgMusic');
         bgMusic.volume = 0.5;
 
-        // --- LAZY LOAD SYSTEM ---
+        // --- 2. МАТЕРІАЛИ ---
+        const textureLoader = new THREE.TextureLoader(manager);
+        const concreteTex = textureLoader.load('https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/plaster_grey_04/plaster_grey_04_diff_1k.jpg');
+        concreteTex.wrapS = concreteTex.wrapT = THREE.RepeatWrapping;
+        concreteTex.repeat.set(10, 40); concreteTex.colorSpace = THREE.SRGBColorSpace;
+
+        const wallMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.5 });
+        const floorMat = new THREE.MeshStandardMaterial({ map: concreteTex, roughness: 0.8, color: 0xaaaaaa });
+        const darkWallMat = new THREE.MeshStandardMaterial({ color: 0x050505, roughness: 0.9 });
+        const darkFloorMat = new THREE.MeshStandardMaterial({ color: 0x020202, roughness: 0.9 });
+        const tvFrameMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.2 });
+        const cableMat = new THREE.MeshBasicMaterial({ color: 0x000000 });
+        const benchMat = new THREE.MeshStandardMaterial({ color: 0xdddddd, roughness: 0.3 });
+        const mobilePosterMat = new THREE.MeshStandardMaterial({ color: 0xcccccc, roughness: 0.6, metalness: 0.1 });
+
+        const video1 = document.getElementById('video1');
+        const video2 = document.getElementById('video2');
+        let videoTex1 = new THREE.VideoTexture(video1);
+        let videoTex2 = new THREE.VideoTexture(video2);
+        videoTex1.colorSpace = THREE.SRGBColorSpace;
+        videoTex2.colorSpace = THREE.SRGBColorSpace;
+
+        const collidableObjects = []; 
+        const postersArray = []; 
+        let posterIdx = 0;
+        let revolvingStage = null;
+        const animatedModels = [];
+
+        let currentImageId = 1;
+        const totalImages = 65; 
+
+        function getNextImage() {
+            const id = currentImageId;
+            let wallUrl;
+            if (isMobile) {
+                wallUrl = `assets/small_mobile/image${id}.jpg`;
+            } else {
+                wallUrl = `assets/small/image${id}.jpg`;
+            }
+            const fullUrl = `assets/image${id}.png`; 
+            const title = `Artwork #${id}`;
+            currentImageId++; 
+            if (currentImageId > totalImages) currentImageId = 1; 
+            return { wallUrl, fullUrl, title, id };
+        }
+
+        // --- 3. ФУНКЦІЇ БУДІВНИЦТВА ---
+        
+        // LAZY LOAD VARS
         const pendingPosters = {}; 
         const roomsLoaded = {}; 
         const lazyLoader = new THREE.TextureLoader();
@@ -207,7 +254,6 @@
                     item.mesh.material = newMat;
                     item.mesh.material.needsUpdate = true;
                 }, undefined, () => {
-                    // Fallback to PNG if JPG missing
                     const pngUrl = item.url.replace('small_mobile/', '').replace('small/', '').replace('.jpg', '.png');
                     lazyLoader.load(pngUrl, (tex2)=>{
                         tex2.colorSpace = THREE.SRGBColorSpace;
@@ -218,70 +264,19 @@
             });
         }
 
-        // --- 2. МАТЕРІАЛИ ---
-        const textureLoader = new THREE.TextureLoader(manager);
-        const concreteTex = textureLoader.load('https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/plaster_grey_04/plaster_grey_04_diff_1k.jpg');
-        concreteTex.wrapS = concreteTex.wrapT = THREE.RepeatWrapping;
-        concreteTex.repeat.set(10, 40); concreteTex.colorSpace = THREE.SRGBColorSpace;
-
-        const wallMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.5 });
-        const floorMat = new THREE.MeshStandardMaterial({ map: concreteTex, roughness: 0.8, color: 0xaaaaaa });
-        const darkWallMat = new THREE.MeshStandardMaterial({ color: 0x050505, roughness: 0.9 });
-        const darkFloorMat = new THREE.MeshStandardMaterial({ color: 0x020202, roughness: 0.9 });
-        const tvFrameMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.2 });
-        const cableMat = new THREE.MeshBasicMaterial({ color: 0x000000 });
-        const benchMat = new THREE.MeshStandardMaterial({ color: 0xdddddd, roughness: 0.3 });
-        const placeholderMat = new THREE.MeshStandardMaterial({ color: 0xdddddd, roughness: 0.8 }); // Placeholder
-
-        const video1 = document.getElementById('video1');
-        const video2 = document.getElementById('video2');
-        let videoTex1 = new THREE.VideoTexture(video1);
-        let videoTex2 = new THREE.VideoTexture(video2);
-        videoTex1.colorSpace = THREE.SRGBColorSpace;
-        videoTex2.colorSpace = THREE.SRGBColorSpace;
-
-        const collidableObjects = []; 
-        const postersArray = []; 
-        let posterIdx = 0;
-        let revolvingStage = null;
-        const animatedModels = [];
-
-        // --- IMAGE LOGIC ---
-        let currentImageId = 1;
-        const totalImages = 65; 
-
-        function getNextImage() {
-            const id = currentImageId;
-            // ЛОГІКА ШЛЯХІВ
-            let wallUrl;
-            if (isMobile) {
-                // Мобільна папка (дуже малі)
-                wallUrl = `assets/small_mobile/image${id}.jpg`;
-            } else {
-                // Десктоп папка (середні)
-                wallUrl = `assets/small/image${id}.jpg`;
-            }
-            const fullUrl = `assets/image${id}.png`; 
-            const title = `Artwork #${id}`;
-            currentImageId++; 
-            if (currentImageId > totalImages) currentImageId = 1; 
-            return { wallUrl, fullUrl, title, id };
-        }
-
-        // --- 3. ФУНКЦІЇ БУДІВНИЦТВА ---
-        
         function addPoster(x, y, z, ry, w, h, roomIndex) {
             const data = getNextImage();
             const geo = new THREE.PlaneGeometry(w, h);
             
-            // Спочатку створюємо з пустим матеріалом (для швидкості)
-            const mesh = new THREE.Mesh(geo, placeholderMat);
+            // Завжди створюємо спочатку легку заглушку
+            // Навіть на ПК - це пришвидшить ініціалізацію
+            // Текстура підвантажиться через loadRoomTextures
+            const mesh = new THREE.Mesh(geo, mobilePosterMat);
 
             mesh.position.set(x, y, z); mesh.rotation.y = ry;
             mesh.userData = { isPoster: true, url: data.fullUrl, title: data.title, year: "2025", desc: "Collection" };
             scene.add(mesh); postersArray.push(mesh); 
             
-            // Додаємо в чергу на Lazy Load
             if (!pendingPosters[roomIndex]) pendingPosters[roomIndex] = [];
             pendingPosters[roomIndex].push({ mesh: mesh, url: data.wallUrl, side: THREE.FrontSide });
         }
@@ -371,9 +366,8 @@
             
             function mountPoster(px, py, pz, ry, width, height, pipeYLevel) {
                 const data = getNextImage();
-                // Спочатку placeholder
-                const mesh = new THREE.Mesh(new THREE.PlaneGeometry(2.0, 2.5), placeholderMat.clone());
-                mesh.material.side = THREE.DoubleSide; // Важливо для конструкції
+                const mesh = new THREE.Mesh(new THREE.PlaneGeometry(2.0, 2.5), mobilePosterMat);
+                mesh.material.side = THREE.DoubleSide; 
 
                 mesh.position.set(px, py, pz); mesh.rotation.y = ry;
                 const stringMat = new THREE.LineBasicMaterial({ color: 0x111111 });
@@ -387,7 +381,6 @@
                 mesh.userData = { isPoster: true, url: data.fullUrl, title: data.title, year: "2025", desc: "Mounted Installation" };
                 structureGroup.add(mesh); postersArray.push(mesh);
 
-                // Додаємо в чергу
                 if (!pendingPosters[roomIndex]) pendingPosters[roomIndex] = [];
                 pendingPosters[roomIndex].push({ mesh: mesh, url: data.wallUrl, side: THREE.DoubleSide });
             }
@@ -421,8 +414,9 @@
                     object.scale.set(targetScale, targetScale, targetScale);
                     object.traverse((child) => { 
                         if (child.isMesh) { 
-                            child.castShadow = !isMobile; 
-                            child.receiveShadow = !isMobile; 
+                            // === PERFORMANCE FIX: NO SHADOWS ON MODELS ===
+                            child.castShadow = false; 
+                            child.receiveShadow = !isMobile; // Only receive if desktop
                         } 
                     });
                     if (filename === 'output3.fbx') { object.rotation.set(0, 0, 0); } else { object.rotation.set(-Math.PI / 2, 0, 0); }
@@ -440,7 +434,12 @@
                             obj7.scale.set(smallScale, smallScale, smallScale); 
                             obj7.rotation.set(-Math.PI / 2, 0, 0);
                             animatedModels.push(obj7);
-                            obj7.traverse((child) => { if (child.isMesh) { child.castShadow = !isMobile; child.receiveShadow = !isMobile; } });
+                            obj7.traverse((child) => { 
+                                if (child.isMesh) { 
+                                    child.castShadow = false; 
+                                    child.receiveShadow = !isMobile; 
+                                } 
+                            });
                             const box6 = new THREE.Box3().setFromObject(object);
                             const topY = box6.max.y;
                             obj7.updateMatrixWorld();
@@ -464,7 +463,12 @@
                 let targetScale = (maxDim > 5) ? 3.0 / maxDim : (maxDim < 0.5 ? 2.0 / maxDim : 1.0);
                 targetScale *= 1.2; 
                 object.scale.set(targetScale, targetScale, targetScale);
-                object.traverse((child) => { if (child.isMesh) { child.castShadow = !isMobile; child.receiveShadow = !isMobile; } });
+                object.traverse((child) => { 
+                    if (child.isMesh) { 
+                        child.castShadow = false; 
+                        child.receiveShadow = !isMobile; 
+                    } 
+                });
                 object.rotation.set(-Math.PI/2, 0, 0);
                 const hangY = 2.5;
                 object.position.set(x, hangY, z);
@@ -598,7 +602,7 @@
 
             if (!isMobile) {
                 controls.lock();
-                checkRoomLoad(0); // На ПК теж вантажимо ліниво, але з папки 'small'
+                checkRoomLoad(0); 
             } else {
                 document.getElementById('stick-left').style.display = 'block';
                 document.getElementById('stick-right').style.display = 'block';

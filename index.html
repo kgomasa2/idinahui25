@@ -61,13 +61,13 @@
         
         /* Mobile UI Elements */
         .joystick-zone {
-            position: absolute; width: 120px; height: 120px;
+            position: absolute; width: 100px; height: 100px; 
             background: rgba(255, 255, 255, 0.1); border-radius: 50%;
             border: 2px solid rgba(255, 255, 255, 0.2);
             display: none; z-index: 40; touch-action: none; pointer-events: none;
         }
         .stick-knob {
-            position: absolute; top: 50%; left: 50%; width: 50px; height: 50px;
+            position: absolute; top: 50%; left: 50%; width: 40px; height: 40px;
             background: rgba(255, 255, 255, 0.5); border-radius: 50%;
             transform: translate(-50%, -50%); pointer-events: none;
         }
@@ -82,27 +82,36 @@
             box-shadow: 0 0 10px rgba(255,255,255,0.2);
         }
 
-        /* NEW VIEW BUTTON FOR MOBILE */
+        /* COMPACT VIEW BUTTON */
         #view-btn {
             position: absolute; bottom: 130px; left: 50%; transform: translateX(-50%);
-            padding: 15px 40px; border-radius: 30px;
-            background: rgba(255, 255, 255, 0.9); color: black;
-            font-weight: bold; font-size: 1.1rem; letter-spacing: 2px;
+            padding: 10px 25px; border-radius: 25px; /* Compact */
+            background: rgba(255, 255, 255, 0.95); color: black;
+            font-weight: bold; font-size: 0.9rem; letter-spacing: 1px; white-space: nowrap;
             display: none; z-index: 46; cursor: pointer;
-            box-shadow: 0 0 20px rgba(255,255,255,0.4);
+            box-shadow: 0 0 15px rgba(255,255,255,0.5);
             animation: pulseBtn 2s infinite;
         }
         @keyframes pulseBtn { 0% { transform: translateX(-50%) scale(1); } 50% { transform: translateX(-50%) scale(1.05); } 100% { transform: translateX(-50%) scale(1); } }
         
+        /* ARTWORK MODAL WITH CLOSE BUTTON */
         #artwork-modal {
             display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(10, 10, 10, 0.98); z-index: 60;
             flex-direction: column; align-items: center; justify-content: center;
-            text-align: center; cursor: pointer; color: white;
+            text-align: center; color: white;
         }
         #modal-img { max-height: 70vh; max-width: 95%; box-shadow: 0 10px 30px rgba(0,0,0,0.5); margin-bottom: 20px; object-fit: contain; }
         #modal-info { max-width: 600px; padding: 0 20px; }
         #modal-title { font-weight: 800; font-size: 1.5rem; margin: 0 0 5px 0; text-transform: uppercase; }
+        
+        #modal-close-btn {
+            position: absolute; top: 30px; right: 30px;
+            width: 40px; height: 40px; border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2); border: 1px solid white;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.2rem; cursor: pointer; pointer-events: auto;
+        }
     </style>
     
     <script type="importmap">
@@ -138,7 +147,7 @@
 
     <div id="stick-container" class="joystick-zone"><div class="stick-knob"></div></div>
     <div id="mobile-sit-btn">SIT</div>
-    <div id="view-btn">VIEW ARTWORK</div>
+    <div id="view-btn">VIEW</div>
 
     <audio id="bgMusic" loop preload="auto">
         <source src="assets/song.mp3" type="audio/mpeg">
@@ -152,11 +161,11 @@
     </video>
 
     <div id="artwork-modal">
+        <div id="modal-close-btn">✕</div>
         <img id="modal-img" src="" alt="Artwork">
         <div id="modal-info">
             <div id="modal-title">TITLE</div>
             <p id="modal-desc">Description</p>
-            <p style="font-size: 0.8rem; margin-top: 20px; color: #888;">TAP TO CLOSE</p>
         </div>
     </div>
 
@@ -170,7 +179,6 @@
 
         // --- LOADING SYSTEM ---
         const loadStartTime = Date.now();
-        // FIX: Increased load time for mobile to ensure Room 0 textures are ready
         const minLoadTime = 4500; 
         const loadingStatus = document.getElementById('loader-status');
         const loadingPercent = document.getElementById('loader-percent');
@@ -207,7 +215,6 @@
         }
 
         if (isMobile) {
-            // Simulated loading for mobile
             let simPercent = 0;
             const simInterval = setInterval(() => {
                 simPercent += 3;
@@ -220,7 +227,6 @@
                 }
             }, 60);
         } else {
-            // Real loading for desktop
             manager.onProgress = function (item, loaded, total) {
                 const rawPercent = (loaded / total) * 100;
                 if(!isNaN(rawPercent)) {
@@ -243,7 +249,6 @@
         RectAreaLightUniformsLib.init();
 
         const aspect = window.innerWidth / window.innerHeight;
-        // WIDER FOV FOR PORTRAIT MODE
         const initialFov = aspect < 1 ? 95 : 70;
         const camera = new THREE.PerspectiveCamera(initialFov, window.innerWidth / window.innerHeight, 0.1, 100);
         camera.position.set(0, 1.7, 8); 
@@ -429,7 +434,7 @@
             mesh.position.set(x, y, z); 
             mesh.receiveShadow = !isMobile;
             if(isWall) { 
-                if (!isMobile && !isDark && w > 1 && h > 1) mesh.castShadow = true;
+                if (w > 1 && h > 1) mesh.castShadow = true;
                 mesh.updateMatrixWorld(); 
                 collidableObjects.push({ box: new THREE.Box3().setFromObject(mesh) }); 
             }
@@ -489,9 +494,8 @@
             revolvingStage = new THREE.Group();
             revolvingStage.position.set(x, 0, z);
             
-            // FIX: NO SCAFFOLDING ON MOBILE (Posters distributed on walls)
             if (isMobile) {
-               // Empty center for mobile
+               // Empty on Mobile
             } else {
                 const platform = new THREE.Mesh(new THREE.CylinderGeometry(3.5, 3.5, 0.2, 32), new THREE.MeshStandardMaterial({ color: 0x333333, roughness: 0.8, metalness: 0.5 }));
                 platform.position.y = 0.1; platform.receiveShadow = !isMobile; revolvingStage.add(platform);
@@ -539,7 +543,7 @@
                     mesh.position.set(px, py, pz); mesh.rotation.y = ry;
                     
                     const stringMat = new THREE.LineBasicMaterial({ color: 0x111111 });
-                    const topOfPosterY = 2.5 / 2; const distToPipe = (pipeYLevel - 0.05) - (py + topOfPosterY);
+                    const pW = 2.0; const pH = 2.5; const topOfPosterY = pH / 2; const distToPipe = (pipeYLevel - 0.05) - (py + topOfPosterY);
                     const pointsL = [new THREE.Vector3(-1 + 0.15, topOfPosterY, 0), new THREE.Vector3(-1 + 0.15, topOfPosterY + distToPipe, 0)];
                     const pointsR = [new THREE.Vector3(1 - 0.15, topOfPosterY, 0), new THREE.Vector3(1 - 0.15, topOfPosterY + distToPipe, 0)];
                     mesh.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pointsL), stringMat)); mesh.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pointsR), stringMat));
@@ -576,6 +580,7 @@
         const modelFiles = ['1.glb', '2.glb', '3.glb', '4.glb', '5.glb', '6.glb', '8.glb'];
         
         function loadAllModels(roomCenterX, roomCenterZ, roomIndex) {
+            // FIX: Restore models on mobile (but standard loop)
             const gltfLoader = new GLTFLoader(manager);
             modelFiles.forEach((filename, index) => {
                 const angle = (index / modelFiles.length) * Math.PI * 2;
@@ -649,11 +654,10 @@
         }
 
         // --- 5. WORLD GENERATION ---
-        // FIX: Only 4 rooms on Mobile (No dark room)
         const roomsCount = isMobile ? 4 : 5;
         
         const roomSize = 20; const roomHeight = 6; 
-        const whiteFloorL = roomSize * (roomsCount - (isMobile ? 0 : 1)); // Mobile has 4 white rooms
+        const whiteFloorL = roomSize * (roomsCount - (isMobile ? 0 : 1)); 
         const floor1 = new THREE.Mesh(new THREE.PlaneGeometry(roomSize, whiteFloorL), floorMat);
         floor1.rotation.x = -Math.PI / 2; floor1.position.z = -whiteFloorL / 2 + roomSize / 2; floor1.receiveShadow = !isMobile; scene.add(floor1);
         
@@ -670,7 +674,7 @@
             const isDarkRoom = (!isMobile && i === roomsCount - 1);
             
             if (!isDarkRoom) {
-                // FIX: BRIGHTER LIGHTING FOR MOBILE
+                // LIGHTING
                 if (isMobile) {
                     const roomLight = new THREE.PointLight(0xffffff, 1.5, 25);
                     roomLight.position.set(0, 5, zCenter);
@@ -695,6 +699,14 @@
             if (i === 0) {
                 createBox(0, roomHeight/2, zCenter + roomSize/2, roomSize, roomHeight, 0.5, true, isDarkRoom, null, i);
                 createDoorWall(zCenter - roomSize/2, roomSize, roomHeight, isDarkRoom, i);
+                
+                // --- PLACING POSTERS ON DOOR WALLS (Room 0) ---
+                if (isMobile) {
+                    // Front Wall (Inside looking at Entrance)
+                    addPoster( -3.5, 2.7, zCenter + roomSize/2 - 0.3, Math.PI, 2.2, 2.8, i); // Left of door
+                    addPoster( 3.5, 2.7, zCenter + roomSize/2 - 0.3, Math.PI, 2.2, 2.8, i);  // Right of door
+                }
+
             } else if (isDarkRoom) {
                 createBox(0, roomHeight/2, zCenter - roomSize/2, roomSize, roomHeight, 0.5, true, isDarkRoom, null, i);
                 const darkCeiling = new THREE.Mesh(new THREE.PlaneGeometry(roomSize, roomSize), darkWallMat);
@@ -702,10 +714,21 @@
                 benchPosition.set(0, 0.4, zCenter);
                 createBox(0, 0.4, zCenter, 3.5, 0.8, 1.5, true, false, benchMat, i);
             } else if (isMobile && i === roomsCount - 1) {
-                // Mobile End Wall (since no dark room)
+                // Mobile End Wall
                 createBox(0, roomHeight/2, zCenter - roomSize/2, roomSize, roomHeight, 0.5, true, false, null, i);
             } else {
                 createDoorWall(zCenter - roomSize/2, roomSize, roomHeight, false, i);
+                
+                // --- PLACING POSTERS ON DOOR WALLS (Room > 0) ---
+                if (isMobile) {
+                    // Back Wall (Next to the door leading to NEXT room)
+                    addPoster( -3.5, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i); // Left of door
+                    addPoster( 3.5, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i);  // Right of door
+                    
+                    // Front Wall (Next to the door leading to PREVIOUS room)
+                    addPoster( -3.5, 2.7, zCenter + roomSize/2 - 0.3, Math.PI, 2.2, 2.8, i); 
+                    addPoster( 3.5, 2.7, zCenter + roomSize/2 - 0.3, Math.PI, 2.2, 2.8, i); 
+                }
             }
             
             if (!isDarkRoom) {
@@ -717,11 +740,14 @@
                     createHangingTV(0, zCenter, roomHeight, rotation, i); 
                 }
                 
-                // MOBILE POSTER DENSITY - FILLING WALLS
-                const standardW = 2.6; const standardH = 3.25; 
-                // Fit 8 posters per side on mobile to absorb extras from scaffold
-                const postersPerSide = isMobile ? 8 : 6; 
-                const sideSpacing = isMobile ? 2.4 : 3.0; 
+                // --- POSTER PLACEMENT LOGIC ---
+                // Resetting spacing to 3.0 so they don't overlap
+                const standardW = isMobile ? 2.2 : 2.6; 
+                const standardH = isMobile ? 2.8 : 3.25; 
+                
+                // Mobile: 6 per side (spaced well) + posters on door walls above
+                const postersPerSide = 6; 
+                const sideSpacing = 3.0; // Standard spacing
                 
                 const startZ = zCenter + (postersPerSide * sideSpacing / 2) - (sideSpacing / 2); 
                 for (let k = 0; k < postersPerSide; k++) {
@@ -730,6 +756,7 @@
                     addPoster(9.7, 2.7, zPos, -Math.PI/2, standardW, standardH, i);
                 }
                 
+                // Center-ish posters
                 const offsetX = 6.0; const offsetZ = 0.3; 
                 addPoster(-offsetX, 2.7, zCenter - roomSize/2 + offsetZ, 0, standardW, standardH, i);
                 addPoster(offsetX, 2.7, zCenter - roomSize/2 + offsetZ, 0, standardW, standardH, i);
@@ -739,16 +766,17 @@
                    addPoster(offsetX, 2.7, zCenter + roomSize/2 - offsetZ, Math.PI, standardW, standardH, i);
                 }
             } else {
-                // Dark Room logic (Desktop Only)
                 const projW = 9.0; const projH = 5.06;
                 const wallDist = (roomSize/2) - 0.4;
                 createProjection(0, 3, zCenter - wallDist, projW, projH, 0, videoTex1, i);
-                createProjection(-wallDist, 3, zCenter, projW, projH, Math.PI/2, videoTex1, i);
-                createProjection(wallDist, 3, zCenter, projW, projH, -Math.PI/2, videoTex1, i);
+                if (!isMobile) {
+                    createProjection(-wallDist, 3, zCenter, projW, projH, Math.PI/2, videoTex1, i);
+                    createProjection(wallDist, 3, zCenter, projW, projH, -Math.PI/2, videoTex1, i);
+                }
             }
         }
 
-        // --- FOLLOWER LOGIC ---
+        // --- FOLLOWER LOGIC (Desktop Only) ---
         let isFollowing = true;
         let follower = null;
         
@@ -765,7 +793,7 @@
         }
 
         // --- GLOBAL LIGHTS ---
-        // Much stronger Ambient for mobile to fix darkness
+        // Brighter ambient for mobile
         const ambientLight = new THREE.AmbientLight(0xffffff, isMobile ? 1.6 : 0.6); 
         scene.add(ambientLight);
         
@@ -781,7 +809,6 @@
             dirLight.shadow.mapSize.height = 512;
             scene.add(dirLight);
         } else {
-            // Extra directional for mobile punch
             const dirLightMobile = new THREE.DirectionalLight(0xffffff, 0.8);
             dirLightMobile.position.set(5, 10, 7);
             scene.add(dirLightMobile);
@@ -795,6 +822,7 @@
         const mobileSitBtn = document.getElementById('mobile-sit-btn');
         const viewBtn = document.getElementById('view-btn');
         const modal = document.getElementById('artwork-modal');
+        const modalClose = document.getElementById('modal-close-btn');
         const raycaster = new THREE.Raycaster();
         const center = new THREE.Vector2(0, 0);
         const cursor = document.getElementById('cursor');
@@ -802,29 +830,32 @@
         let isModalOpen = false;
         let isSitting = false;
         let isGameActive = false;
-        let currentTarget = null; // For view button
+        let currentTarget = null; 
 
         function startGame(e) {
             e.preventDefault(); e.stopPropagation();
             startScreen.style.display = 'none';
             isGameActive = true;
-            
             bgMusic.play().catch(e => console.log("Audio block", e));
-            
             if(!isMobile) {
                 video1.play().catch(e => console.log("Video1 block", e));
                 video2.play().catch(e => console.log("Video2 block", e));
             }
-
             if (!isMobile) {
                 controls.lock();
             } else {
                 document.getElementById('mobile-look-hint').style.display = 'block';
+                // Trigger initial mobile load
+                updateMobileRooms(0);
             }
         }
 
         startBtn.addEventListener('click', startGame);
         startBtn.addEventListener('touchstart', startGame);
+        
+        // Modal close button logic
+        modalClose.addEventListener('click', closeModal);
+        modalClose.addEventListener('touchstart', (e) => { e.stopPropagation(); closeModal(); });
 
         // --- MOBILE CONTROLS ---
         const stickContainer = document.getElementById('stick-container');
@@ -842,6 +873,9 @@
                 for (let i = 0; i < e.changedTouches.length; i++) {
                     const t = e.changedTouches[i];
                     const halfWidth = window.innerWidth / 2;
+                    // Prevent joystick if modal open
+                    if(isModalOpen) continue;
+
                     if (moveTouchId === null && t.clientX < halfWidth) {
                         moveTouchId = t.identifier;
                         stickContainer.style.display = 'block';
@@ -851,7 +885,7 @@
                         stickKnob.style.transform = `translate(-50%, -50%)`;
                     }
                     else if (lookTouchId === null && t.clientX > halfWidth) {
-                        if (e.target.id === 'mobile-sit-btn' || e.target.id === 'view-btn' || e.target.closest('#artwork-modal')) continue;
+                        if (e.target.id === 'mobile-sit-btn' || e.target.id === 'view-btn' || e.target.id === 'modal-close-btn' || e.target.closest('#artwork-modal')) continue;
                         lookTouchId = t.identifier;
                         lookStartX = t.clientX;
                         lookStartY = t.clientY;
@@ -860,7 +894,7 @@
             }
 
             function handleTouchMove(e) {
-                if (!isGameActive) return;
+                if (!isGameActive || isModalOpen) return;
                 e.preventDefault(); 
                 for (let i = 0; i < e.changedTouches.length; i++) {
                     const t = e.changedTouches[i];
@@ -904,10 +938,11 @@
             document.addEventListener('touchstart', handleTouchStart, {passive: false});
             document.addEventListener('touchmove', handleTouchMove, {passive: false});
             document.addEventListener('touchend', handleTouchEnd);
-            document.addEventListener('click', () => { if (isModalOpen) closeModal(); });
+            
+            // View button Logic
             mobileSitBtn.addEventListener('touchstart', (e) => { e.stopPropagation(); toggleSit(); });
             viewBtn.addEventListener('touchstart', (e) => { 
-                e.stopPropagation(); 
+                e.preventDefault(); e.stopPropagation(); 
                 if (currentTarget) openModal(currentTarget.userData); 
             });
         } else {
@@ -929,9 +964,21 @@
             if (intersects.length > 0 && intersects[0].distance < 8) {
                 const obj = intersects[0].object;
                 if (obj.userData.type === 'poster') {
-                    openModal(obj.userData);
+                    if(isMobile) {
+                        // Mobile: Show button
+                        currentTarget = obj;
+                        viewBtn.style.display = 'block';
+                    } else {
+                        // Desktop: Click
+                        openModal(obj.userData);
+                    }
                 } else if (obj.userData.type === 'follower') {
                     isFollowing = !isFollowing;
+                }
+            } else {
+                if(isMobile) {
+                    viewBtn.style.display = 'none';
+                    currentTarget = null;
                 }
             }
         }
@@ -944,7 +991,7 @@
             document.getElementById('modal-title').innerText = data.title;
             document.getElementById('modal-desc').innerText = `${data.year} • ${data.desc}`;
             modal.style.display = 'flex';
-            viewBtn.style.display = 'none'; // Hide button when modal opens
+            viewBtn.style.display = 'none';
         }
 
         function closeModal() { 
@@ -1008,7 +1055,6 @@
                 if (revolvingStage) { revolvingStage.rotation.y += 0.1 * delta; }
                 animatedModels.forEach(model => { model.rotation.y -= 1.0 * delta; });
             } else {
-                // Models rotation on mobile
                 animatedModels.forEach(model => { model.rotation.y -= 1.0 * delta; });
             }
             
@@ -1079,32 +1125,18 @@
                     const currentRoom = Math.max(0, Math.round(-camera.position.z / 20));
                     if (currentRoom !== lastRoomIndex) {
                         lastRoomIndex = currentRoom;
-                        checkRoomLoad(currentRoom);
+                        updateMobileRooms(currentRoom);
                     }
+                    // CONTINUOUS CHECK for View Button
+                    if (!isModalOpen) checkIntersectionAndClick();
                 }
 
             } else { sitHint.style.display = 'none'; velocity.set(0,0,0); }
             
-            raycaster.setFromCamera(center, camera);
-            const hoverCheck = [...postersArray, ...interactiveObjects];
-            const intersects = raycaster.intersectObjects(hoverCheck);
-            
-            // VIEW BUTTON LOGIC
-            if (isMobile && !isModalOpen) {
-                if (intersects.length > 0 && intersects[0].distance < 8) {
-                    currentTarget = intersects[0].object;
-                    if (currentTarget.userData.type === 'poster') {
-                        viewBtn.style.display = 'block';
-                    } else {
-                        viewBtn.style.display = 'none';
-                    }
-                } else {
-                    viewBtn.style.display = 'none';
-                    currentTarget = null;
-                }
-            }
-
             if (!isMobile) {
+                raycaster.setFromCamera(center, camera);
+                const hoverCheck = [...postersArray, ...interactiveObjects];
+                const intersects = raycaster.intersectObjects(hoverCheck);
                 if (intersects.length > 0 && intersects[0].distance < 8) cursor.classList.add('hover-active'); else cursor.classList.remove('hover-active');
             }
             
@@ -1116,8 +1148,7 @@
         window.addEventListener('resize', () => {
             const asp = window.innerWidth / window.innerHeight;
             camera.aspect = asp;
-            // Adjust FOV on resize if orientation changes
-            camera.fov = asp < 1 ? 95 : 70;
+            camera.fov = (isMobile && asp < 1) ? 95 : 70;
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
         });

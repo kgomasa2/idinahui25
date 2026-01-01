@@ -23,12 +23,12 @@
             #orientation-warning { display: flex !important; }
         }
 
-        /* --- NEW COOL LOADING SCREEN --- */
+        /* --- LOADING SCREEN --- */
         #loading-screen {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: #050505; z-index: 100;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            color: #fff; font-family: 'Share Tech Mono', monospace; /* Monospace font */
+            color: #fff; font-family: 'Share Tech Mono', monospace;
             transition: opacity 0.8s ease-out;
         }
         
@@ -47,7 +47,7 @@
 
         #progress-fill {
             width: 0%; height: 100%; background: #fff;
-            box-shadow: 0 0 15px rgba(255, 255, 255, 0.8); /* Glow effect */
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.8);
             transition: width 0.1s linear;
         }
 
@@ -201,21 +201,20 @@
 
         // --- LOADING SYSTEM ---
         const loadStartTime = Date.now();
-        const minLoadTime = 3500; // 3.5 seconds minimum load time for visual effect
+        const minLoadTime = 3000; 
         const loadingStatus = document.getElementById('loader-status');
         const loadingPercent = document.getElementById('loader-percent');
         const loadingFill = document.getElementById('progress-fill');
         
         const statusMessages = [
-            "LOADING ASSETS...",
+            "CACHING TEXTURES...",
             "COMPILING SHADERS...",
             "INITIALIZING PHYSICS...",
-            "BUILDING ROOMS...",
-            "OPTIMIZING MESHES...",
+            "BUILDING GEOMETRY...",
+            "PREPARING ASSETS...",
             "READY"
         ];
         
-        // Randomly change status text
         setInterval(() => {
             if(document.getElementById('loading-screen').style.display !== 'none') {
                 const txt = statusMessages[Math.floor(Math.random() * (statusMessages.length - 1))];
@@ -226,9 +225,7 @@
         const manager = new THREE.LoadingManager();
         
         manager.onProgress = function (item, loaded, total) {
-            // Calculate raw percentage
             const rawPercent = (loaded / total) * 100;
-            // Visual update
             loadingPercent.innerText = Math.round(rawPercent) + '%';
             loadingFill.style.width = rawPercent + '%';
         };
@@ -248,8 +245,7 @@
                 setTimeout(() => {
                     loader.style.display = 'none';
                     document.getElementById('start-screen').style.display = 'flex';
-                    checkRoomLoad(0);
-                }, 800); // Wait for fade out
+                }, 800); 
             }, remainingTime);
         };
 
@@ -279,8 +275,8 @@
         document.body.appendChild(renderer.domElement);
 
         const bgMusic = document.getElementById('bgMusic');
-        // FIX: Set initial volume to 85% as requested
-        bgMusic.volume = 0.85;
+        // FIX: Volume 65% as requested
+        bgMusic.volume = 0.65;
 
         // --- MATERIALS ---
         const textureLoader = new THREE.TextureLoader(manager);
@@ -323,38 +319,25 @@
             return { wallUrl, fullUrl, title, id };
         }
 
-        const pendingPosters = {}; const roomsLoaded = {}; const lazyLoader = new THREE.TextureLoader();
-
-        function loadRoomTextures(roomIndex) {
-            if (roomsLoaded[roomIndex]) return; 
-            if (!pendingPosters[roomIndex]) return; 
-            roomsLoaded[roomIndex] = true;
-            const items = pendingPosters[roomIndex];
-            items.forEach(item => {
-                lazyLoader.load(item.url, (tex) => {
-                    tex.colorSpace = THREE.SRGBColorSpace;
-                    const newMat = new THREE.MeshStandardMaterial({ map: tex, color: 0xffffff, roughness: 0.4, side: item.side || THREE.FrontSide });
-                    item.mesh.material = newMat; item.mesh.material.needsUpdate = true;
-                }, undefined, () => {
-                    const pngUrl = item.url.replace('small_mobile/', '').replace('small/', '').replace('.jpg', '.png');
-                    lazyLoader.load(pngUrl, (tex2)=>{
-                        tex2.colorSpace = THREE.SRGBColorSpace;
-                        const newMat = new THREE.MeshStandardMaterial({ map: tex2, color: 0xffffff, roughness: 0.4, side: item.side || THREE.FrontSide });
-                        item.mesh.material = newMat;
-                    });
-                });
-            });
-        }
-
-        function addPoster(x, y, z, ry, w, h, roomIndex) {
+        // FIX: Replaced lazy loader with direct loading to prevent lag
+        function addPoster(x, y, z, ry, w, h) {
             const data = getNextImage();
             const geo = new THREE.PlaneGeometry(w, h);
-            const mesh = new THREE.Mesh(geo, mobilePosterMat);
+            
+            // Immediately start loading texture through the manager
+            const tex = textureLoader.load(data.wallUrl);
+            tex.colorSpace = THREE.SRGBColorSpace;
+            
+            const mat = new THREE.MeshStandardMaterial({ 
+                map: tex, 
+                color: 0xffffff, 
+                roughness: 0.4 
+            });
+            
+            const mesh = new THREE.Mesh(geo, mat);
             mesh.position.set(x, y, z); mesh.rotation.y = ry;
             mesh.userData = { type: 'poster', url: data.fullUrl, title: data.title, year: "2025", desc: "Collection" };
             scene.add(mesh); postersArray.push(mesh); 
-            if (!pendingPosters[roomIndex]) pendingPosters[roomIndex] = [];
-            pendingPosters[roomIndex].push({ mesh: mesh, url: data.wallUrl, side: THREE.FrontSide });
         }
 
         function createBox(x, y, z, w, h, d, isWall = true, isDark = false, customMat = null) {
@@ -413,7 +396,7 @@
         const cachedPipeGeo = new THREE.CylinderGeometry(0.05, 0.05, 1, isMobile ? 6 : 12); 
         const cachedJointGeo = new THREE.SphereGeometry(0.09, isMobile ? 6 : 12, isMobile ? 4 : 8);
 
-        function createScaffoldingStructure(x, z, roomIndex) {
+        function createScaffoldingStructure(x, z) {
             revolvingStage = new THREE.Group();
             revolvingStage.position.set(x, 0, z);
             const platform = new THREE.Mesh(new THREE.CylinderGeometry(3.5, 3.5, 0.2, 32), new THREE.MeshStandardMaterial({ color: 0x333333, roughness: 0.8, metalness: 0.5 }));
@@ -450,8 +433,12 @@
                     data = getNextImage();
                 }
 
-                const mesh = new THREE.Mesh(new THREE.PlaneGeometry(2.0, 2.5), mobilePosterMat);
-                mesh.material.side = THREE.DoubleSide; 
+                // Immediate load logic for mounted posters too
+                const tex = textureLoader.load(data.wallUrl);
+                tex.colorSpace = THREE.SRGBColorSpace;
+                const mat = new THREE.MeshStandardMaterial({ map: tex, color: 0xffffff, roughness: 0.4, side: THREE.DoubleSide });
+
+                const mesh = new THREE.Mesh(new THREE.PlaneGeometry(2.0, 2.5), mat);
                 mesh.position.set(px, py, pz); mesh.rotation.y = ry;
                 const stringMat = new THREE.LineBasicMaterial({ color: 0x111111 });
                 const pW = 2.0; const pH = 2.5; const topOfPosterY = pH / 2; const distToPipe = (pipeYLevel - 0.05) - (py + topOfPosterY);
@@ -460,8 +447,6 @@
                 mesh.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pointsL), stringMat)); mesh.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pointsR), stringMat));
                 mesh.userData = { type: 'poster', url: data.fullUrl, title: data.title, year: "2025", desc: "Mounted Installation" };
                 structureGroup.add(mesh); postersArray.push(mesh);
-                if (!pendingPosters[roomIndex]) pendingPosters[roomIndex] = [];
-                pendingPosters[roomIndex].push({ mesh: mesh, url: data.wallUrl, side: THREE.DoubleSide });
             }
             const topPipeLevel = h - 0.2; const posterCenterY = h / 2;
             
@@ -615,7 +600,7 @@
             if (!isDarkRoom) {
                 if (i === 0) { createHangingTV(0, zCenter, roomHeight, 0); } 
                 else if (i === 1) { loadAllModels(0, zCenter); createHangingModel7(0, zCenter, roomHeight); } 
-                else if (i === 2) { createScaffoldingStructure(0, zCenter, i); } 
+                else if (i === 2) { createScaffoldingStructure(0, zCenter); } 
                 else { 
                     let rotation;
                     if (i === 3) {
@@ -700,11 +685,6 @@
         let isSitting = false;
         let isGameActive = false;
 
-        function checkRoomLoad(roomIndex) {
-            loadRoomTextures(roomIndex);
-            loadRoomTextures(roomIndex + 1); 
-        }
-
         function startGame(e) {
             e.preventDefault(); e.stopPropagation();
             startScreen.style.display = 'none';
@@ -716,12 +696,10 @@
 
             if (!isMobile) {
                 controls.lock();
-                checkRoomLoad(0); 
             } else {
                 if(window.innerHeight > window.innerWidth) {
                 }
                 document.getElementById('mobile-look-hint').style.display = 'block';
-                checkRoomLoad(0);
             }
         }
 
@@ -874,7 +852,7 @@
                 isSitting = false; camera.position.y = 1.7; camera.fov = 70; camera.updateProjectionMatrix();
                 
                 // RESTORE BG MUSIC
-                bgMusic.volume = 0.85;
+                bgMusic.volume = 0.65;
 
                 if(video1) video1.muted = true;
                 if(isMobile) mobileSitBtn.style.display = 'none';
@@ -919,7 +897,6 @@
         });
 
         let prevTime = performance.now();
-        let lastRoomIndex = -1; 
 
         function animate() {
             requestAnimationFrame(animate);
@@ -994,13 +971,6 @@
                 if(hit) { 
                     if(isMobile) { camera.position.sub(new THREE.Vector3(velocity.x * delta, 0, velocity.z * delta)); } 
                     else { controls.moveForward(velocity.z * delta); controls.moveRight(velocity.x * delta); }
-                }
-                
-                const currentRoom = Math.max(0, Math.round(-camera.position.z / 20));
-                
-                if (currentRoom !== lastRoomIndex) {
-                    lastRoomIndex = currentRoom;
-                    checkRoomLoad(currentRoom);
                 }
 
             } else { sitHint.style.display = 'none'; velocity.set(0,0,0); }

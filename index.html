@@ -234,13 +234,17 @@
 
         const renderer = new THREE.WebGLRenderer({ antialias: !isMobile, powerPreference: "high-performance" });
         renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.outputColorSpace = THREE.SRGBColorSpace; 
-        renderer.toneMapping = THREE.NoToneMapping; 
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
-
+        
+        // --- OPTIMIZATION: BASIC RENDERER FOR MOBILE ---
         if (isMobile) {
-            renderer.shadowMap.enabled = false; 
+            renderer.outputColorSpace = THREE.SRGBColorSpace; 
+            renderer.toneMapping = THREE.NoToneMapping;
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.0)); // Cap at 1.0 for mobile
+            renderer.shadowMap.enabled = false; // Force NO shadows
         } else {
+            renderer.outputColorSpace = THREE.SRGBColorSpace; 
+            renderer.toneMapping = THREE.NoToneMapping; 
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
             renderer.shadowMap.enabled = true;
             renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         }
@@ -258,15 +262,32 @@
         concreteTex.wrapS = concreteTex.wrapT = THREE.RepeatWrapping;
         concreteTex.repeat.set(10, 40); concreteTex.colorSpace = THREE.SRGBColorSpace;
 
-        const wallMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.5 });
-        const floorMat = new THREE.MeshStandardMaterial({ map: concreteTex, roughness: 0.8, color: 0xaaaaaa });
-        const darkWallMat = new THREE.MeshStandardMaterial({ color: 0x050505, roughness: 0.9 });
-        const darkFloorMat = new THREE.MeshStandardMaterial({ color: 0x020202, roughness: 0.9 });
-        const tvFrameMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.2 });
+        // MATERIAL FACTORY: Basic for Mobile, Standard for Desktop
+        function getMaterial(params) {
+            if (isMobile) {
+                // Ignore roughness/metalness, just color/map
+                return new THREE.MeshBasicMaterial({ 
+                    color: params.color || 0xffffff, 
+                    map: params.map || null,
+                    side: params.side || THREE.FrontSide
+                });
+            } else {
+                return new THREE.MeshStandardMaterial(params);
+            }
+        }
+
+        // Walls/Floor - Basic on Mobile prevents light calc overhead
+        const wallMat = getMaterial({ color: 0xffffff, roughness: 0.5 });
+        const floorMat = getMaterial({ map: concreteTex, roughness: 0.8, color: 0xaaaaaa });
+        const darkWallMat = getMaterial({ color: 0x050505, roughness: 0.9 });
+        const darkFloorMat = getMaterial({ color: 0x020202, roughness: 0.9 });
+        
+        const tvFrameMat = getMaterial({ color: 0x111111, roughness: 0.2 });
         const cableMat = new THREE.MeshBasicMaterial({ color: 0x000000 });
-        const benchMat = new THREE.MeshStandardMaterial({ color: 0xdddddd, roughness: 0.3 });
-        const mobilePosterMat = new THREE.MeshStandardMaterial({ color: 0xcccccc, roughness: 0.6, metalness: 0.1 });
-        const placeholderMat = new THREE.MeshStandardMaterial({ color: 0x888888, roughness: 0.8 });
+        const benchMat = getMaterial({ color: 0xdddddd, roughness: 0.3 });
+        
+        const mobilePosterMat = new THREE.MeshBasicMaterial({ color: 0xcccccc }); // Simplify
+        const placeholderMat = new THREE.MeshBasicMaterial({ color: 0x888888 });
 
         const video1 = document.getElementById('video1');
         const video2 = document.getElementById('video2');
@@ -367,7 +388,9 @@
         }
 
         function createBox(x, y, z, w, h, d, isWall = true, isDark = false, customMat = null) {
+            // Use custom mat or pick correct one (Factory handles Mobile/Desktop)
             let mat = customMat ? customMat : (isDark ? (isWall ? darkWallMat : darkFloorMat) : (isWall ? wallMat : floorMat));
+            
             const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
             mesh.position.set(x, y, z); 
             mesh.receiveShadow = !isMobile;
@@ -396,8 +419,9 @@
             const tv = new THREE.Mesh(tvGeo, materials);
             
             const tvY = 3.8; 
-            
             tv.position.set(x, tvY, z); tv.rotation.y = rotationY; scene.add(tv);
+            
+            // Cables
             const tvTopY = tvY + (tvH / 2);
             const cableLen = ceilingHeight - tvTopY;
             const cableGeo = new THREE.CylinderGeometry(0.01, 0.01, cableLen > 0 ? cableLen : 0.1);
@@ -427,8 +451,8 @@
             revolvingStage.position.set(x, 0, z);
             
             if (isMobile) {
-                // FIX: EMPTY CENTER FOR MOBILE
-                // Do nothing here, stage is empty.
+                // EMPTY ON MOBILE - NO STRUCTURE, NO CRASH
+                // The extra posters are now distributed on the walls
             } else {
                 // DESKTOP: FULL STRUCTURE
                 const platform = new THREE.Mesh(new THREE.CylinderGeometry(3.5, 3.5, 0.2, 32), new THREE.MeshStandardMaterial({ color: 0x333333, roughness: 0.8, metalness: 0.5 }));
@@ -458,7 +482,7 @@
                 const cornersX = [-w/2, w/2]; const cornersZ = [-d/2, d/2];
                 levels.forEach(lev => { cornersX.forEach(cx => { cornersZ.forEach(cz => { addJoint(cx, lev, cz); }); }); });
                 
-                // MOUNT POSTERS ONLY ON DESKTOP
+                // DESKTOP POSTER MOUNTING LOGIC (With Black Fix)
                 function mountPoster(px, py, pz, ry, width, height, pipeYLevel, specificUrl = null) {
                     let data;
                     if (specificUrl) {
@@ -467,8 +491,20 @@
                         data = getNextImage();
                     }
 
-                    const tex = textureLoader.load(data.wallUrl, (t)=>{ t.colorSpace = THREE.SRGBColorSpace; });
-                    const mat = new THREE.MeshStandardMaterial({ map: tex, color: 0xffffff, roughness: 0.4, side: THREE.DoubleSide });
+                    // FIX: Robust loading for Desktop Scaffold
+                    const mat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.4, side: THREE.DoubleSide });
+                    const tex = textureLoader.load(data.wallUrl, (t)=>{ 
+                        t.colorSpace = THREE.SRGBColorSpace; 
+                        mat.map = t; mat.needsUpdate = true;
+                    }, undefined, ()=>{
+                        // Fallback
+                        const pngUrl = data.wallUrl.replace('small/', '').replace('.jpg', '.png');
+                        textureLoader.load(pngUrl, (t2)=>{
+                            t2.colorSpace = THREE.SRGBColorSpace;
+                            mat.map = t2; mat.needsUpdate = true;
+                        });
+                    });
+
                     const mesh = new THREE.Mesh(new THREE.PlaneGeometry(2.0, 2.5), mat);
                     mesh.position.set(px, py, pz); mesh.rotation.y = ry;
                     
@@ -489,29 +525,15 @@
                 mountPoster(w2/2, posterCenterY, 0, -Math.PI/2, 2, 2.5, topPipeLevel, 'assets/image80.jpg');
                 
                 revolvingStage.add(structureGroup);
+                scene.add(revolvingStage);
             }
-
-            scene.add(revolvingStage);
         }
 
-        function fixMaterial(object) {
-            object.traverse((child) => {
-                if (child.isMesh) {
-                    child.castShadow = false; 
-                    child.receiveShadow = !isMobile;
-                    if (child.material) {
-                        child.material.metalness = 0; 
-                        child.material.roughness = 0.8; 
-                    }
-                }
-            });
-        }
-
-        const modelFiles = ['1.glb', '2.glb', '3.glb', '4.glb', '5.glb', '6.glb', '8.glb'];
-        
         function loadAllModels(roomCenterX, roomCenterZ) {
+            // FIX: NO MODELS ON MOBILE (Saving memory)
+            if (isMobile) return;
+
             const gltfLoader = new GLTFLoader(manager);
-            
             modelFiles.forEach((filename, index) => {
                 const angle = (index / modelFiles.length) * Math.PI * 2;
                 const radius = 5; 
@@ -520,7 +542,13 @@
                 
                 gltfLoader.load(fullPath, (gltf) => {
                     const object = gltf.scene;
-                    fixMaterial(object);
+                    object.traverse((child) => {
+                        if (child.isMesh) {
+                            child.castShadow = true; 
+                            child.receiveShadow = true;
+                            if(child.material) { child.material.metalness=0; child.material.roughness=0.8; }
+                        }
+                    });
 
                     object.scale.set(1, 1, 1); 
                     const box = new THREE.Box3().setFromObject(object);
@@ -528,18 +556,14 @@
                     const maxDim = Math.max(size.x, size.y, size.z);
                     let targetScale = 1.0;
                     if (maxDim > 5) { targetScale = 3.0 / maxDim; } else if (maxDim < 0.5) { targetScale = 2.0 / maxDim; }
-                    
                     let multiplier = 2.3; 
-                    if (filename === '3.glb') { multiplier *= 0.8; }
-                    if (filename === '5.glb' || filename === '6.glb') { multiplier = 1.9; }
-                    if (filename === '8.glb') { multiplier = (2.3 / 3.0) * 1.4; } 
-
+                    if (filename === '3.glb') multiplier *= 0.8;
+                    if (filename === '5.glb' || filename === '6.glb') multiplier = 1.9;
+                    if (filename === '8.glb') multiplier = (2.3 / 3.0) * 1.4; 
                     targetScale *= multiplier;
                     object.scale.set(targetScale, targetScale, targetScale);
                     object.rotation.set(0, 0, 0); 
-
-                    if (filename === '4.glb') { animatedModels.push(object); }
-
+                    if (filename === '4.glb') animatedModels.push(object); 
                     object.updateMatrixWorld(); 
                     const newBox = new THREE.Box3().setFromObject(object);
                     object.position.set(roomCenterX + offsetX, -newBox.min.y, roomCenterZ + offsetZ);
@@ -550,7 +574,7 @@
                         const loader9 = new GLTFLoader();
                         loader9.load('assets/3d/9.glb', (gltf9) => {
                             const obj9 = gltf9.scene;
-                            fixMaterial(obj9);
+                            obj9.traverse((c)=>{ if(c.isMesh) { c.castShadow=true; c.receiveShadow=true; }});
                             const smallScale = (((1.9 / 4.0) * 1.4) / 3.0) * 1.5;
                             obj9.scale.set(smallScale, smallScale, smallScale); 
                             obj9.rotation.set(0, 0, 0);
@@ -564,17 +588,16 @@
                             scene.add(obj9);
                         });
                     }
-                }, undefined, (e) => {
-                    console.error("Failed to load model:", filename);
                 });
             });
         }
 
         function createHangingModel7(x, z, roomCeiling) {
+            if (isMobile) return; 
             const gltfLoader = new GLTFLoader(manager);
             gltfLoader.load('assets/3d/7.glb', (gltf) => {
                 const object = gltf.scene;
-                fixMaterial(object);
+                object.traverse((child) => { if (child.isMesh) { child.castShadow = true; child.receiveShadow = true; } });
                 object.scale.set(1.4, 1.4, 1.4); 
                 object.rotation.set(0, 0, 0); 
                 const hangY = 3.0; 
@@ -611,8 +634,8 @@
                 const fillLight = new THREE.PointLight(0xffffff, 2, 20); fillLight.position.set(0, 5, zCenter); scene.add(fillLight);
             }
             else if (!isDarkRoom && isMobile) {
-                 const simpleLight = new THREE.PointLight(0xffffff, 1.5, 15);
-                 simpleLight.position.set(0, 4, zCenter); scene.add(simpleLight);
+                 const simpleLight = new THREE.AmbientLight(0xffffff, 0.8);
+                 scene.add(simpleLight);
             }
 
             createBox(-roomSize/2, roomHeight/2, zCenter, 0.5, roomHeight, roomSize, true, isDarkRoom); 
@@ -647,10 +670,10 @@
                     createHangingTV(0, zCenter, roomHeight, rotation); 
                 }
                 
-                // FIX: INCREASE POSTER COUNT FOR MOBILE TO ABSORB SCAFFOLDING POSTERS
+                // MOBILE POSTER DENSITY TWEAK
+                // Mobile: Smaller posters, more density to fit the "extras" from scaffolding
                 const standardW = isMobile ? 2.2 : 2.6; 
                 const standardH = isMobile ? 2.8 : 3.25; 
-                // Increase posters on mobile walls (7 per side) to fit the ones from the removed scaffolding
                 const postersPerSide = isMobile ? 7 : 6; 
                 const sideSpacing = isMobile ? 2.5 : 3.0; 
                 
@@ -697,21 +720,21 @@
             interactiveObjects.push(follower);
         }
 
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6); 
+        const ambientLight = new THREE.AmbientLight(0xffffff, isMobile ? 1.0 : 0.6); 
         scene.add(ambientLight);
         
-        const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 1.2); 
-        hemiLight.position.set(0, 20, 0);
-        scene.add(hemiLight);
+        if (!isMobile) {
+            const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 1.2); 
+            hemiLight.position.set(0, 20, 0);
+            scene.add(hemiLight);
 
-        const dirLight = new THREE.DirectionalLight(0xffffff, 1.0);
-        dirLight.position.set(5, 10, 7);
-        if(!isMobile) {
+            const dirLight = new THREE.DirectionalLight(0xffffff, 1.0);
+            dirLight.position.set(5, 10, 7);
             dirLight.castShadow = true;
             dirLight.shadow.mapSize.width = 512; 
             dirLight.shadow.mapSize.height = 512;
+            scene.add(dirLight);
         }
-        scene.add(dirLight);
 
         // --- CONTROLS ---
         const controls = new PointerLockControls(camera, document.body);

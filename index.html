@@ -60,7 +60,7 @@
         }
         
         .joystick-zone {
-            position: absolute; width: 100px; height: 100px; /* Slightly smaller for portrait */
+            position: absolute; width: 100px; height: 100px; 
             background: rgba(255, 255, 255, 0.1); border-radius: 50%;
             border: 2px solid rgba(255, 255, 255, 0.2);
             display: none; z-index: 40; touch-action: none; pointer-events: none;
@@ -86,8 +86,7 @@
         #modal-title { font-weight: 800; font-size: 1.5rem; margin: 0 0 5px 0; text-transform: uppercase; }
         
         #mobile-sit-btn {
-            position: absolute; 
-            right: 20px; bottom: 40px; /* PORTRAIT POSITION: Bottom Right */
+            position: absolute; right: 20px; bottom: 40px;
             width: 70px; height: 70px; border-radius: 50%;
             background: rgba(0, 0, 0, 0.6); border: 2px solid white;
             color: white; font-weight: bold; display: none; z-index: 45;
@@ -160,9 +159,6 @@
 
         const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
-        // --- LOADING SYSTEM ---
-        const loadStartTime = Date.now();
-        const minLoadTime = 3000; 
         const loadingStatus = document.getElementById('loader-status');
         const loadingPercent = document.getElementById('loader-percent');
         const loadingFill = document.getElementById('progress-fill');
@@ -179,18 +175,12 @@
             }
         }, 600);
 
+        // --- LOADING LOGIC FIX ---
         const manager = new THREE.LoadingManager();
-        manager.onProgress = function (item, loaded, total) {
-            const rawPercent = (loaded / total) * 100;
-            loadingPercent.innerText = Math.round(rawPercent) + '%';
-            loadingFill.style.width = rawPercent + '%';
-        };
-        
-        manager.onLoad = function () {
-            const currentTime = Date.now();
-            const elapsedTime = currentTime - loadStartTime;
-            const remainingTime = Math.max(0, minLoadTime - elapsedTime);
+        const loadStartTime = Date.now();
+        const minLoadTime = 3000;
 
+        function finishLoading() {
             loadingPercent.innerText = "100%";
             loadingFill.style.width = "100%";
             loadingStatus.innerText = "SYSTEM READY";
@@ -203,8 +193,41 @@
                     document.getElementById('start-screen').style.display = 'flex';
                     if (isMobile) checkRoomLoad(0);
                 }, 800); 
-            }, remainingTime);
-        };
+            }, 500);
+        }
+
+        if (isMobile) {
+            // MOBILE: SIMULATED LOADING (To prevent 0/0 NaN issue)
+            let simPercent = 0;
+            const simInterval = setInterval(() => {
+                simPercent += 4; // Fast load
+                if (simPercent > 100) simPercent = 100;
+                
+                loadingPercent.innerText = simPercent + '%';
+                loadingFill.style.width = simPercent + '%';
+                
+                if (simPercent >= 100) {
+                    clearInterval(simInterval);
+                    finishLoading();
+                }
+            }, 50);
+        } else {
+            // DESKTOP: REAL LOADING
+            manager.onProgress = function (item, loaded, total) {
+                const rawPercent = (loaded / total) * 100;
+                if(!isNaN(rawPercent)) {
+                    loadingPercent.innerText = Math.round(rawPercent) + '%';
+                    loadingFill.style.width = rawPercent + '%';
+                }
+            };
+            
+            manager.onLoad = function () {
+                const currentTime = Date.now();
+                const elapsedTime = currentTime - loadStartTime;
+                const remainingTime = Math.max(0, minLoadTime - elapsedTime);
+                setTimeout(finishLoading, remainingTime);
+            };
+        }
 
         const scene = new THREE.Scene();
         scene.background = new THREE.Color(0xffffff); 
@@ -212,27 +235,23 @@
 
         RectAreaLightUniformsLib.init();
 
-        // --- CAMERA SETUP (Portrait Optimized) ---
-        // If width < height (Portrait), we need wider Vertical FOV to not feel zoomed in
-        const aspectRatio = window.innerWidth / window.innerHeight;
-        const baseFov = aspectRatio < 1 ? 95 : 70; // 95 for portrait, 70 for landscape
-        
-        const camera = new THREE.PerspectiveCamera(baseFov, window.innerWidth / window.innerHeight, 0.1, 100);
+        // Portrait optimization: Wider FOV
+        const aspect = window.innerWidth / window.innerHeight;
+        const initialFov = aspect < 1 ? 95 : 70;
+        const camera = new THREE.PerspectiveCamera(initialFov, window.innerWidth / window.innerHeight, 0.1, 100);
         camera.position.set(0, 1.7, 8); 
         camera.rotation.order = 'YXZ'; 
 
         const renderer = new THREE.WebGLRenderer({ antialias: !isMobile, powerPreference: "high-performance" });
         renderer.setSize(window.innerWidth, window.innerHeight);
-        
         renderer.outputColorSpace = THREE.SRGBColorSpace; 
         renderer.toneMapping = THREE.NoToneMapping; 
-        
-        // Slightly lower res on mobile
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobile ? 1.0 : 1.5));
 
         if (isMobile) {
+            // Basic shadows for mobile (better performance)
             renderer.shadowMap.enabled = true;
-            renderer.shadowMap.type = THREE.BasicShadowMap; // Cheaper shadows
+            renderer.shadowMap.type = THREE.BasicShadowMap;
         } else {
             renderer.shadowMap.enabled = true;
             renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -244,8 +263,9 @@
         bgMusic.volume = 0.65;
 
         // --- MATERIALS ---
+        // Desktop uses manager, Mobile uses detached loader
         const textureLoader = isMobile ? new THREE.TextureLoader() : new THREE.TextureLoader(manager);
-        const lazyLoader = new THREE.TextureLoader(); // For dynamic loading
+        const lazyLoader = new THREE.TextureLoader();
 
         const concreteTex = textureLoader.load('https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/plaster_grey_04/plaster_grey_04_diff_1k.jpg');
         concreteTex.wrapS = concreteTex.wrapT = THREE.RepeatWrapping;
@@ -266,7 +286,7 @@
         let videoTex1, videoTex2;
 
         if (isMobile) {
-            // SAFE STATIC TEXTURES FOR MOBILE
+            // STATIC TEXTURES FOR MOBILE (Fixes Room 3 crash)
             const cvs = document.createElement('canvas');
             cvs.width = 2; cvs.height = 2;
             const ctx = cvs.getContext('2d');
@@ -282,15 +302,13 @@
 
         const collidableObjects = []; 
         const postersArray = []; 
-        
-        // --- MOBILE MEMORY MANAGEMENT ---
         const roomPosters = {}; 
         const roomStatus = {}; 
+        const roomGroups = {};
 
         let revolvingStage = null;
         const animatedModels = [];
         const interactiveObjects = []; 
-        const roomGroups = {};
 
         let currentImageId = 1;
         const totalImages = 65; 
@@ -322,11 +340,7 @@
             if (isMobile) {
                 mat = placeholderMat.clone();
                 if (!roomPosters[roomIndex]) roomPosters[roomIndex] = [];
-                roomPosters[roomIndex].push({
-                    mesh: null,
-                    material: mat,
-                    url: data.wallUrl
-                });
+                roomPosters[roomIndex].push({ mesh: null, material: mat, url: data.wallUrl });
             } else {
                 const tex = textureLoader.load(data.wallUrl, (t) => {
                     t.colorSpace = THREE.SRGBColorSpace;
@@ -354,18 +368,12 @@
 
         function checkRoomLoad(currentRoom) {
             if (!isMobile) return;
-
-            // Load Current and Next room. Unload others.
             const keepLoaded = [currentRoom, currentRoom + 1];
-
-            // Load needed
+            
             keepLoaded.forEach(idx => {
-                if (roomStatus[idx] !== 'loaded') {
-                    loadRoomTextures(idx);
-                }
+                if (roomStatus[idx] !== 'loaded') loadRoomTextures(idx);
             });
 
-            // Unload others
             for (let idx = 0; idx < 5; idx++) {
                 if (!keepLoaded.includes(idx) && roomStatus[idx] === 'loaded') {
                     unloadRoomTextures(idx);
@@ -376,7 +384,6 @@
         function loadRoomTextures(roomIdx) {
             if (!roomPosters[roomIdx]) return;
             roomStatus[roomIdx] = 'loaded';
-
             roomPosters[roomIdx].forEach(item => {
                 lazyLoader.load(item.url, (tex) => {
                     tex.colorSpace = THREE.SRGBColorSpace;
@@ -384,7 +391,6 @@
                     item.material.color.setHex(0xffffff); 
                     item.material.needsUpdate = true;
                 }, undefined, () => {
-                    // Fallback
                     const pngUrl = item.url.replace('small_mobile/', '').replace('.jpg', '.png');
                     lazyLoader.load(pngUrl, (tex2) => {
                         tex2.colorSpace = THREE.SRGBColorSpace;
@@ -399,7 +405,6 @@
         function unloadRoomTextures(roomIdx) {
             if (!roomPosters[roomIdx]) return;
             roomStatus[roomIdx] = 'unloaded';
-
             roomPosters[roomIdx].forEach(item => {
                 if (item.material.map) {
                     item.material.map.dispose(); 
@@ -431,7 +436,6 @@
         }
 
         function createHangingTV(x, z, ceilingHeight, rotationY = 0, roomIndex) {
-            // FIX: DISABLE TV ON MOBILE TO SAVE RAM
             if (isMobile) return;
 
             const tvW = 1.78; const tvH = 3.16; const tvD = 0.1;
@@ -439,9 +443,7 @@
             const screenMat = new THREE.MeshBasicMaterial({ map: videoTex2 });
             const materials = [tvFrameMat, tvFrameMat, tvFrameMat, tvFrameMat, screenMat, tvFrameMat];
             const tv = new THREE.Mesh(tvGeo, materials);
-            
             const tvY = 3.8; 
-            
             tv.position.set(x, tvY, z); tv.rotation.y = rotationY; 
             addToRoom(tv, roomIndex);
 
@@ -480,7 +482,7 @@
             revolvingStage.position.set(x, 0, z);
             
             if (isMobile) {
-                // Simplified for Mobile
+                // Central pillar for mobile
                 const pillar = new THREE.Mesh(new THREE.CylinderGeometry(1.5, 1.5, 4.0, 16), darkWallMat);
                 pillar.position.y = 2.0;
                 revolvingStage.add(pillar);
@@ -546,8 +548,8 @@
                 if (!isMobile) {
                     const stringMat = new THREE.LineBasicMaterial({ color: 0x111111 });
                     const pW = 2.0; const pH = 2.5; const topOfPosterY = pH / 2; const distToPipe = (pipeYLevel - 0.05) - (py + topOfPosterY);
-                    const pointsL = [new THREE.Vector3(-pW/2 + 0.15, topOfPosterY, 0), new THREE.Vector3(-pW/2 + 0.15, topOfPosterY + distToPipe, 0)];
-                    const pointsR = [new THREE.Vector3(pW/2 - 0.15, topOfPosterY, 0), new THREE.Vector3(pW/2 - 0.15, topOfPosterY + distToPipe, 0)];
+                    const pointsL = [new THREE.Vector3(-1 + 0.15, topOfPosterY, 0), new THREE.Vector3(-1 + 0.15, topOfPosterY + distToPipe, 0)];
+                    const pointsR = [new THREE.Vector3(1 - 0.15, topOfPosterY, 0), new THREE.Vector3(1 - 0.15, topOfPosterY + distToPipe, 0)];
                     mesh.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pointsL), stringMat)); mesh.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pointsR), stringMat));
                 }
 
@@ -557,7 +559,6 @@
             
             const topPipeLevel = 3.3; const posterCenterY = 3.5 / 2;
             const d2 = 4; const w2 = 4;
-            const dist = isMobile ? 1.6 : 2.0;
             
             mountPoster(0, posterCenterY, isMobile ? 1.6 : d2/2, 0, 2, 2.5, topPipeLevel); 
             mountPoster(isMobile ? -1.6 : -w2/2, posterCenterY, 0, Math.PI/2, 2, 2.5, topPipeLevel); 
@@ -583,7 +584,7 @@
         const modelFiles = ['1.glb', '2.glb', '3.glb', '4.glb', '5.glb', '6.glb', '8.glb'];
         
         function loadAllModels(roomCenterX, roomCenterZ, roomIndex) {
-            // No models on mobile to save memory
+            // No models on mobile
             if(isMobile) return; 
 
             const gltfLoader = new GLTFLoader(manager);
@@ -634,9 +635,7 @@
                             addToRoom(obj9, roomIndex);
                         });
                     }
-                }, undefined, (e) => {
-                    console.error("Failed to load model:", filename);
-                });
+                }, undefined, (e) => { console.error("Model fail", filename); });
             });
         }
 
@@ -713,7 +712,6 @@
                     createHangingTV(0, zCenter, roomHeight, rotation, i); 
                 }
                 
-                // MOBILE POSTER DENSITY TWEAK
                 const standardW = isMobile ? 2.2 : 2.6; 
                 const standardH = isMobile ? 2.8 : 3.25; 
                 const postersPerSide = isMobile ? 7 : 6; 
@@ -754,9 +752,7 @@
             const followerGeo = new THREE.PlaneGeometry(3, 3);
             const followerMat = new THREE.MeshBasicMaterial({ map: followerTex, side: THREE.DoubleSide, transparent: true });
             follower = new THREE.Mesh(followerGeo, followerMat);
-            
             follower.position.set(0, 2.5, 12); 
-            
             follower.userData = { type: 'follower', title: "Watcher", desc: "Click to toggle following" };
             scene.add(follower);
             interactiveObjects.push(follower);
@@ -808,8 +804,6 @@
             if (!isMobile) {
                 controls.lock();
             } else {
-                if(window.innerHeight > window.innerWidth) {
-                }
                 document.getElementById('mobile-look-hint').style.display = 'block';
                 checkRoomLoad(0);
             }
@@ -827,7 +821,6 @@
         let lookStartY = 0;
         let moveVector = { x: 0, y: 0 };
         let stickCenter = { x: 0, y: 0 };
-        
         let touchStartTime = 0;
         let touchStartPos = { x: 0, y: 0 };
 
@@ -837,7 +830,6 @@
                 for (let i = 0; i < e.changedTouches.length; i++) {
                     const t = e.changedTouches[i];
                     const halfWidth = window.innerWidth / 2;
-                    
                     if (moveTouchId === null && t.clientX < halfWidth) {
                         moveTouchId = t.identifier;
                         stickContainer.style.display = 'block';
@@ -851,7 +843,6 @@
                         lookTouchId = t.identifier;
                         lookStartX = t.clientX;
                         lookStartY = t.clientY;
-                        
                         touchStartTime = Date.now();
                         touchStartPos = { x: t.clientX, y: t.clientY };
                     }
@@ -861,22 +852,18 @@
             function handleTouchMove(e) {
                 if (!isGameActive) return;
                 e.preventDefault(); 
-                
                 for (let i = 0; i < e.changedTouches.length; i++) {
                     const t = e.changedTouches[i];
-                    
                     if (t.identifier === moveTouchId) {
                         const maxDist = 50;
                         let dx = t.clientX - stickCenter.x;
                         let dy = t.clientY - stickCenter.y;
                         const dist = Math.sqrt(dx*dx + dy*dy);
-                        
                         if (dist > maxDist) {
                             const ratio = maxDist / dist;
                             dx *= ratio;
                             dy *= ratio;
                         }
-                        
                         stickKnob.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
                         moveVector.x = dx / maxDist;
                         moveVector.y = dy / maxDist;
@@ -900,10 +887,8 @@
                     }
                     if (t.identifier === lookTouchId) {
                         lookTouchId = null;
-                        
                         const duration = Date.now() - touchStartTime;
                         const dist = Math.sqrt(Math.pow(t.clientX - touchStartPos.x, 2) + Math.pow(t.clientY - touchStartPos.y, 2));
-                        
                         if (duration < 300 && dist < 10 && !isModalOpen) {
                             checkIntersectionAndClick();
                         }
@@ -914,11 +899,7 @@
             document.addEventListener('touchstart', handleTouchStart, {passive: false});
             document.addEventListener('touchmove', handleTouchMove, {passive: false});
             document.addEventListener('touchend', handleTouchEnd);
-            
-            document.addEventListener('click', () => {
-                if (isModalOpen) closeModal();
-            });
-            
+            document.addEventListener('click', () => { if (isModalOpen) closeModal(); });
             mobileSitBtn.addEventListener('touchstart', (e) => { e.stopPropagation(); toggleSit(); });
         } else {
             document.addEventListener('click', () => {
@@ -933,7 +914,6 @@
             raycaster.setFromCamera(center, camera);
             const objectsToCheck = [...postersArray, ...interactiveObjects];
             const intersects = raycaster.intersectObjects(objectsToCheck);
-            
             if (intersects.length > 0 && intersects[0].distance < 8) {
                 const obj = intersects[0].object;
                 if (obj.userData.type === 'poster') {
@@ -961,11 +941,9 @@
 
         function toggleSit() {
             if (isSitting) { 
-                isSitting = false; camera.position.y = 1.7; camera.fov = 70; camera.updateProjectionMatrix();
-                
+                isSitting = false; camera.position.y = 1.7; camera.fov = aspect < 1 ? 95 : 70; camera.updateProjectionMatrix();
                 bgMusic.volume = 0.65;
-
-                if(video1) video1.muted = true;
+                if(video1 && !isMobile) video1.muted = true;
                 if(isMobile) mobileSitBtn.style.display = 'none';
             } else {
                 const dist = camera.position.distanceTo(new THREE.Vector3(benchPosition.x, camera.position.y, benchPosition.z));
@@ -974,10 +952,8 @@
                     camera.position.set(benchPosition.x, benchPosition.y + 1.2, benchPosition.z); 
                     velocity.set(0, 0, 0);
                     camera.lookAt(0, 3, benchPosition.z - 20); 
-                    camera.fov = 40; camera.updateProjectionMatrix();
-                    
+                    camera.fov = aspect < 1 ? 60 : 40; camera.updateProjectionMatrix();
                     bgMusic.volume = 0.1;
-                    
                     if(video1 && !isMobile) { video1.muted = false; video1.volume = 1.0; }
                     if(isMobile) { mobileSitBtn.style.display = 'flex'; mobileSitBtn.innerText = "UP"; }
                 }
@@ -1046,7 +1022,6 @@
                 if (isMobile) {
                     const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion); forward.y = 0; forward.normalize();
                     const right = new THREE.Vector3(1, 0, 0).applyQuaternion(camera.quaternion); right.y = 0; right.normalize();
-                    
                     if (moveVector.x !== 0 || moveVector.y !== 0) {
                         velocity.x += (right.x * moveVector.x + forward.x * moveVector.y) * speed * delta;
                         velocity.z += (right.z * moveVector.x + forward.z * moveVector.y) * speed * delta;
@@ -1105,11 +1080,9 @@
         animate();
 
         window.addEventListener('resize', () => {
-            // Recalculate FOV based on aspect ratio for portrait support
-            const aspect = window.innerWidth / window.innerHeight;
-            camera.fov = aspect < 1 ? 95 : 70;
-            
-            camera.aspect = aspect;
+            const asp = window.innerWidth / window.innerHeight;
+            camera.aspect = asp;
+            camera.fov = asp < 1 ? 95 : 70;
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
         });

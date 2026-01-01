@@ -3,11 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Olympia Gallery 2025 - Optimized</title>
+    <title>Іді Нахуй</title>
     <style>
         body { margin: 0; overflow: hidden; background-color: #000; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; touch-action: none; user-select: none; -webkit-user-select: none; }
         
-        /* Orientation Warning for Mobile */
         #orientation-warning {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: #000; z-index: 9999;
@@ -34,10 +33,11 @@
         #start-screen {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.9); z-index: 50;
-            display: none; /* Flex when loaded */
+            display: none;
             flex-direction: column; align-items: center; justify-content: center;
             color: white; text-align: center; backdrop-filter: blur(5px);
         }
+        #start-screen h1 { font-size: 1.8rem; max-width: 90%; line-height: 1.4; text-transform: uppercase; letter-spacing: 1px; }
         
         #start-btn {
             margin-top: 30px; padding: 20px 60px; font-size: 1.2rem; font-weight: bold;
@@ -63,13 +63,11 @@
             border-radius: 20px; font-size: 0.9rem; display: none; pointer-events: none; z-index: 20;
         }
         
-        /* Mobile Controls */
         .joystick-zone {
             position: absolute; width: 120px; height: 120px;
             background: rgba(255, 255, 255, 0.1); border-radius: 50%;
             border: 2px solid rgba(255, 255, 255, 0.2);
-            display: none; z-index: 40; touch-action: none;
-            pointer-events: none; /* Allow touch to pass through to handler */
+            display: none; z-index: 40; touch-action: none; pointer-events: none;
         }
         .stick-knob {
             position: absolute; top: 50%; left: 50%; width: 50px; height: 50px;
@@ -78,7 +76,7 @@
         }
         #mobile-look-hint {
             position: absolute; right: 50px; bottom: 50px; color: rgba(255,255,255,0.3);
-            font-size: 0.8rem; pointer-events: none; display: none;
+            font-size: 0.8rem; pointer-events: none; display: none; text-align: right;
         }
         
         #artwork-modal {
@@ -125,17 +123,17 @@
     </div>
 
     <div id="start-screen">
-        <h1>EXHIBITION 2025</h1>
+        <h1>Квартирна виставка артпроєкту "Іді Нахуй"</h1>
         <div id="instructions">
             <p>ПК: <span class="key">WASD</span> рух &nbsp; <span class="key">C</span> сісти</p>
-            <p>Мобільний: Лівoруч - Рух, Праворуч - Огляд</p>
+            <p>Мобільний: Лівoруч - Рух, Праворуч - Огляд<br>Тап - Деталі</p>
         </div>
         <button id="start-btn" type="button">УВІЙТИ</button>
     </div>
 
     <div id="stick-container" class="joystick-zone"><div class="stick-knob"></div></div>
     <div id="mobile-sit-btn">SIT</div>
-    <div id="mobile-look-hint">СВАЙП ДЛЯ ОГЛЯДУ</div>
+    <div id="mobile-look-hint">СВАЙП - ОГЛЯД<br>ТАП - ДЕТАЛІ</div>
 
     <audio id="bgMusic" loop preload="auto">
         <source src="assets/song.mp3" type="audio/mpeg">
@@ -191,19 +189,14 @@
 
         const renderer = new THREE.WebGLRenderer({ antialias: !isMobile, powerPreference: "high-performance" });
         renderer.setSize(window.innerWidth, window.innerHeight);
-        
-        // --- OPTIMIZATION FOR WEAK DEVICES ---
         renderer.outputColorSpace = THREE.SRGBColorSpace; 
         renderer.toneMapping = THREE.NoToneMapping; 
-        
-        // Force pixel ratio limit to 1.5 even on high-end screens for performance
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
 
         if (isMobile) {
             renderer.shadowMap.enabled = false; 
         } else {
             renderer.shadowMap.enabled = true;
-            // Reduce shadow map size for "Air 2020" class devices
             renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         }
         
@@ -236,10 +229,9 @@
 
         const collidableObjects = []; 
         const postersArray = []; 
-        let posterIdx = 0;
         let revolvingStage = null;
         const animatedModels = [];
-        const interactiveObjects = []; // New array for interactive elements like the follower
+        const interactiveObjects = []; 
 
         let currentImageId = 1;
         const totalImages = 65; 
@@ -294,7 +286,6 @@
             mesh.position.set(x, y, z); 
             mesh.receiveShadow = !isMobile;
             if(isWall) { 
-                // Optimization: small walls don't cast shadows
                 if (!isMobile && !isDark && w > 1 && h > 1) mesh.castShadow = true;
                 mesh.updateMatrixWorld(); 
                 collidableObjects.push({ box: new THREE.Box3().setFromObject(mesh) }); 
@@ -316,8 +307,7 @@
             const materials = [tvFrameMat, tvFrameMat, tvFrameMat, tvFrameMat, screenMat, tvFrameMat];
             const tv = new THREE.Mesh(tvGeo, materials);
             
-            // FIX: Raised from 3.0 to 4.5 to prevent player collision (head hitting tv)
-            const tvY = 4.5; 
+            const tvY = 3.8; 
             
             tv.position.set(x, tvY, z); tv.rotation.y = rotationY; scene.add(tv);
             const tvTopY = tvY + (tvH / 2);
@@ -326,9 +316,13 @@
             cableGeo.translate(0, cableLen / 2, 0); 
             const c1 = new THREE.Mesh(cableGeo, cableMat); c1.position.set(-tvW*0.3, tvH/2, 0); tv.add(c1);
             const c2 = new THREE.Mesh(cableGeo, cableMat); c2.position.set(tvW*0.3, tvH/2, 0); tv.add(c2);
-            if (!isMobile) { const screenLight = new THREE.PointLight(0xffffff, 8, 7); screenLight.position.set(0, 0, 1.0); tv.add(screenLight); }
             
-            // Note: TV is now high enough, but we keep collider just in case of jumping
+            if (!isMobile) { 
+                const screenLight = new THREE.PointLight(0xffffff, 2.0, 4.0); 
+                screenLight.position.set(0, 0, 1.0); 
+                tv.add(screenLight); 
+            }
+            
             tv.userData.isObstacle = true; 
             collidableObjects.push({ customType: 'cylinder', mesh: tv, radius: 0.1, position: tv.position });
         }
@@ -339,6 +333,9 @@
             if(!isMobile) { const light = new THREE.PointLight(0xaaaaff, 30, 25); light.position.set(x + Math.sin(rotationY), y, z + Math.cos(rotationY)); scene.add(light); }
         }
 
+        const cachedPipeGeo = new THREE.CylinderGeometry(0.05, 0.05, 1, isMobile ? 6 : 12); 
+        const cachedJointGeo = new THREE.SphereGeometry(0.09, isMobile ? 6 : 12, isMobile ? 4 : 8);
+
         function createScaffoldingStructure(x, z, roomIndex) {
             revolvingStage = new THREE.Group();
             revolvingStage.position.set(x, 0, z);
@@ -347,16 +344,21 @@
             collidableObjects.push({ box: new THREE.Box3().setFromObject(platform) }); 
             const structureGroup = new THREE.Group(); structureGroup.position.y = 0.2; 
             const metalMat = new THREE.MeshStandardMaterial({ color: 0xeeeeee, roughness: 0.2, metalness: 0.8 });
-            const w = 4; const h = 3.5; const d = 4; const r = 0.05;
+            const w = 4; const h = 3.5; const d = 4;
+            
             function addPipe(px, py, pz, height, axis) {
-                const mesh = new THREE.Mesh(new THREE.CylinderGeometry(r, r, height), metalMat);
+                const mesh = new THREE.Mesh(cachedPipeGeo, metalMat);
                 mesh.position.set(px, py, pz);
+                mesh.scale.set(1, height, 1);
                 if (axis === 'z') mesh.rotation.x = Math.PI / 2; if (axis === 'x') mesh.rotation.z = Math.PI / 2;
-                // Opt: pipes don't need to cast shadows on weak hardware
                 if(!isMobile) mesh.castShadow = true; 
                 structureGroup.add(mesh); collidableObjects.push({ box: new THREE.Box3().setFromObject(mesh) });
             }
-            function addJoint(jx, jy, jz) { const mesh = new THREE.Mesh(new THREE.SphereGeometry(r * 1.8), metalMat); mesh.position.set(jx, jy, jz); structureGroup.add(mesh); }
+            function addJoint(jx, jy, jz) { 
+                const mesh = new THREE.Mesh(cachedJointGeo, metalMat); 
+                mesh.position.set(jx, jy, jz); structureGroup.add(mesh); 
+            }
+            
             addPipe(-w/2, h/2, -d/2, h, 'y'); addPipe(w/2, h/2, -d/2, h, 'y'); addPipe(-w/2, h/2, d/2, h, 'y'); addPipe(w/2, h/2, d/2, h, 'y');
             const levels = [0.2, h - 0.2];
             levels.forEach(lev => { addPipe(0, lev, -d/2, w, 'x'); addPipe(0, lev, d/2, w, 'x'); addPipe(-w/2, lev, 0, d, 'z'); addPipe(w/2, lev, 0, d, 'z'); });
@@ -375,7 +377,7 @@
                 mesh.material.side = THREE.DoubleSide; 
                 mesh.position.set(px, py, pz); mesh.rotation.y = ry;
                 const stringMat = new THREE.LineBasicMaterial({ color: 0x111111 });
-                const pW = 2.0; const pH = 2.5; const topOfPosterY = pH / 2; const distToPipe = (pipeYLevel - r) - (py + topOfPosterY);
+                const pW = 2.0; const pH = 2.5; const topOfPosterY = pH / 2; const distToPipe = (pipeYLevel - 0.05) - (py + topOfPosterY);
                 const pointsL = [new THREE.Vector3(-pW/2 + 0.15, topOfPosterY, 0), new THREE.Vector3(-pW/2 + 0.15, topOfPosterY + distToPipe, 0)];
                 const pointsR = [new THREE.Vector3(pW/2 - 0.15, topOfPosterY, 0), new THREE.Vector3(pW/2 - 0.15, topOfPosterY + distToPipe, 0)];
                 mesh.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pointsL), stringMat)); mesh.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pointsR), stringMat));
@@ -399,7 +401,6 @@
                 if (child.isMesh) {
                     child.castShadow = false; 
                     child.receiveShadow = !isMobile;
-                    
                     if (child.material) {
                         child.material.metalness = 0; 
                         child.material.roughness = 0.8; 
@@ -538,7 +539,17 @@
                 if (i === 0) { createHangingTV(0, zCenter, roomHeight, 0); } 
                 else if (i === 1) { loadAllModels(0, zCenter); createHangingModel7(0, zCenter, roomHeight); } 
                 else if (i === 2) { createScaffoldingStructure(0, zCenter, i); } 
-                else { let rotation = Math.random() * Math.PI; createHangingTV(0, zCenter, roomHeight, rotation); }
+                else { 
+                    // Room 4 (Index 3) - TV facing entrance
+                    // Other rooms - random rotation
+                    let rotation;
+                    if (i === 3) {
+                        rotation = 0; // Face Positive Z (towards entrance)
+                    } else {
+                        rotation = Math.random() * Math.PI;
+                    }
+                    createHangingTV(0, zCenter, roomHeight, rotation); 
+                }
                 
                 const standardW = 2.6; const standardH = 3.25; 
                 const postersPerSide = 6; const sideSpacing = 3.0; 
@@ -565,25 +576,27 @@
             }
         }
 
-        // --- FOLLOWER LOGIC ---
+        // --- FOLLOWER LOGIC (Desktop Only) ---
         let isFollowing = true;
-        const followerTex = textureLoader.load('assets/gerb.png', undefined, undefined, (err) => console.error("Missing gerb.png"));
-        followerTex.colorSpace = THREE.SRGBColorSpace;
-        const followerGeo = new THREE.PlaneGeometry(3, 3);
-        const followerMat = new THREE.MeshBasicMaterial({ map: followerTex, side: THREE.DoubleSide, transparent: true });
-        const follower = new THREE.Mesh(followerGeo, followerMat);
+        let follower = null;
         
-        // FIX: Start behind player. Camera is at z=8, facing -Z. Behind means z > 8.
-        follower.position.set(0, 2.5, 12); 
-        
-        follower.userData = { type: 'follower', title: "Watcher", desc: "Click to toggle following" };
-        scene.add(follower);
-        interactiveObjects.push(follower);
+        if (!isMobile) {
+            const followerTex = textureLoader.load('assets/gerb.png', undefined, undefined, (err) => console.error("Missing gerb.png"));
+            followerTex.colorSpace = THREE.SRGBColorSpace;
+            const followerGeo = new THREE.PlaneGeometry(3, 3);
+            const followerMat = new THREE.MeshBasicMaterial({ map: followerTex, side: THREE.DoubleSide, transparent: true });
+            follower = new THREE.Mesh(followerGeo, followerMat);
+            
+            follower.position.set(0, 2.5, 12); 
+            
+            follower.userData = { type: 'follower', title: "Watcher", desc: "Click to toggle following" };
+            scene.add(follower);
+            interactiveObjects.push(follower);
+        }
 
         const ambientLight = new THREE.AmbientLight(0xffffff, 0.6); 
         scene.add(ambientLight);
         
-        // --- LIGHTING ---
         const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 1.2); 
         hemiLight.position.set(0, 20, 0);
         scene.add(hemiLight);
@@ -592,7 +605,7 @@
         dirLight.position.set(5, 10, 7);
         if(!isMobile) {
             dirLight.castShadow = true;
-            dirLight.shadow.mapSize.width = 512; // Optimized from 1024
+            dirLight.shadow.mapSize.width = 512; 
             dirLight.shadow.mapSize.height = 512;
         }
         scene.add(dirLight);
@@ -631,7 +644,6 @@
                 checkRoomLoad(0); 
             } else {
                 if(window.innerHeight > window.innerWidth) {
-                    // Portrait mode - hint handled by CSS
                 }
                 document.getElementById('mobile-look-hint').style.display = 'block';
                 checkRoomLoad(0);
@@ -641,7 +653,7 @@
         startBtn.addEventListener('click', startGame);
         startBtn.addEventListener('touchstart', startGame);
 
-        // --- NEW MOBILE CONTROLS (FPS STYLE) ---
+        // --- MOBILE CONTROLS ---
         const stickContainer = document.getElementById('stick-container');
         const stickKnob = stickContainer.querySelector('.stick-knob');
         let moveTouchId = null;
@@ -650,6 +662,10 @@
         let lookStartY = 0;
         let moveVector = { x: 0, y: 0 };
         let stickCenter = { x: 0, y: 0 };
+        
+        // Mobile Tap Detection
+        let touchStartTime = 0;
+        let touchStartPos = { x: 0, y: 0 };
 
         if(isMobile) {
             function handleTouchStart(e) {
@@ -658,7 +674,6 @@
                     const t = e.changedTouches[i];
                     const halfWidth = window.innerWidth / 2;
                     
-                    // Left side = Movement Stick
                     if (moveTouchId === null && t.clientX < halfWidth) {
                         moveTouchId = t.identifier;
                         stickContainer.style.display = 'block';
@@ -667,21 +682,21 @@
                         stickCenter = { x: t.clientX, y: t.clientY };
                         stickKnob.style.transform = `translate(-50%, -50%)`;
                     }
-                    // Right side = Look
                     else if (lookTouchId === null && t.clientX > halfWidth) {
-                        // Check if hitting UI buttons
                         if (e.target.id === 'mobile-sit-btn' || e.target.closest('#artwork-modal')) continue;
-                        
                         lookTouchId = t.identifier;
                         lookStartX = t.clientX;
                         lookStartY = t.clientY;
+                        
+                        touchStartTime = Date.now();
+                        touchStartPos = { x: t.clientX, y: t.clientY };
                     }
                 }
             }
 
             function handleTouchMove(e) {
                 if (!isGameActive) return;
-                e.preventDefault(); // Prevent scrolling
+                e.preventDefault(); 
                 
                 for (let i = 0; i < e.changedTouches.length; i++) {
                     const t = e.changedTouches[i];
@@ -703,8 +718,7 @@
                         moveVector.y = dy / maxDist;
                     }
                     else if (t.identifier === lookTouchId) {
-                        const deltaX = (t.clientX - lookStartX) * 0.3; // Sensitivity
-                        // const deltaY = (t.clientY - lookStartY) * 0.2; // Pitch if needed
+                        const deltaX = (t.clientX - lookStartX) * 0.3; 
                         camera.rotation.y -= deltaX * 0.015;
                         lookStartX = t.clientX;
                         lookStartY = t.clientY;
@@ -722,6 +736,13 @@
                     }
                     if (t.identifier === lookTouchId) {
                         lookTouchId = null;
+                        
+                        const duration = Date.now() - touchStartTime;
+                        const dist = Math.sqrt(Math.pow(t.clientX - touchStartPos.x, 2) + Math.pow(t.clientY - touchStartPos.y, 2));
+                        
+                        if (duration < 300 && dist < 10 && !isModalOpen) {
+                            checkIntersectionAndClick();
+                        }
                     }
                 }
             }
@@ -731,7 +752,6 @@
             document.addEventListener('touchend', handleTouchEnd);
             
             document.addEventListener('click', () => {
-                if (isGameActive && !isModalOpen) checkIntersectionAndClick();
                 if (isModalOpen) closeModal();
             });
             
@@ -747,7 +767,6 @@
 
         function checkIntersectionAndClick() {
             raycaster.setFromCamera(center, camera);
-            // Check posters AND follower
             const objectsToCheck = [...postersArray, ...interactiveObjects];
             const intersects = raycaster.intersectObjects(objectsToCheck);
             
@@ -756,7 +775,6 @@
                 if (obj.userData.type === 'poster') {
                     openModal(obj.userData);
                 } else if (obj.userData.type === 'follower') {
-                    // Toggle following
                     isFollowing = !isFollowing;
                 }
             }
@@ -789,12 +807,12 @@
                     isSitting = true; 
                     camera.position.set(benchPosition.x, benchPosition.y + 1.2, benchPosition.z); 
                     velocity.set(0, 0, 0);
-                    // FIX: Look FORWARD (negative Z direction relative to bench center, since bench is at end)
-                    // Bench is at zLastRoom (~-80). Room exit is towards positive Z. Screen is towards negative Z.
                     camera.lookAt(0, 3, benchPosition.z - 20); 
-                    
                     camera.fov = 40; camera.updateProjectionMatrix();
-                    bgMusic.volume = 0.05;
+                    
+                    // FIX: Sound 10% louder (from 0.05 to 0.15)
+                    bgMusic.volume = 0.15;
+                    
                     if(video1) { video1.muted = false; video1.volume = 1.0; }
                     if(isMobile) { mobileSitBtn.style.display = 'flex'; mobileSitBtn.innerText = "UP"; }
                 }
@@ -824,27 +842,29 @@
         });
 
         let prevTime = performance.now();
+        let lastRoomIndex = -1; 
+
         function animate() {
             requestAnimationFrame(animate);
             if (!isGameActive) return;
             const time = performance.now(); 
             const delta = Math.min((time - prevTime) / 1000, 0.1);
             
-            if (revolvingStage) { revolvingStage.rotation.y += 0.1 * delta; }
-            animatedModels.forEach(model => { model.rotation.y -= 1.0 * delta; });
+            // FIX: Stop animations on Mobile
+            if (!isMobile) {
+                if (revolvingStage) { revolvingStage.rotation.y += 0.1 * delta; }
+                animatedModels.forEach(model => { model.rotation.y -= 1.0 * delta; });
+            }
             
-            // Follower Logic
             if (follower && isFollowing) {
                 follower.lookAt(camera.position);
                 const dist = follower.position.distanceTo(camera.position);
-                // Keep distance: move if > 3, stop if < 3
                 if (dist > 3.0) {
                     const direction = new THREE.Vector3().subVectors(camera.position, follower.position).normalize();
-                    follower.position.add(direction.multiplyScalar(3.5 * delta)); // Speed
-                    follower.position.y = 2.5 + Math.sin(time * 0.002) * 0.2; // Hover effect
+                    follower.position.add(direction.multiplyScalar(3.5 * delta)); 
+                    follower.position.y = 2.5 + Math.sin(time * 0.002) * 0.2; 
                 }
             } else if (follower && !isFollowing) {
-                // Idle hover when stopped
                 follower.position.y = 2.5 + Math.sin(time * 0.002) * 0.2;
             }
 
@@ -854,11 +874,13 @@
                 else { sitHint.style.display = 'none'; if (isMobile && !isSitting) mobileSitBtn.style.display = 'none'; }
                 
                 velocity.x -= velocity.x * 10.0 * delta; velocity.z -= velocity.z * 10.0 * delta; velocity.y -= 30.0 * delta; 
-                const speed = (move.shift ? 150 : 80);
+                
+                // FIX: Speed reduced by 10% (80 -> 72). Shift kept at 150.
+                const speed = (move.shift ? 150 : 72);
+                
                 const direction = new THREE.Vector3();
                 
                 if (isMobile) {
-                    // Joystick physics
                     const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion); forward.y = 0; forward.normalize();
                     const right = new THREE.Vector3(1, 0, 0).applyQuaternion(camera.quaternion); right.y = 0; right.normalize();
                     
@@ -891,7 +913,6 @@
                     if (obj.box && pBox.intersectsBox(obj.box)) hit = true;
                     if (obj.customType === 'cylinder') {
                         const dist = Math.sqrt(Math.pow(pPos.x - obj.position.x, 2) + Math.pow(pPos.z - obj.position.z, 2));
-                        // Check vertical overlap too
                         if (dist < obj.radius && Math.abs(pPos.y - obj.position.y) < 2.0) hit = true;
                     }
                 }
@@ -901,12 +922,15 @@
                 }
                 
                 const currentRoom = Math.max(0, Math.round(-camera.position.z / 20));
-                checkRoomLoad(currentRoom);
+                
+                if (currentRoom !== lastRoomIndex) {
+                    lastRoomIndex = currentRoom;
+                    checkRoomLoad(currentRoom);
+                }
 
             } else { sitHint.style.display = 'none'; velocity.set(0,0,0); }
             
             raycaster.setFromCamera(center, camera);
-            // Check posters AND follower for cursor hover
             const hoverCheck = [...postersArray, ...interactiveObjects];
             const intersects = raycaster.intersectObjects(hoverCheck);
             if (intersects.length > 0 && intersects[0].distance < 8) cursor.classList.add('hover-active'); else cursor.classList.remove('hover-active');

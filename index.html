@@ -175,7 +175,6 @@
 
         const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
-        // --- LOADING SYSTEM ---
         const loadStartTime = Date.now();
         const minLoadTime = 3000; 
         const loadingStatus = document.getElementById('loader-status');
@@ -183,12 +182,8 @@
         const loadingFill = document.getElementById('progress-fill');
         
         const statusMessages = [
-            "CACHING TEXTURES...",
-            "COMPILING SHADERS...",
-            "INITIALIZING PHYSICS...",
-            "BUILDING GEOMETRY...",
-            "PREPARING ASSETS...",
-            "READY"
+            "CACHING TEXTURES...", "COMPILING SHADERS...", "INITIALIZING PHYSICS...", 
+            "BUILDING GEOMETRY...", "PREPARING ASSETS...", "READY"
         ];
         
         setInterval(() => {
@@ -221,6 +216,8 @@
                 setTimeout(() => {
                     loader.style.display = 'none';
                     document.getElementById('start-screen').style.display = 'flex';
+                    // Force mobile check to load first room if pending
+                    if (isMobile) checkRoomLoad(0);
                 }, 800); 
             }, remainingTime);
         };
@@ -255,6 +252,9 @@
 
         // --- MATERIALS ---
         const textureLoader = new THREE.TextureLoader(manager);
+        // Fallback loader for mobile (does not use manager to avoid blocking)
+        const lazyLoader = new THREE.TextureLoader();
+
         const concreteTex = textureLoader.load('https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/plaster_grey_04/plaster_grey_04_diff_1k.jpg');
         concreteTex.wrapS = concreteTex.wrapT = THREE.RepeatWrapping;
         concreteTex.repeat.set(10, 40); concreteTex.colorSpace = THREE.SRGBColorSpace;
@@ -266,7 +266,8 @@
         const tvFrameMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.2 });
         const cableMat = new THREE.MeshBasicMaterial({ color: 0x000000 });
         const benchMat = new THREE.MeshStandardMaterial({ color: 0xdddddd, roughness: 0.3 });
-        const mobilePosterMat = new THREE.MeshStandardMaterial({ color: 0xcccccc, roughness: 0.6, metalness: 0.1 });
+        // Grey placeholder for mobile
+        const placeholderMat = new THREE.MeshStandardMaterial({ color: 0x888888, roughness: 0.8 });
 
         const video1 = document.getElementById('video1');
         const video2 = document.getElementById('video2');
@@ -277,6 +278,11 @@
 
         const collidableObjects = []; 
         const postersArray = []; 
+        
+        // --- MOBILE OPTIMIZATION: PENDING LOADS ---
+        const pendingPosters = {}; 
+        const roomsLoaded = {};
+
         let revolvingStage = null;
         const animatedModels = [];
         const interactiveObjects = []; 
@@ -294,35 +300,81 @@
             return { wallUrl, fullUrl, title, id };
         }
 
-        // FIX: Re-introduced Fallback logic for Black Posters issue
-        function addPoster(x, y, z, ry, w, h) {
+        // --- HYBRID LOADER LOGIC ---
+        function addPoster(x, y, z, ry, w, h, roomIndex) {
             const data = getNextImage();
             const geo = new THREE.PlaneGeometry(w, h);
             
-            // Try load JPG
-            const tex = textureLoader.load(data.wallUrl, (t) => {
-                t.colorSpace = THREE.SRGBColorSpace;
-            }, undefined, (err) => {
-                // If JPG fails, try PNG (Fallback)
-                console.log(`Failed to load ${data.wallUrl}, trying PNG fallback`);
-                const pngUrl = data.wallUrl.replace('small_mobile/', '').replace('small/', '').replace('.jpg', '.png');
-                const tex2 = textureLoader.load(pngUrl, (t2) => {
-                    t2.colorSpace = THREE.SRGBColorSpace;
-                    mesh.material.map = t2;
-                    mesh.material.needsUpdate = true;
-                });
-            });
+            let mat;
             
-            const mat = new THREE.MeshStandardMaterial({ 
-                map: tex, 
-                color: 0xffffff, 
-                roughness: 0.4 
-            });
+            if (isMobile) {
+                // MOBILE: Use placeholder, load later
+                mat = placeholderMat.clone(); // Clone to allow individual update
+                if (!pendingPosters[roomIndex]) pendingPosters[roomIndex] = [];
+                // Store data to load later
+                pendingPosters[roomIndex].push({ 
+                    mesh: null, // assigned later
+                    url: data.wallUrl,
+                    material: mat 
+                });
+            } else {
+                // DESKTOP: Immediate Load with Manager (Preloading)
+                const tex = textureLoader.load(data.wallUrl, (t) => {
+                    t.colorSpace = THREE.SRGBColorSpace;
+                }, undefined, (err) => {
+                    // Fallback
+                    const pngUrl = data.wallUrl.replace('small/', '').replace('.jpg', '.png');
+                    textureLoader.load(pngUrl, (t2)=>{
+                        t2.colorSpace = THREE.SRGBColorSpace;
+                        mat.map = t2; mat.needsUpdate = true;
+                    });
+                });
+                mat = new THREE.MeshStandardMaterial({ map: tex, color: 0xffffff, roughness: 0.4 });
+            }
             
             const mesh = new THREE.Mesh(geo, mat);
             mesh.position.set(x, y, z); mesh.rotation.y = ry;
             mesh.userData = { type: 'poster', url: data.fullUrl, title: data.title, year: "2025", desc: "Collection" };
-            scene.add(mesh); postersArray.push(mesh); 
+            scene.add(mesh); 
+            postersArray.push(mesh);
+            
+            // Link mesh to pending list if mobile
+            if (isMobile && pendingPosters[roomIndex]) {
+                const item = pendingPosters[roomIndex][pendingPosters[roomIndex].length - 1];
+                item.mesh = mesh;
+            }
+        }
+
+        // Function called when entering a room (Mobile Only)
+        function checkRoomLoad(roomIndex) {
+            if (!isMobile) return; // Desktop is already loaded
+            
+            // Load current room and next room
+            [roomIndex, roomIndex + 1].forEach(idx => {
+                if (roomsLoaded[idx]) return;
+                if (!pendingPosters[idx]) return;
+                
+                roomsLoaded[idx] = true;
+                const items = pendingPosters[idx];
+                
+                items.forEach(item => {
+                    lazyLoader.load(item.url, (tex) => {
+                        tex.colorSpace = THREE.SRGBColorSpace;
+                        item.material.map = tex;
+                        item.material.color.setHex(0xffffff); // Reset grey to white
+                        item.material.needsUpdate = true;
+                    }, undefined, () => {
+                        // Fallback logic for mobile
+                        const pngUrl = item.url.replace('small_mobile/', '').replace('.jpg', '.png');
+                        lazyLoader.load(pngUrl, (tex2) => {
+                            tex2.colorSpace = THREE.SRGBColorSpace;
+                            item.material.map = tex2;
+                            item.material.color.setHex(0xffffff);
+                            item.material.needsUpdate = true;
+                        });
+                    });
+                });
+            });
         }
 
         function createBox(x, y, z, w, h, d, isWall = true, isDark = false, customMat = null) {
@@ -346,7 +398,7 @@
         }
 
         function createHangingTV(x, z, ceilingHeight, rotationY = 0) {
-            if (isMobile) return; // Disabled on mobile to save RAM
+            if (isMobile) return; 
 
             const tvW = 1.78; const tvH = 3.16; const tvD = 0.1;
             const tvGeo = new THREE.BoxGeometry(tvW, tvH, tvD);
@@ -381,14 +433,13 @@
         const cachedPipeGeo = new THREE.CylinderGeometry(0.05, 0.05, 1, 12); 
         const cachedJointGeo = new THREE.SphereGeometry(0.09, 12, 8);
 
-        function createScaffoldingStructure(x, z) {
+        function createScaffoldingStructure(x, z, roomIndex) {
             revolvingStage = new THREE.Group();
             revolvingStage.position.set(x, 0, z);
             const platform = new THREE.Mesh(new THREE.CylinderGeometry(3.5, 3.5, 0.2, 32), new THREE.MeshStandardMaterial({ color: 0x333333, roughness: 0.8, metalness: 0.5 }));
             platform.position.y = 0.1; platform.receiveShadow = !isMobile; revolvingStage.add(platform);
             collidableObjects.push({ box: new THREE.Box3().setFromObject(platform) }); 
             
-            // MOBILE SIMPLIFICATION
             if (isMobile) {
                 const pillar = new THREE.Mesh(new THREE.CylinderGeometry(1.5, 1.5, 4.0, 16), darkWallMat);
                 pillar.position.y = 2.0;
@@ -427,20 +478,39 @@
                     data = getNextImage();
                 }
 
-                const tex = textureLoader.load(data.wallUrl, (t)=>{ t.colorSpace = THREE.SRGBColorSpace; }, undefined, (err)=>{
-                    const pngUrl = data.wallUrl.replace('small_mobile/', '').replace('small/', '').replace('.jpg', '.png');
-                    const tex2 = textureLoader.load(pngUrl, (t2)=>{ t2.colorSpace = THREE.SRGBColorSpace; mesh.material.map=t2; mesh.material.needsUpdate=true; });
-                });
-                
-                const mat = new THREE.MeshStandardMaterial({ map: tex, color: 0xffffff, roughness: 0.4, side: THREE.DoubleSide });
-                const mesh = new THREE.Mesh(new THREE.PlaneGeometry(2.0, 2.5), mat);
+                const geo = new THREE.PlaneGeometry(2.0, 2.5);
+                let mat;
+
+                if (isMobile) {
+                    mat = placeholderMat.clone();
+                    if (!pendingPosters[roomIndex]) pendingPosters[roomIndex] = [];
+                    pendingPosters[roomIndex].push({ mesh: null, url: data.wallUrl, material: mat });
+                } else {
+                    const tex = textureLoader.load(data.wallUrl, (t) => {
+                        t.colorSpace = THREE.SRGBColorSpace;
+                    }, undefined, () => {
+                        // Fallback logic
+                        const pngUrl = data.wallUrl.replace('small/', '').replace('.jpg', '.png');
+                        textureLoader.load(pngUrl, (t2)=>{
+                            t2.colorSpace = THREE.SRGBColorSpace;
+                            mat.map = t2; mat.needsUpdate = true;
+                        });
+                    });
+                    mat = new THREE.MeshStandardMaterial({ map: tex, color: 0xffffff, roughness: 0.4, side: THREE.DoubleSide });
+                }
+
+                const mesh = new THREE.Mesh(geo, mat);
                 mesh.position.set(px, py, pz); mesh.rotation.y = ry;
                 
+                if (isMobile && pendingPosters[roomIndex]) {
+                    pendingPosters[roomIndex][pendingPosters[roomIndex].length - 1].mesh = mesh;
+                }
+
                 if (!isMobile) {
                     const stringMat = new THREE.LineBasicMaterial({ color: 0x111111 });
-                    const pW = 2.0; const pH = 2.5; const topOfPosterY = pH / 2; const distToPipe = (pipeYLevel - 0.05) - (py + topOfPosterY);
-                    const pointsL = [new THREE.Vector3(-pW/2 + 0.15, topOfPosterY, 0), new THREE.Vector3(-pW/2 + 0.15, topOfPosterY + distToPipe, 0)];
-                    const pointsR = [new THREE.Vector3(pW/2 - 0.15, topOfPosterY, 0), new THREE.Vector3(pW/2 - 0.15, topOfPosterY + distToPipe, 0)];
+                    const topOfPosterY = 2.5 / 2; const distToPipe = (pipeYLevel - 0.05) - (py + topOfPosterY);
+                    const pointsL = [new THREE.Vector3(-1 + 0.15, topOfPosterY, 0), new THREE.Vector3(-1 + 0.15, topOfPosterY + distToPipe, 0)];
+                    const pointsR = [new THREE.Vector3(1 - 0.15, topOfPosterY, 0), new THREE.Vector3(1 - 0.15, topOfPosterY + distToPipe, 0)];
                     mesh.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pointsL), stringMat)); mesh.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pointsR), stringMat));
                 }
 
@@ -449,11 +519,10 @@
             }
             const topPipeLevel = 3.3; const posterCenterY = 3.5 / 2;
             const d = 4; const w = 4;
-            const dist = isMobile ? 1.6 : 2.0; 
             
-            mountPoster(0, posterCenterY, isMobile ? 1.6 : d/2, 0, 2, 2.5, topPipeLevel); 
-            mountPoster(isMobile ? -1.6 : -w/2, posterCenterY, 0, Math.PI/2, 2, 2.5, topPipeLevel); 
-            mountPoster(0, posterCenterY, isMobile ? -1.6 : -d/2, Math.PI, 2.5, 1.8, topPipeLevel); 
+            mountPoster(0, posterCenterY, isMobile ? 1.6 : d/2, 0, 2, 2.5, topPipeLevel, null); 
+            mountPoster(isMobile ? -1.6 : -w/2, posterCenterY, 0, Math.PI/2, 2, 2.5, topPipeLevel, null); 
+            mountPoster(0, posterCenterY, isMobile ? -1.6 : -d/2, Math.PI, 2.5, 1.8, topPipeLevel, null); 
             mountPoster(isMobile ? 1.6 : w/2, posterCenterY, 0, -Math.PI/2, 2, 2.5, topPipeLevel, 'assets/image80.jpg');
 
             scene.add(revolvingStage);
@@ -601,7 +670,7 @@
             if (!isDarkRoom) {
                 if (i === 0) { createHangingTV(0, zCenter, roomHeight, 0); } 
                 else if (i === 1) { loadAllModels(0, zCenter); createHangingModel7(0, zCenter, roomHeight); } 
-                else if (i === 2) { createScaffoldingStructure(0, zCenter); } 
+                else if (i === 2) { createScaffoldingStructure(0, zCenter, i); } 
                 else { 
                     let rotation;
                     if (i === 3) {
@@ -618,24 +687,20 @@
                 const startZ = zCenter + (sideWallLength / 2) - (sideSpacing / 2); 
                 for (let k = 0; k < postersPerSide; k++) {
                     const zPos = startZ - (k * sideSpacing);
-                    addPoster(-9.7, 2.7, zPos, Math.PI/2, standardW, standardH);
-                    addPoster(9.7, 2.7, zPos, -Math.PI/2, standardW, standardH);
+                    addPoster(-9.7, 2.7, zPos, Math.PI/2, standardW, standardH, i);
+                    addPoster(9.7, 2.7, zPos, -Math.PI/2, standardW, standardH, i);
                 }
                 const offsetX = 6.0; const offsetZ = 0.3; 
-                addPoster(-offsetX, 2.7, zCenter - roomSize/2 + offsetZ, 0, standardW, standardH);
-                addPoster(offsetX, 2.7, zCenter - roomSize/2 + offsetZ, 0, standardW, standardH);
+                addPoster(-offsetX, 2.7, zCenter - roomSize/2 + offsetZ, 0, standardW, standardH, i);
+                addPoster(offsetX, 2.7, zCenter - roomSize/2 + offsetZ, 0, standardW, standardH, i);
                 if (i > 0) { 
-                   addPoster(-offsetX, 2.7, zCenter + roomSize/2 - offsetZ, Math.PI, standardW, standardH);
-                   addPoster(offsetX, 2.7, zCenter + roomSize/2 - offsetZ, Math.PI, standardW, standardH);
+                   addPoster(-offsetX, 2.7, zCenter + roomSize/2 - offsetZ, Math.PI, standardW, standardH, i);
+                   addPoster(offsetX, 2.7, zCenter + roomSize/2 - offsetZ, Math.PI, standardW, standardH, i);
                 }
             } else {
                 const projW = 9.0; const projH = 5.06;
                 const wallDist = (roomSize/2) - 0.4;
-                
-                // FIX: VIDEO FOR MOBILE - ONLY FRONT SCREEN
                 createProjection(0, 3, zCenter - wallDist, projW, projH, 0, videoTex1);
-                
-                // SIDE SCREENS - DESKTOP ONLY
                 if (!isMobile) {
                     createProjection(-wallDist, 3, zCenter, projW, projH, Math.PI/2, videoTex1);
                     createProjection(wallDist, 3, zCenter, projW, projH, -Math.PI/2, videoTex1);
@@ -707,6 +772,7 @@
                 if(window.innerHeight > window.innerWidth) {
                 }
                 document.getElementById('mobile-look-hint').style.display = 'block';
+                checkRoomLoad(0);
             }
         }
 
@@ -858,7 +924,6 @@
             if (isSitting) { 
                 isSitting = false; camera.position.y = 1.7; camera.fov = 70; camera.updateProjectionMatrix();
                 
-                // RESTORE BG MUSIC
                 bgMusic.volume = 0.65;
 
                 if(video1) video1.muted = true;
@@ -872,7 +937,6 @@
                     camera.lookAt(0, 3, benchPosition.z - 20); 
                     camera.fov = 40; camera.updateProjectionMatrix();
                     
-                    // FIX: Duck the BG music to 10% to let Video at 100% shine
                     bgMusic.volume = 0.1;
                     
                     if(video1) { video1.muted = false; video1.volume = 1.0; }
@@ -904,6 +968,7 @@
         });
 
         let prevTime = performance.now();
+        let lastRoomIndex = -1;
 
         function animate() {
             requestAnimationFrame(animate);
@@ -978,6 +1043,14 @@
                 if(hit) { 
                     if(isMobile) { camera.position.sub(new THREE.Vector3(velocity.x * delta, 0, velocity.z * delta)); } 
                     else { controls.moveForward(velocity.z * delta); controls.moveRight(velocity.x * delta); }
+                }
+                
+                if (isMobile) {
+                    const currentRoom = Math.max(0, Math.round(-camera.position.z / 20));
+                    if (currentRoom !== lastRoomIndex) {
+                        lastRoomIndex = currentRoom;
+                        checkRoomLoad(currentRoom);
+                    }
                 }
 
             } else { sitHint.style.display = 'none'; velocity.set(0,0,0); }

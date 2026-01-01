@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Olympia Gallery - Performance Fix</title>
+    <title>Olympia Gallery - GLB Optimized</title>
     <style>
         body { margin: 0; overflow: hidden; background-color: #000; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; touch-action: none; user-select: none; -webkit-user-select: none; }
         
@@ -49,7 +49,6 @@
             border-radius: 20px; font-size: 0.9rem; display: none; pointer-events: none; z-index: 20;
         }
         
-        /* MOBILE JOYS */
         .joystick-zone {
             position: absolute; bottom: 30px; width: 140px; height: 140px;
             background: rgba(255, 255, 255, 0.05); border-radius: 50%;
@@ -139,7 +138,7 @@
         import * as THREE from 'three';
         import { PointerLockControls } from 'three/addons/controls/PointerLockControls.js';
         import { RectAreaLightUniformsLib } from 'three/addons/lights/RectAreaLightUniformsLib.js';
-        import { FBXLoader } from 'three/addons/loaders/FBXLoader.js';
+        import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'; // ЗМІНЕНО НА GLTF
 
         const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
@@ -185,7 +184,7 @@
         const bgMusic = document.getElementById('bgMusic');
         bgMusic.volume = 0.5;
 
-        // --- 2. МАТЕРІАЛИ ---
+        // --- МАТЕРІАЛИ ---
         const textureLoader = new THREE.TextureLoader(manager);
         const concreteTex = textureLoader.load('https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/plaster_grey_04/plaster_grey_04_diff_1k.jpg');
         concreteTex.wrapS = concreteTex.wrapT = THREE.RepeatWrapping;
@@ -213,6 +212,7 @@
         let revolvingStage = null;
         const animatedModels = [];
 
+        // --- IMAGE LOGIC ---
         let currentImageId = 1;
         const totalImages = 65; 
 
@@ -231,9 +231,7 @@
             return { wallUrl, fullUrl, title, id };
         }
 
-        // --- 3. ФУНКЦІЇ БУДІВНИЦТВА ---
-        
-        // LAZY LOAD VARS
+        // --- ФУНКЦІЇ БУДІВНИЦТВА ---
         const pendingPosters = {}; 
         const roomsLoaded = {}; 
         const lazyLoader = new THREE.TextureLoader();
@@ -267,10 +265,6 @@
         function addPoster(x, y, z, ry, w, h, roomIndex) {
             const data = getNextImage();
             const geo = new THREE.PlaneGeometry(w, h);
-            
-            // Завжди створюємо спочатку легку заглушку
-            // Навіть на ПК - це пришвидшить ініціалізацію
-            // Текстура підвантажиться через loadRoomTextures
             const mesh = new THREE.Mesh(geo, mobilePosterMat);
 
             mesh.position.set(x, y, z); mesh.rotation.y = ry;
@@ -391,55 +385,72 @@
             revolvingStage.add(structureGroup); scene.add(revolvingStage);
         }
 
-        const modelFiles = ['output.fbx', 'output2.fbx', 'output3.fbx', 'output4.fbx', 'output5.fbx', 'output6.fbx', 'output9.fbx'];
+        // --- GLB LOADER (New Folder assets/3d) ---
+        const modelFiles = ['output.glb', 'output2.glb', 'output3.glb', 'output4.glb', 'output5.glb', 'output6.glb', 'output9.glb'];
+        
         function loadAllModels(roomCenterX, roomCenterZ) {
-            const fbxLoader = new FBXLoader(manager);
+            const gltfLoader = new GLTFLoader(manager);
             modelFiles.forEach((filename, index) => {
                 const angle = (index / modelFiles.length) * Math.PI * 2;
                 const radius = 5; 
                 const offsetX = Math.cos(angle) * radius; const offsetZ = Math.sin(angle) * radius;
-                const fullPath = `assets/${filename}`;
-                fbxLoader.load(fullPath, (object) => {
+                const fullPath = `assets/3d/${filename}`; // ШЛЯХ ДО GLB
+                
+                gltfLoader.load(fullPath, (gltf) => {
+                    const object = gltf.scene; // Отримуємо сцену з GLB
+                    
                     object.scale.set(1, 1, 1); 
                     const box = new THREE.Box3().setFromObject(object);
                     const size = new THREE.Vector3(); box.getSize(size);
                     const maxDim = Math.max(size.x, size.y, size.z);
                     let targetScale = 1.0;
                     if (maxDim > 5) { targetScale = 3.0 / maxDim; } else if (maxDim < 0.5) { targetScale = 2.0 / maxDim; }
+                    
                     let multiplier = 2.3; 
-                    if (filename === 'output3.fbx') { multiplier *= 0.8; }
-                    if (filename === 'output9.fbx') { multiplier = (1.9 / 4.0) * 1.4; }
-                    if (filename === 'output5.fbx' || filename === 'output6.fbx') { multiplier = 1.9; }
+                    if (filename === 'output3.glb') { multiplier *= 0.8; }
+                    if (filename === 'output9.glb') { multiplier = (1.9 / 4.0) * 1.4; }
+                    if (filename === 'output5.glb' || filename === 'output6.glb') { multiplier = 1.9; }
+                    
                     targetScale *= multiplier;
                     object.scale.set(targetScale, targetScale, targetScale);
+                    
+                    // ТІНІ: Вимкнути castShadow для моделей (оптимізація)
                     object.traverse((child) => { 
                         if (child.isMesh) { 
-                            // === PERFORMANCE FIX: NO SHADOWS ON MODELS ===
                             child.castShadow = false; 
-                            child.receiveShadow = !isMobile; // Only receive if desktop
+                            child.receiveShadow = !isMobile; 
                         } 
                     });
-                    if (filename === 'output3.fbx') { object.rotation.set(0, 0, 0); } else { object.rotation.set(-Math.PI / 2, 0, 0); }
-                    if (filename === 'output4.fbx') { animatedModels.push(object); }
-                    if (filename === 'output9.fbx') { object.rotation.set(-Math.PI / 2, 0, 0); }
+
+                    // ОРІЄНТАЦІЯ: Прибрано -Math.PI/2 для FBX. Тепер стоять рівно.
+                    // Для Output9 (лежача) - якщо вона вже лежить в файлі, то ок.
+                    // Якщо стоїть - можна повернути. Але за замовчуванням залишаємо (0,0,0)
+                    object.rotation.set(0, 0, 0); 
+
+                    if (filename === 'output4.glb') { animatedModels.push(object); }
+                    // Якщо Output9 треба повернути (наприклад, якщо він стоїть вертикально в файлі):
+                    // if (filename === 'output9.glb') { object.rotation.set(-Math.PI / 2, 0, 0); }
+
                     object.updateMatrixWorld(); 
                     const newBox = new THREE.Box3().setFromObject(object);
                     object.position.set(roomCenterX + offsetX, -newBox.min.y, roomCenterZ + offsetZ);
                     scene.add(object);
                     collidableObjects.push({ box: new THREE.Box3().setFromObject(object) });
-                    if (filename === 'output6.fbx') {
-                        const loader7 = new FBXLoader();
-                        loader7.load('assets/output7.fbx', (obj7) => {
+                    
+                    // STACKING output7 ON output6
+                    if (filename === 'output6.glb') {
+                        const loader7 = new GLTFLoader();
+                        loader7.load('assets/3d/output7.glb', (gltf7) => {
+                            const obj7 = gltf7.scene;
+                            console.log("--- ЗАВАНТАЖЕНО: output7.glb (stacked) ---");
+                            
                             const smallScale = targetScale / 4;
                             obj7.scale.set(smallScale, smallScale, smallScale); 
-                            obj7.rotation.set(-Math.PI / 2, 0, 0);
+                            obj7.rotation.set(0, 0, 0); // Теж рівно
+                            
                             animatedModels.push(obj7);
-                            obj7.traverse((child) => { 
-                                if (child.isMesh) { 
-                                    child.castShadow = false; 
-                                    child.receiveShadow = !isMobile; 
-                                } 
-                            });
+                            obj7.traverse((child) => { if (child.isMesh) { child.castShadow = false; child.receiveShadow = !isMobile; } });
+                            
                             const box6 = new THREE.Box3().setFromObject(object);
                             const topY = box6.max.y;
                             obj7.updateMatrixWorld();
@@ -454,8 +465,10 @@
         }
 
         function createHangingModel8(x, z, roomCeiling) {
-            const fbxLoader = new FBXLoader(manager);
-            fbxLoader.load('assets/output8.fbx', (object) => {
+            const gltfLoader = new GLTFLoader(manager);
+            gltfLoader.load('assets/3d/output8.glb', (gltf) => {
+                const object = gltf.scene;
+                
                 object.scale.set(1, 1, 1);
                 const box = new THREE.Box3().setFromObject(object);
                 const size = new THREE.Vector3(); box.getSize(size);
@@ -463,13 +476,12 @@
                 let targetScale = (maxDim > 5) ? 3.0 / maxDim : (maxDim < 0.5 ? 2.0 / maxDim : 1.0);
                 targetScale *= 1.2; 
                 object.scale.set(targetScale, targetScale, targetScale);
-                object.traverse((child) => { 
-                    if (child.isMesh) { 
-                        child.castShadow = false; 
-                        child.receiveShadow = !isMobile; 
-                    } 
-                });
-                object.rotation.set(-Math.PI/2, 0, 0);
+                object.traverse((child) => { if (child.isMesh) { child.castShadow = false; child.receiveShadow = !isMobile; } });
+                
+                // Якщо 8-ка висить, зазвичай її не треба крутити, якщо вона в файлі ок.
+                // Якщо треба "підошвою" до стіни - це інше. Тут висить по центру.
+                object.rotation.set(0, 0, 0); 
+                
                 const hangY = 2.5;
                 object.position.set(x, hangY, z);
                 scene.add(object);
@@ -585,10 +597,9 @@
         let isSitting = false;
         let isGameActive = false;
 
-        // ЛОГІКА ПЕРЕВІРКИ КІМНАТИ (LAZY)
         function checkRoomLoad(roomIndex) {
             loadRoomTextures(roomIndex);
-            loadRoomTextures(roomIndex + 1); // Preload next
+            loadRoomTextures(roomIndex + 1); 
         }
 
         function startGame(e) {

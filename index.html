@@ -175,6 +175,7 @@
 
         const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
+        // --- LOADING SYSTEM ---
         const loadStartTime = Date.now();
         const minLoadTime = 3000; 
         const loadingStatus = document.getElementById('loader-status');
@@ -216,7 +217,6 @@
                 setTimeout(() => {
                     loader.style.display = 'none';
                     document.getElementById('start-screen').style.display = 'flex';
-                    // Force mobile check to load first room if pending
                     if (isMobile) checkRoomLoad(0);
                 }, 800); 
             }, remainingTime);
@@ -252,7 +252,6 @@
 
         // --- MATERIALS ---
         const textureLoader = new THREE.TextureLoader(manager);
-        // Fallback loader for mobile (does not use manager to avoid blocking)
         const lazyLoader = new THREE.TextureLoader();
 
         const concreteTex = textureLoader.load('https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/plaster_grey_04/plaster_grey_04_diff_1k.jpg');
@@ -266,7 +265,7 @@
         const tvFrameMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.2 });
         const cableMat = new THREE.MeshBasicMaterial({ color: 0x000000 });
         const benchMat = new THREE.MeshStandardMaterial({ color: 0xdddddd, roughness: 0.3 });
-        // Grey placeholder for mobile
+        const mobilePosterMat = new THREE.MeshStandardMaterial({ color: 0xcccccc, roughness: 0.6, metalness: 0.1 });
         const placeholderMat = new THREE.MeshStandardMaterial({ color: 0x888888, roughness: 0.8 });
 
         const video1 = document.getElementById('video1');
@@ -278,8 +277,6 @@
 
         const collidableObjects = []; 
         const postersArray = []; 
-        
-        // --- MOBILE OPTIMIZATION: PENDING LOADS ---
         const pendingPosters = {}; 
         const roomsLoaded = {};
 
@@ -300,7 +297,7 @@
             return { wallUrl, fullUrl, title, id };
         }
 
-        // --- HYBRID LOADER LOGIC ---
+        // --- HYBRID LOADER ---
         function addPoster(x, y, z, ry, w, h, roomIndex) {
             const data = getNextImage();
             const geo = new THREE.PlaneGeometry(w, h);
@@ -308,21 +305,17 @@
             let mat;
             
             if (isMobile) {
-                // MOBILE: Use placeholder, load later
-                mat = placeholderMat.clone(); // Clone to allow individual update
+                mat = placeholderMat.clone(); 
                 if (!pendingPosters[roomIndex]) pendingPosters[roomIndex] = [];
-                // Store data to load later
                 pendingPosters[roomIndex].push({ 
-                    mesh: null, // assigned later
+                    mesh: null, 
                     url: data.wallUrl,
                     material: mat 
                 });
             } else {
-                // DESKTOP: Immediate Load with Manager (Preloading)
                 const tex = textureLoader.load(data.wallUrl, (t) => {
                     t.colorSpace = THREE.SRGBColorSpace;
                 }, undefined, (err) => {
-                    // Fallback
                     const pngUrl = data.wallUrl.replace('small/', '').replace('.jpg', '.png');
                     textureLoader.load(pngUrl, (t2)=>{
                         t2.colorSpace = THREE.SRGBColorSpace;
@@ -338,18 +331,15 @@
             scene.add(mesh); 
             postersArray.push(mesh);
             
-            // Link mesh to pending list if mobile
             if (isMobile && pendingPosters[roomIndex]) {
                 const item = pendingPosters[roomIndex][pendingPosters[roomIndex].length - 1];
                 item.mesh = mesh;
             }
         }
 
-        // Function called when entering a room (Mobile Only)
         function checkRoomLoad(roomIndex) {
-            if (!isMobile) return; // Desktop is already loaded
+            if (!isMobile) return; 
             
-            // Load current room and next room
             [roomIndex, roomIndex + 1].forEach(idx => {
                 if (roomsLoaded[idx]) return;
                 if (!pendingPosters[idx]) return;
@@ -361,10 +351,9 @@
                     lazyLoader.load(item.url, (tex) => {
                         tex.colorSpace = THREE.SRGBColorSpace;
                         item.material.map = tex;
-                        item.material.color.setHex(0xffffff); // Reset grey to white
+                        item.material.color.setHex(0xffffff); 
                         item.material.needsUpdate = true;
                     }, undefined, () => {
-                        // Fallback logic for mobile
                         const pngUrl = item.url.replace('small_mobile/', '').replace('.jpg', '.png');
                         lazyLoader.load(pngUrl, (tex2) => {
                             tex2.colorSpace = THREE.SRGBColorSpace;
@@ -433,18 +422,19 @@
         const cachedPipeGeo = new THREE.CylinderGeometry(0.05, 0.05, 1, 12); 
         const cachedJointGeo = new THREE.SphereGeometry(0.09, 12, 8);
 
-        function createScaffoldingStructure(x, z, roomIndex) {
+        function createScaffoldingStructure(x, z) {
             revolvingStage = new THREE.Group();
             revolvingStage.position.set(x, 0, z);
-            const platform = new THREE.Mesh(new THREE.CylinderGeometry(3.5, 3.5, 0.2, 32), new THREE.MeshStandardMaterial({ color: 0x333333, roughness: 0.8, metalness: 0.5 }));
-            platform.position.y = 0.1; platform.receiveShadow = !isMobile; revolvingStage.add(platform);
-            collidableObjects.push({ box: new THREE.Box3().setFromObject(platform) }); 
             
             if (isMobile) {
-                const pillar = new THREE.Mesh(new THREE.CylinderGeometry(1.5, 1.5, 4.0, 16), darkWallMat);
-                pillar.position.y = 2.0;
-                revolvingStage.add(pillar);
+                // FIX: EMPTY CENTER FOR MOBILE
+                // Do nothing here, stage is empty.
             } else {
+                // DESKTOP: FULL STRUCTURE
+                const platform = new THREE.Mesh(new THREE.CylinderGeometry(3.5, 3.5, 0.2, 32), new THREE.MeshStandardMaterial({ color: 0x333333, roughness: 0.8, metalness: 0.5 }));
+                platform.position.y = 0.1; platform.receiveShadow = !isMobile; revolvingStage.add(platform);
+                collidableObjects.push({ box: new THREE.Box3().setFromObject(platform) }); 
+
                 const structureGroup = new THREE.Group(); structureGroup.position.y = 0.2; 
                 const metalMat = new THREE.MeshStandardMaterial({ color: 0xeeeeee, roughness: 0.2, metalness: 0.8 });
                 const w = 4; const h = 3.5; const d = 4;
@@ -467,63 +457,39 @@
                 levels.forEach(lev => { addPipe(0, lev, -d/2, w, 'x'); addPipe(0, lev, d/2, w, 'x'); addPipe(-w/2, lev, 0, d, 'z'); addPipe(w/2, lev, 0, d, 'z'); });
                 const cornersX = [-w/2, w/2]; const cornersZ = [-d/2, d/2];
                 levels.forEach(lev => { cornersX.forEach(cx => { cornersZ.forEach(cz => { addJoint(cx, lev, cz); }); }); });
+                
+                // MOUNT POSTERS ONLY ON DESKTOP
+                function mountPoster(px, py, pz, ry, width, height, pipeYLevel, specificUrl = null) {
+                    let data;
+                    if (specificUrl) {
+                        data = { wallUrl: specificUrl, fullUrl: specificUrl, title: "Special", id: 80 };
+                    } else {
+                        data = getNextImage();
+                    }
+
+                    const tex = textureLoader.load(data.wallUrl, (t)=>{ t.colorSpace = THREE.SRGBColorSpace; });
+                    const mat = new THREE.MeshStandardMaterial({ map: tex, color: 0xffffff, roughness: 0.4, side: THREE.DoubleSide });
+                    const mesh = new THREE.Mesh(new THREE.PlaneGeometry(2.0, 2.5), mat);
+                    mesh.position.set(px, py, pz); mesh.rotation.y = ry;
+                    
+                    const stringMat = new THREE.LineBasicMaterial({ color: 0x111111 });
+                    const pW = 2.0; const pH = 2.5; const topOfPosterY = pH / 2; const distToPipe = (pipeYLevel - 0.05) - (py + topOfPosterY);
+                    const pointsL = [new THREE.Vector3(-pW/2 + 0.15, topOfPosterY, 0), new THREE.Vector3(-pW/2 + 0.15, topOfPosterY + distToPipe, 0)];
+                    const pointsR = [new THREE.Vector3(pW/2 - 0.15, topOfPosterY, 0), new THREE.Vector3(pW/2 - 0.15, topOfPosterY + distToPipe, 0)];
+                    mesh.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pointsL), stringMat)); mesh.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pointsR), stringMat));
+
+                    mesh.userData = { type: 'poster', url: data.fullUrl, title: data.title, year: "2025", desc: "Mounted Installation" };
+                    revolvingStage.add(mesh); postersArray.push(mesh);
+                }
+                const topPipeLevel = 3.3; const posterCenterY = 3.5 / 2;
+                const d2 = 4; const w2 = 4;
+                mountPoster(0, posterCenterY, d2/2, 0, 2, 2.5, topPipeLevel); 
+                mountPoster(-w2/2, posterCenterY, 0, Math.PI/2, 2, 2.5, topPipeLevel); 
+                mountPoster(0, posterCenterY, -d2/2, Math.PI, 2.5, 1.8, topPipeLevel); 
+                mountPoster(w2/2, posterCenterY, 0, -Math.PI/2, 2, 2.5, topPipeLevel, 'assets/image80.jpg');
+                
                 revolvingStage.add(structureGroup);
             }
-            
-            function mountPoster(px, py, pz, ry, width, height, pipeYLevel, specificUrl = null) {
-                let data;
-                if (specificUrl) {
-                    data = { wallUrl: specificUrl, fullUrl: specificUrl, title: "Special", id: 80 };
-                } else {
-                    data = getNextImage();
-                }
-
-                const geo = new THREE.PlaneGeometry(2.0, 2.5);
-                let mat;
-
-                if (isMobile) {
-                    mat = placeholderMat.clone();
-                    if (!pendingPosters[roomIndex]) pendingPosters[roomIndex] = [];
-                    pendingPosters[roomIndex].push({ mesh: null, url: data.wallUrl, material: mat });
-                } else {
-                    const tex = textureLoader.load(data.wallUrl, (t) => {
-                        t.colorSpace = THREE.SRGBColorSpace;
-                    }, undefined, () => {
-                        // Fallback logic
-                        const pngUrl = data.wallUrl.replace('small/', '').replace('.jpg', '.png');
-                        textureLoader.load(pngUrl, (t2)=>{
-                            t2.colorSpace = THREE.SRGBColorSpace;
-                            mat.map = t2; mat.needsUpdate = true;
-                        });
-                    });
-                    mat = new THREE.MeshStandardMaterial({ map: tex, color: 0xffffff, roughness: 0.4, side: THREE.DoubleSide });
-                }
-
-                const mesh = new THREE.Mesh(geo, mat);
-                mesh.position.set(px, py, pz); mesh.rotation.y = ry;
-                
-                if (isMobile && pendingPosters[roomIndex]) {
-                    pendingPosters[roomIndex][pendingPosters[roomIndex].length - 1].mesh = mesh;
-                }
-
-                if (!isMobile) {
-                    const stringMat = new THREE.LineBasicMaterial({ color: 0x111111 });
-                    const topOfPosterY = 2.5 / 2; const distToPipe = (pipeYLevel - 0.05) - (py + topOfPosterY);
-                    const pointsL = [new THREE.Vector3(-1 + 0.15, topOfPosterY, 0), new THREE.Vector3(-1 + 0.15, topOfPosterY + distToPipe, 0)];
-                    const pointsR = [new THREE.Vector3(1 - 0.15, topOfPosterY, 0), new THREE.Vector3(1 - 0.15, topOfPosterY + distToPipe, 0)];
-                    mesh.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pointsL), stringMat)); mesh.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pointsR), stringMat));
-                }
-
-                mesh.userData = { type: 'poster', url: data.fullUrl, title: data.title, year: "2025", desc: "Mounted Installation" };
-                revolvingStage.add(mesh); postersArray.push(mesh);
-            }
-            const topPipeLevel = 3.3; const posterCenterY = 3.5 / 2;
-            const d = 4; const w = 4;
-            
-            mountPoster(0, posterCenterY, isMobile ? 1.6 : d/2, 0, 2, 2.5, topPipeLevel, null); 
-            mountPoster(isMobile ? -1.6 : -w/2, posterCenterY, 0, Math.PI/2, 2, 2.5, topPipeLevel, null); 
-            mountPoster(0, posterCenterY, isMobile ? -1.6 : -d/2, Math.PI, 2.5, 1.8, topPipeLevel, null); 
-            mountPoster(isMobile ? 1.6 : w/2, posterCenterY, 0, -Math.PI/2, 2, 2.5, topPipeLevel, 'assets/image80.jpg');
 
             scene.add(revolvingStage);
         }
@@ -670,7 +636,7 @@
             if (!isDarkRoom) {
                 if (i === 0) { createHangingTV(0, zCenter, roomHeight, 0); } 
                 else if (i === 1) { loadAllModels(0, zCenter); createHangingModel7(0, zCenter, roomHeight); } 
-                else if (i === 2) { createScaffoldingStructure(0, zCenter, i); } 
+                else if (i === 2) { createScaffoldingStructure(0, zCenter); } 
                 else { 
                     let rotation;
                     if (i === 3) {
@@ -681,8 +647,13 @@
                     createHangingTV(0, zCenter, roomHeight, rotation); 
                 }
                 
-                const standardW = 2.6; const standardH = 3.25; 
-                const postersPerSide = 6; const sideSpacing = 3.0; 
+                // FIX: INCREASE POSTER COUNT FOR MOBILE TO ABSORB SCAFFOLDING POSTERS
+                const standardW = isMobile ? 2.2 : 2.6; 
+                const standardH = isMobile ? 2.8 : 3.25; 
+                // Increase posters on mobile walls (7 per side) to fit the ones from the removed scaffolding
+                const postersPerSide = isMobile ? 7 : 6; 
+                const sideSpacing = isMobile ? 2.5 : 3.0; 
+                
                 const sideWallLength = postersPerSide * sideSpacing;
                 const startZ = zCenter + (sideWallLength / 2) - (sideSpacing / 2); 
                 for (let k = 0; k < postersPerSide; k++) {

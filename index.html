@@ -22,6 +22,7 @@
             #orientation-warning { display: flex !important; }
         }
 
+        /* LOADING SCREEN */
         #loading-screen {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: #050505; z-index: 100;
@@ -31,33 +32,11 @@
         }
         
         #loader-content { width: 80%; max-width: 400px; text-align: center; }
-        
-        #loader-title {
-            font-size: 1.2rem; letter-spacing: 4px; margin-bottom: 30px; 
-            border-bottom: 1px solid #333; padding-bottom: 10px; display: inline-block;
-        }
-
-        #progress-container {
-            width: 100%; height: 4px; background: #111;
-            position: relative; overflow: hidden; margin-bottom: 15px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.5);
-        }
-
-        #progress-fill {
-            width: 0%; height: 100%; background: #fff;
-            box-shadow: 0 0 15px rgba(255, 255, 255, 0.8);
-            transition: width 0.1s linear;
-        }
-
-        #loader-percent {
-            font-size: 3rem; font-weight: bold; margin-bottom: 10px;
-            text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
-        }
-
-        #loader-status {
-            font-size: 0.8rem; color: #888; text-transform: uppercase; letter-spacing: 1px;
-            height: 20px;
-        }
+        #loader-title { font-size: 1.2rem; letter-spacing: 4px; margin-bottom: 30px; border-bottom: 1px solid #333; padding-bottom: 10px; display: inline-block; }
+        #progress-container { width: 100%; height: 4px; background: #111; position: relative; overflow: hidden; margin-bottom: 15px; box-shadow: 0 0 10px rgba(0,0,0,0.5); }
+        #progress-fill { width: 0%; height: 100%; background: #fff; box-shadow: 0 0 15px rgba(255, 255, 255, 0.8); transition: width 0.1s linear; }
+        #loader-percent { font-size: 3rem; font-weight: bold; margin-bottom: 10px; text-shadow: 0 0 10px rgba(255, 255, 255, 0.3); }
+        #loader-status { font-size: 0.8rem; color: #888; text-transform: uppercase; letter-spacing: 1px; height: 20px; }
 
         #start-screen {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
@@ -315,14 +294,24 @@
             return { wallUrl, fullUrl, title, id };
         }
 
-        // FULL PRELOADING (No Lazy Loading)
+        // FIX: Re-introduced Fallback logic for Black Posters issue
         function addPoster(x, y, z, ry, w, h) {
             const data = getNextImage();
             const geo = new THREE.PlaneGeometry(w, h);
             
-            // Texture is loaded immediately via manager
-            const tex = textureLoader.load(data.wallUrl);
-            tex.colorSpace = THREE.SRGBColorSpace;
+            // Try load JPG
+            const tex = textureLoader.load(data.wallUrl, (t) => {
+                t.colorSpace = THREE.SRGBColorSpace;
+            }, undefined, (err) => {
+                // If JPG fails, try PNG (Fallback)
+                console.log(`Failed to load ${data.wallUrl}, trying PNG fallback`);
+                const pngUrl = data.wallUrl.replace('small_mobile/', '').replace('small/', '').replace('.jpg', '.png');
+                const tex2 = textureLoader.load(pngUrl, (t2) => {
+                    t2.colorSpace = THREE.SRGBColorSpace;
+                    mesh.material.map = t2;
+                    mesh.material.needsUpdate = true;
+                });
+            });
             
             const mat = new THREE.MeshStandardMaterial({ 
                 map: tex, 
@@ -357,8 +346,7 @@
         }
 
         function createHangingTV(x, z, ceilingHeight, rotationY = 0) {
-            // FIX: DISABLE TV ON MOBILE TO SAVE RAM
-            if (isMobile) return;
+            if (isMobile) return; // Disabled on mobile to save RAM
 
             const tvW = 1.78; const tvH = 3.16; const tvD = 0.1;
             const tvGeo = new THREE.BoxGeometry(tvW, tvH, tvD);
@@ -376,7 +364,6 @@
             const c1 = new THREE.Mesh(cableGeo, cableMat); c1.position.set(-tvW*0.3, tvH/2, 0); tv.add(c1);
             const c2 = new THREE.Mesh(cableGeo, cableMat); c2.position.set(tvW*0.3, tvH/2, 0); tv.add(c2);
             
-            // Desktop Lighting for TV
             const screenLight = new THREE.PointLight(0xffffff, 2.0, 4.0); 
             screenLight.position.set(0, 0, 1.0); 
             tv.add(screenLight); 
@@ -401,13 +388,12 @@
             platform.position.y = 0.1; platform.receiveShadow = !isMobile; revolvingStage.add(platform);
             collidableObjects.push({ box: new THREE.Box3().setFromObject(platform) }); 
             
-            // FIX: MOBILE SIMPLIFICATION (Single Pillar instead of 300 pipes)
+            // MOBILE SIMPLIFICATION
             if (isMobile) {
                 const pillar = new THREE.Mesh(new THREE.CylinderGeometry(1.5, 1.5, 4.0, 16), darkWallMat);
                 pillar.position.y = 2.0;
                 revolvingStage.add(pillar);
             } else {
-                // Desktop Complex Structure
                 const structureGroup = new THREE.Group(); structureGroup.position.y = 0.2; 
                 const metalMat = new THREE.MeshStandardMaterial({ color: 0xeeeeee, roughness: 0.2, metalness: 0.8 });
                 const w = 4; const h = 3.5; const d = 4;
@@ -441,14 +427,15 @@
                     data = getNextImage();
                 }
 
-                const tex = textureLoader.load(data.wallUrl);
-                tex.colorSpace = THREE.SRGBColorSpace;
+                const tex = textureLoader.load(data.wallUrl, (t)=>{ t.colorSpace = THREE.SRGBColorSpace; }, undefined, (err)=>{
+                    const pngUrl = data.wallUrl.replace('small_mobile/', '').replace('small/', '').replace('.jpg', '.png');
+                    const tex2 = textureLoader.load(pngUrl, (t2)=>{ t2.colorSpace = THREE.SRGBColorSpace; mesh.material.map=t2; mesh.material.needsUpdate=true; });
+                });
+                
                 const mat = new THREE.MeshStandardMaterial({ map: tex, color: 0xffffff, roughness: 0.4, side: THREE.DoubleSide });
-
                 const mesh = new THREE.Mesh(new THREE.PlaneGeometry(2.0, 2.5), mat);
                 mesh.position.set(px, py, pz); mesh.rotation.y = ry;
                 
-                // Add strings only on Desktop
                 if (!isMobile) {
                     const stringMat = new THREE.LineBasicMaterial({ color: 0x111111 });
                     const pW = 2.0; const pH = 2.5; const topOfPosterY = pH / 2; const distToPipe = (pipeYLevel - 0.05) - (py + topOfPosterY);
@@ -462,9 +449,7 @@
             }
             const topPipeLevel = 3.3; const posterCenterY = 3.5 / 2;
             const d = 4; const w = 4;
-            
-            // Adjusted poster positions slightly for the mobile pillar
-            const dist = isMobile ? 1.6 : 2.0; // Closer on mobile so they stick to pillar
+            const dist = isMobile ? 1.6 : 2.0; 
             
             mountPoster(0, posterCenterY, isMobile ? 1.6 : d/2, 0, 2, 2.5, topPipeLevel); 
             mountPoster(isMobile ? -1.6 : -w/2, posterCenterY, 0, Math.PI/2, 2, 2.5, topPipeLevel); 
@@ -644,13 +629,17 @@
                    addPoster(offsetX, 2.7, zCenter + roomSize/2 - offsetZ, Math.PI, standardW, standardH);
                 }
             } else {
-                // Video projections are replaced by something simpler on mobile if needed, but video texture is already heavy
-                // For now keeping as is, but could replace with static image if mobile crashes persist
                 const projW = 9.0; const projH = 5.06;
                 const wallDist = (roomSize/2) - 0.4;
-                createProjection(-wallDist, 3, zCenter, projW, projH, Math.PI/2, videoTex1);
-                createProjection(wallDist, 3, zCenter, projW, projH, -Math.PI/2, videoTex1);
+                
+                // FIX: VIDEO FOR MOBILE - ONLY FRONT SCREEN
                 createProjection(0, 3, zCenter - wallDist, projW, projH, 0, videoTex1);
+                
+                // SIDE SCREENS - DESKTOP ONLY
+                if (!isMobile) {
+                    createProjection(-wallDist, 3, zCenter, projW, projH, Math.PI/2, videoTex1);
+                    createProjection(wallDist, 3, zCenter, projW, projH, -Math.PI/2, videoTex1);
+                }
             }
         }
 

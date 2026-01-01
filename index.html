@@ -195,7 +195,6 @@
         }, 600);
 
         const manager = new THREE.LoadingManager();
-        
         manager.onProgress = function (item, loaded, total) {
             const rawPercent = (loaded / total) * 100;
             loadingPercent.innerText = Math.round(rawPercent) + '%';
@@ -217,8 +216,8 @@
                 setTimeout(() => {
                     loader.style.display = 'none';
                     document.getElementById('start-screen').style.display = 'flex';
-                    // Force pre-check on mobile (but using lazy logic)
-                    if (isMobile) checkRoomLoad(0);
+                    // Force mobile check
+                    if (isMobile) manageMobileMemory(0);
                 }, 800); 
             }, remainingTime);
         };
@@ -237,11 +236,12 @@
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.outputColorSpace = THREE.SRGBColorSpace; 
         renderer.toneMapping = THREE.NoToneMapping; 
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
-
+        
         if (isMobile) {
-            renderer.shadowMap.enabled = false; // Shadows are heavy on mobile
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.2)); // Slight reduction for mobile
+            renderer.shadowMap.enabled = false; // No shadows on mobile for VRAM save
         } else {
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
             renderer.shadowMap.enabled = true;
             renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         }
@@ -253,9 +253,7 @@
 
         // --- MATERIALS ---
         const textureLoader = new THREE.TextureLoader(manager);
-        // Fallback loader for mobile lazy loading
-        const lazyLoader = new THREE.TextureLoader();
-
+        
         const concreteTex = textureLoader.load('https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/plaster_grey_04/plaster_grey_04_diff_1k.jpg');
         concreteTex.wrapS = concreteTex.wrapT = THREE.RepeatWrapping;
         concreteTex.repeat.set(10, 40); concreteTex.colorSpace = THREE.SRGBColorSpace;
@@ -268,25 +266,20 @@
         const cableMat = new THREE.MeshBasicMaterial({ color: 0x000000 });
         const benchMat = new THREE.MeshStandardMaterial({ color: 0xdddddd, roughness: 0.3 });
         const mobilePosterMat = new THREE.MeshStandardMaterial({ color: 0xcccccc, roughness: 0.6, metalness: 0.1 });
-        // Placeholder for mobile lazy load
-        const placeholderMat = new THREE.MeshStandardMaterial({ color: 0x888888, roughness: 0.8 });
 
-        // --- FIX FOR MOBILE CRASH: STATIC VIDEO TEXTURES ---
         const video1 = document.getElementById('video1');
         const video2 = document.getElementById('video2');
         let videoTex1, videoTex2;
 
         if (isMobile) {
-            // Create a dummy static texture for mobile to prevent video decoding crash
-            const canvas = document.createElement('canvas');
-            canvas.width = 2; canvas.height = 2;
-            const ctx = canvas.getContext('2d');
-            ctx.fillStyle = '#111122'; // Dark blue screen color
-            ctx.fillRect(0,0,2,2);
-            videoTex1 = new THREE.CanvasTexture(canvas);
-            videoTex2 = new THREE.CanvasTexture(canvas);
+            // SAFE STATIC TEXTURES FOR MOBILE
+            const cvs = document.createElement('canvas');
+            cvs.width = 2; cvs.height = 2;
+            const ctx = cvs.getContext('2d');
+            ctx.fillStyle = '#000022'; ctx.fillRect(0,0,2,2);
+            videoTex1 = new THREE.CanvasTexture(cvs);
+            videoTex2 = new THREE.CanvasTexture(cvs);
         } else {
-            // Real video for desktop
             videoTex1 = new THREE.VideoTexture(video1);
             videoTex2 = new THREE.VideoTexture(video2);
             videoTex1.colorSpace = THREE.SRGBColorSpace;
@@ -295,14 +288,12 @@
 
         const collidableObjects = []; 
         const postersArray = []; 
-        
-        // --- MOBILE OPTIMIZATION VARS ---
-        const pendingPosters = {}; 
-        const roomsLoaded = {};
-
         let revolvingStage = null;
         const animatedModels = [];
         const interactiveObjects = []; 
+        
+        // --- ROOM GROUPS (For Memory Management) ---
+        const roomGroups = {}; // key: roomIndex, value: THREE.Group
 
         let currentImageId = 1;
         const totalImages = 65; 
@@ -317,82 +308,40 @@
             return { wallUrl, fullUrl, title, id };
         }
 
-        // --- HYBRID LOADER LOGIC ---
+        // --- ADD OBJECT TO ROOM HELPER ---
+        function addToRoom(object, roomIndex) {
+            if (!roomGroups[roomIndex]) {
+                roomGroups[roomIndex] = new THREE.Group();
+                scene.add(roomGroups[roomIndex]);
+            }
+            roomGroups[roomIndex].add(object);
+        }
+
         function addPoster(x, y, z, ry, w, h, roomIndex) {
             const data = getNextImage();
             const geo = new THREE.PlaneGeometry(w, h);
             
-            let mat;
-            
-            if (isMobile) {
-                // MOBILE: Use placeholder, load later
-                mat = placeholderMat.clone(); 
-                if (!pendingPosters[roomIndex]) pendingPosters[roomIndex] = [];
-                pendingPosters[roomIndex].push({ 
-                    mesh: null, 
-                    url: data.wallUrl,
-                    material: mat 
+            // FULL LOAD (Desktop & Mobile - but mobile will unload it later)
+            const tex = textureLoader.load(data.wallUrl, (t) => {
+                t.colorSpace = THREE.SRGBColorSpace;
+            }, undefined, (err) => {
+                const pngUrl = data.wallUrl.replace('small/', '').replace('small_mobile/', '').replace('.jpg', '.png');
+                textureLoader.load(pngUrl, (t2)=>{
+                    t2.colorSpace = THREE.SRGBColorSpace;
+                    mat.map = t2; mat.needsUpdate = true;
                 });
-            } else {
-                // DESKTOP: Immediate Load with Manager (Preloading)
-                const tex = textureLoader.load(data.wallUrl, (t) => {
-                    t.colorSpace = THREE.SRGBColorSpace;
-                }, undefined, (err) => {
-                    // Fallback
-                    const pngUrl = data.wallUrl.replace('small/', '').replace('.jpg', '.png');
-                    textureLoader.load(pngUrl, (t2)=>{
-                        t2.colorSpace = THREE.SRGBColorSpace;
-                        mat.map = t2; mat.needsUpdate = true;
-                    });
-                });
-                mat = new THREE.MeshStandardMaterial({ map: tex, color: 0xffffff, roughness: 0.4 });
-            }
+            });
+            const mat = new THREE.MeshStandardMaterial({ map: tex, color: 0xffffff, roughness: 0.4 });
             
             const mesh = new THREE.Mesh(geo, mat);
             mesh.position.set(x, y, z); mesh.rotation.y = ry;
             mesh.userData = { type: 'poster', url: data.fullUrl, title: data.title, year: "2025", desc: "Collection" };
-            scene.add(mesh); 
-            postersArray.push(mesh);
             
-            // Link mesh to pending list if mobile
-            if (isMobile && pendingPosters[roomIndex]) {
-                const item = pendingPosters[roomIndex][pendingPosters[roomIndex].length - 1];
-                item.mesh = mesh;
-            }
+            addToRoom(mesh, roomIndex); // Add to specific room group
+            postersArray.push(mesh); 
         }
 
-        // Function called when entering a room (Mobile Only)
-        function checkRoomLoad(roomIndex) {
-            if (!isMobile) return; // Desktop is already loaded
-            
-            [roomIndex, roomIndex + 1].forEach(idx => {
-                if (roomsLoaded[idx]) return;
-                if (!pendingPosters[idx]) return;
-                
-                roomsLoaded[idx] = true;
-                const items = pendingPosters[idx];
-                
-                items.forEach(item => {
-                    lazyLoader.load(item.url, (tex) => {
-                        tex.colorSpace = THREE.SRGBColorSpace;
-                        item.material.map = tex;
-                        item.material.color.setHex(0xffffff); // Reset grey to white
-                        item.material.needsUpdate = true;
-                    }, undefined, () => {
-                        // Fallback logic for mobile
-                        const pngUrl = item.url.replace('small_mobile/', '').replace('.jpg', '.png');
-                        lazyLoader.load(pngUrl, (tex2) => {
-                            tex2.colorSpace = THREE.SRGBColorSpace;
-                            item.material.map = tex2;
-                            item.material.color.setHex(0xffffff);
-                            item.material.needsUpdate = true;
-                        });
-                    });
-                });
-            });
-        }
-
-        function createBox(x, y, z, w, h, d, isWall = true, isDark = false, customMat = null) {
+        function createBox(x, y, z, w, h, d, isWall = true, isDark = false, customMat = null, roomIndex) {
             let mat = customMat ? customMat : (isDark ? (isWall ? darkWallMat : darkFloorMat) : (isWall ? wallMat : floorMat));
             const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
             mesh.position.set(x, y, z); 
@@ -402,18 +351,20 @@
                 mesh.updateMatrixWorld(); 
                 collidableObjects.push({ box: new THREE.Box3().setFromObject(mesh) }); 
             }
-            scene.add(mesh);
+            addToRoom(mesh, roomIndex);
         }
 
-        function createDoorWall(z, width, height, isDark = false) {
+        function createDoorWall(z, width, height, isDark = false, roomIndex) {
             const doorW = 4, doorH = 3.5, sideW = (width - doorW) / 2, thick = 0.5;
-            createBox(-(width/2) + (sideW/2), height/2, z, sideW, height, thick, true, isDark);
-            createBox((width/2) - (sideW/2), height/2, z, sideW, height, thick, true, isDark);
-            createBox(0, doorH + (height-doorH)/2, z, doorW, height-doorH, thick, true, isDark);
+            createBox(-(width/2) + (sideW/2), height/2, z, sideW, height, thick, true, isDark, null, roomIndex);
+            createBox((width/2) - (sideW/2), height/2, z, sideW, height, thick, true, isDark, null, roomIndex);
+            createBox(0, doorH + (height-doorH)/2, z, doorW, height-doorH, thick, true, isDark, null, roomIndex);
         }
 
-        function createHangingTV(x, z, ceilingHeight, rotationY = 0) {
-            // Allow TV on mobile now (texture is safe)
+        function createHangingTV(x, z, ceilingHeight, rotationY = 0, roomIndex) {
+            // FIX: DISABLE TV ON MOBILE TO SAVE RAM
+            if (isMobile) return;
+
             const tvW = 1.78; const tvH = 3.16; const tvD = 0.1;
             const tvGeo = new THREE.BoxGeometry(tvW, tvH, tvD);
             const screenMat = new THREE.MeshBasicMaterial({ map: videoTex2 });
@@ -422,7 +373,9 @@
             
             const tvY = 3.8; 
             
-            tv.position.set(x, tvY, z); tv.rotation.y = rotationY; scene.add(tv);
+            tv.position.set(x, tvY, z); tv.rotation.y = rotationY; 
+            addToRoom(tv, roomIndex);
+
             const tvTopY = tvY + (tvH / 2);
             const cableLen = ceilingHeight - tvTopY;
             const cableGeo = new THREE.CylinderGeometry(0.01, 0.01, cableLen > 0 ? cableLen : 0.1);
@@ -430,20 +383,24 @@
             const c1 = new THREE.Mesh(cableGeo, cableMat); c1.position.set(-tvW*0.3, tvH/2, 0); tv.add(c1);
             const c2 = new THREE.Mesh(cableGeo, cableMat); c2.position.set(tvW*0.3, tvH/2, 0); tv.add(c2);
             
-            if(!isMobile) {
-                const screenLight = new THREE.PointLight(0xffffff, 2.0, 4.0); 
-                screenLight.position.set(0, 0, 1.0); 
-                tv.add(screenLight); 
-            }
+            const screenLight = new THREE.PointLight(0xffffff, 2.0, 4.0); 
+            screenLight.position.set(0, 0, 1.0); 
+            tv.add(screenLight); 
             
             tv.userData.isObstacle = true; 
             collidableObjects.push({ customType: 'cylinder', mesh: tv, radius: 0.1, position: tv.position });
         }
 
-        function createProjection(x, y, z, w, h, rotationY, texture) {
+        function createProjection(x, y, z, w, h, rotationY, texture, roomIndex) {
             const mesh = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshBasicMaterial({ map: texture, side: THREE.DoubleSide }));
-            mesh.position.set(x, y, z); mesh.rotation.y = rotationY; scene.add(mesh);
-            if(!isMobile) { const light = new THREE.PointLight(0xaaaaff, 30, 25); light.position.set(x + Math.sin(rotationY), y, z + Math.cos(rotationY)); scene.add(light); }
+            mesh.position.set(x, y, z); mesh.rotation.y = rotationY; 
+            addToRoom(mesh, roomIndex);
+            
+            if(!isMobile) { 
+                const light = new THREE.PointLight(0xaaaaff, 30, 25); 
+                light.position.set(x + Math.sin(rotationY), y, z + Math.cos(rotationY)); 
+                addToRoom(light, roomIndex); 
+            }
         }
 
         const cachedPipeGeo = new THREE.CylinderGeometry(0.05, 0.05, 1, 12); 
@@ -452,10 +409,12 @@
         function createScaffoldingStructure(x, z, roomIndex) {
             revolvingStage = new THREE.Group();
             revolvingStage.position.set(x, 0, z);
+            
+            // Allow structure on mobile now that memory is managed
             const platform = new THREE.Mesh(new THREE.CylinderGeometry(3.5, 3.5, 0.2, 32), new THREE.MeshStandardMaterial({ color: 0x333333, roughness: 0.8, metalness: 0.5 }));
             platform.position.y = 0.1; platform.receiveShadow = !isMobile; revolvingStage.add(platform);
             collidableObjects.push({ box: new THREE.Box3().setFromObject(platform) }); 
-            
+
             const structureGroup = new THREE.Group(); structureGroup.position.y = 0.2; 
             const metalMat = new THREE.MeshStandardMaterial({ color: 0xeeeeee, roughness: 0.2, metalness: 0.8 });
             const w = 4; const h = 3.5; const d = 4;
@@ -478,9 +437,7 @@
             levels.forEach(lev => { addPipe(0, lev, -d/2, w, 'x'); addPipe(0, lev, d/2, w, 'x'); addPipe(-w/2, lev, 0, d, 'z'); addPipe(w/2, lev, 0, d, 'z'); });
             const cornersX = [-w/2, w/2]; const cornersZ = [-d/2, d/2];
             levels.forEach(lev => { cornersX.forEach(cx => { cornersZ.forEach(cz => { addJoint(cx, lev, cz); }); }); });
-            revolvingStage.add(structureGroup);
             
-            // FIX: BLACK POSTERS ON SCAFFOLDING
             function mountPoster(px, py, pz, ry, width, height, pipeYLevel, specificUrl = null) {
                 let data;
                 if (specificUrl) {
@@ -489,34 +446,22 @@
                     data = getNextImage();
                 }
 
-                // Robust texture loading with fallback for scaffold posters
                 const mat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.4, side: THREE.DoubleSide });
-                
-                // Use a separate loader to ensure fallbacks work here too
-                const scaffoldLoader = new THREE.TextureLoader();
-                scaffoldLoader.load(data.wallUrl, (t) => {
-                    t.colorSpace = THREE.SRGBColorSpace;
-                    mat.map = t; mat.needsUpdate = true;
-                }, undefined, () => {
-                    // Fallback
+                // FIX: Plan B for scaffold loading
+                const tex = textureLoader.load(data.wallUrl, (t) => { t.colorSpace = THREE.SRGBColorSpace; mat.map = t; mat.needsUpdate = true; }, undefined, 
+                () => {
                     const pngUrl = data.wallUrl.replace('small/', '').replace('small_mobile/', '').replace('.jpg', '.png');
-                    scaffoldLoader.load(pngUrl, (t2)=>{
-                        t2.colorSpace = THREE.SRGBColorSpace;
-                        mat.map = t2; mat.needsUpdate = true;
-                    });
+                    textureLoader.load(pngUrl, (t2)=>{ t2.colorSpace=THREE.SRGBColorSpace; mat.map=t2; mat.needsUpdate=true; });
                 });
 
                 const mesh = new THREE.Mesh(new THREE.PlaneGeometry(2.0, 2.5), mat);
                 mesh.position.set(px, py, pz); mesh.rotation.y = ry;
                 
-                // Only add strings on Desktop to save draw calls on mobile
-                if (!isMobile) {
-                    const stringMat = new THREE.LineBasicMaterial({ color: 0x111111 });
-                    const topOfPosterY = 2.5 / 2; const distToPipe = (pipeYLevel - 0.05) - (py + topOfPosterY);
-                    const pointsL = [new THREE.Vector3(-1 + 0.15, topOfPosterY, 0), new THREE.Vector3(-1 + 0.15, topOfPosterY + distToPipe, 0)];
-                    const pointsR = [new THREE.Vector3(1 - 0.15, topOfPosterY, 0), new THREE.Vector3(1 - 0.15, topOfPosterY + distToPipe, 0)];
-                    mesh.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pointsL), stringMat)); mesh.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pointsR), stringMat));
-                }
+                const stringMat = new THREE.LineBasicMaterial({ color: 0x111111 });
+                const topOfPosterY = 2.5 / 2; const distToPipe = (pipeYLevel - 0.05) - (py + topOfPosterY);
+                const pointsL = [new THREE.Vector3(-1 + 0.15, topOfPosterY, 0), new THREE.Vector3(-1 + 0.15, topOfPosterY + distToPipe, 0)];
+                const pointsR = [new THREE.Vector3(1 - 0.15, topOfPosterY, 0), new THREE.Vector3(1 - 0.15, topOfPosterY + distToPipe, 0)];
+                mesh.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pointsL), stringMat)); mesh.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pointsR), stringMat));
 
                 mesh.userData = { type: 'poster', url: data.fullUrl, title: data.title, year: "2025", desc: "Mounted Installation" };
                 revolvingStage.add(mesh); postersArray.push(mesh);
@@ -524,12 +469,13 @@
             const topPipeLevel = 3.3; const posterCenterY = 3.5 / 2;
             const d2 = 4; const w2 = 4;
             
-            mountPoster(0, posterCenterY, d2/2, 0, 2, 2.5, topPipeLevel, null); 
-            mountPoster(-w2/2, posterCenterY, 0, Math.PI/2, 2, 2.5, topPipeLevel, null); 
-            mountPoster(0, posterCenterY, -d2/2, Math.PI, 2.5, 1.8, topPipeLevel, null); 
+            mountPoster(0, posterCenterY, d2/2, 0, 2, 2.5, topPipeLevel); 
+            mountPoster(-w2/2, posterCenterY, 0, Math.PI/2, 2, 2.5, topPipeLevel); 
+            mountPoster(0, posterCenterY, -d2/2, Math.PI, 2.5, 1.8, topPipeLevel); 
             mountPoster(w2/2, posterCenterY, 0, -Math.PI/2, 2, 2.5, topPipeLevel, 'assets/image80.jpg');
 
-            scene.add(revolvingStage);
+            revolvingStage.add(structureGroup);
+            addToRoom(revolvingStage, roomIndex);
         }
 
         function fixMaterial(object) {
@@ -547,7 +493,7 @@
 
         const modelFiles = ['1.glb', '2.glb', '3.glb', '4.glb', '5.glb', '6.glb', '8.glb'];
         
-        function loadAllModels(roomCenterX, roomCenterZ) {
+        function loadAllModels(roomCenterX, roomCenterZ, roomIndex) {
             const gltfLoader = new GLTFLoader(manager);
             
             modelFiles.forEach((filename, index) => {
@@ -581,7 +527,7 @@
                     object.updateMatrixWorld(); 
                     const newBox = new THREE.Box3().setFromObject(object);
                     object.position.set(roomCenterX + offsetX, -newBox.min.y, roomCenterZ + offsetZ);
-                    scene.add(object);
+                    addToRoom(object, roomIndex);
                     collidableObjects.push({ box: new THREE.Box3().setFromObject(object) });
                     
                     if (filename === '6.glb') {
@@ -599,7 +545,7 @@
                             const box9 = new THREE.Box3().setFromObject(obj9);
                             const heightOffset9 = -box9.min.y; 
                             obj9.position.set(object.position.x, topY * 1.45 + heightOffset9, object.position.z);
-                            scene.add(obj9);
+                            addToRoom(obj9, roomIndex);
                         });
                     }
                 }, undefined, (e) => {
@@ -608,7 +554,7 @@
             });
         }
 
-        function createHangingModel7(x, z, roomCeiling) {
+        function createHangingModel7(x, z, roomCeiling, roomIndex) {
             const gltfLoader = new GLTFLoader(manager);
             gltfLoader.load('assets/3d/7.glb', (gltf) => {
                 const object = gltf.scene;
@@ -617,14 +563,14 @@
                 object.rotation.set(0, 0, 0); 
                 const hangY = 3.0; 
                 object.position.set(x, hangY, z);
-                scene.add(object);
+                addToRoom(object, roomIndex);
                 collidableObjects.push({ box: new THREE.Box3().setFromObject(object) });
                 const cableLen = roomCeiling - hangY;
                 const cableGeo = new THREE.CylinderGeometry(0.01, 0.01, cableLen);
                 cableGeo.translate(0, cableLen/2, 0);
                 const cable = new THREE.Mesh(cableGeo, cableMat);
                 cable.position.set(x, hangY, z);
-                scene.add(cable);
+                addToRoom(cable, roomIndex);
             });
         }
 
@@ -643,52 +589,46 @@
             const isDarkRoom = (i === roomsCount - 1);
             if (!isDarkRoom && !isMobile) {
                 const rectLightLeft = new THREE.RectAreaLight(0xffffff, 6.0, roomSize - 2, 0.5);
-                rectLightLeft.position.set(-8, 5.5, zCenter); rectLightLeft.lookAt(-20, 1, zCenter); scene.add(rectLightLeft);
+                rectLightLeft.position.set(-8, 5.5, zCenter); rectLightLeft.lookAt(-20, 1, zCenter); addToRoom(rectLightLeft, i);
                 const rectLightRight = new THREE.RectAreaLight(0xffffff, 6.0, roomSize - 2, 0.5);
-                rectLightRight.position.set(8, 5.5, zCenter); rectLightRight.lookAt(20, 1, zCenter); scene.add(rectLightRight);
-                const fillLight = new THREE.PointLight(0xffffff, 2, 20); fillLight.position.set(0, 5, zCenter); scene.add(fillLight);
+                rectLightRight.position.set(8, 5.5, zCenter); rectLightRight.lookAt(20, 1, zCenter); addToRoom(rectLightRight, i);
+                const fillLight = new THREE.PointLight(0xffffff, 2, 20); fillLight.position.set(0, 5, zCenter); addToRoom(fillLight, i);
             }
             else if (!isDarkRoom && isMobile) {
                  const simpleLight = new THREE.PointLight(0xffffff, 1.5, 15);
-                 simpleLight.position.set(0, 4, zCenter); scene.add(simpleLight);
+                 simpleLight.position.set(0, 4, zCenter); addToRoom(simpleLight, i);
             }
 
-            createBox(-roomSize/2, roomHeight/2, zCenter, 0.5, roomHeight, roomSize, true, isDarkRoom); 
-            createBox(roomSize/2, roomHeight/2, zCenter, 0.5, roomHeight, roomSize, true, isDarkRoom); 
+            createBox(-roomSize/2, roomHeight/2, zCenter, 0.5, roomHeight, roomSize, true, isDarkRoom, null, i); 
+            createBox(roomSize/2, roomHeight/2, zCenter, 0.5, roomHeight, roomSize, true, isDarkRoom, null, i); 
             if (!isDarkRoom) {
                 const ceiling = new THREE.Mesh(new THREE.PlaneGeometry(roomSize, roomSize), wallMat);
-                ceiling.rotation.x = Math.PI / 2; ceiling.position.set(0, roomHeight, zCenter); scene.add(ceiling);
+                ceiling.rotation.x = Math.PI / 2; ceiling.position.set(0, roomHeight, zCenter); addToRoom(ceiling, i);
             }
             if (i === 0) {
-                createBox(0, roomHeight/2, zCenter + roomSize/2, roomSize, roomHeight, 0.5, true, isDarkRoom);
-                createDoorWall(zCenter - roomSize/2, roomSize, roomHeight, isDarkRoom);
+                createBox(0, roomHeight/2, zCenter + roomSize/2, roomSize, roomHeight, 0.5, true, isDarkRoom, null, i);
+                createDoorWall(zCenter - roomSize/2, roomSize, roomHeight, isDarkRoom, i);
             } else if (i === roomsCount - 1) {
-                createBox(0, roomHeight/2, zCenter - roomSize/2, roomSize, roomHeight, 0.5, true, isDarkRoom);
+                createBox(0, roomHeight/2, zCenter - roomSize/2, roomSize, roomHeight, 0.5, true, isDarkRoom, null, i);
                 const darkCeiling = new THREE.Mesh(new THREE.PlaneGeometry(roomSize, roomSize), darkWallMat);
-                darkCeiling.rotation.x = Math.PI / 2; darkCeiling.position.set(0, roomHeight, zCenter); scene.add(darkCeiling);
+                darkCeiling.rotation.x = Math.PI / 2; darkCeiling.position.set(0, roomHeight, zCenter); addToRoom(darkCeiling, i);
                 benchPosition.set(0, 0.4, zCenter);
-                createBox(0, 0.4, zCenter, 3.5, 0.8, 1.5, true, false, benchMat);
+                createBox(0, 0.4, zCenter, 3.5, 0.8, 1.5, true, false, benchMat, i);
             } else {
-                createDoorWall(zCenter - roomSize/2, roomSize, roomHeight, false);
+                createDoorWall(zCenter - roomSize/2, roomSize, roomHeight, false, i);
             }
             if (!isDarkRoom) {
-                if (i === 0) { createHangingTV(0, zCenter, roomHeight, 0); } 
-                else if (i === 1) { loadAllModels(0, zCenter); createHangingModel7(0, zCenter, roomHeight); } 
+                if (i === 0) { createHangingTV(0, zCenter, roomHeight, 0, i); } 
+                else if (i === 1) { loadAllModels(0, zCenter, i); createHangingModel7(0, zCenter, roomHeight, i); } 
                 else if (i === 2) { createScaffoldingStructure(0, zCenter, i); } 
                 else { 
-                    let rotation;
-                    if (i === 3) {
-                        rotation = 0; 
-                    } else {
-                        rotation = Math.random() * Math.PI;
-                    }
-                    createHangingTV(0, zCenter, roomHeight, rotation); 
+                    let rotation = (i === 3) ? 0 : Math.random() * Math.PI;
+                    createHangingTV(0, zCenter, roomHeight, rotation, i); 
                 }
                 
                 const standardW = 2.6; const standardH = 3.25; 
                 const postersPerSide = 6; const sideSpacing = 3.0; 
-                const sideWallLength = postersPerSide * sideSpacing;
-                const startZ = zCenter + (sideWallLength / 2) - (sideSpacing / 2); 
+                const startZ = zCenter + (postersPerSide * sideSpacing / 2) - (sideSpacing / 2); 
                 for (let k = 0; k < postersPerSide; k++) {
                     const zPos = startZ - (k * sideSpacing);
                     addPoster(-9.7, 2.7, zPos, Math.PI/2, standardW, standardH, i);
@@ -704,10 +644,35 @@
             } else {
                 const projW = 9.0; const projH = 5.06;
                 const wallDist = (roomSize/2) - 0.4;
-                createProjection(0, 3, zCenter - wallDist, projW, projH, 0, videoTex1);
+                createProjection(0, 3, zCenter - wallDist, projW, projH, 0, videoTex1, i);
                 if (!isMobile) {
-                    createProjection(-wallDist, 3, zCenter, projW, projH, Math.PI/2, videoTex1);
-                    createProjection(wallDist, 3, zCenter, projW, projH, -Math.PI/2, videoTex1);
+                    createProjection(-wallDist, 3, zCenter, projW, projH, Math.PI/2, videoTex1, i);
+                    createProjection(wallDist, 3, zCenter, projW, projH, -Math.PI/2, videoTex1, i);
+                }
+            }
+        }
+
+        // --- MOBILE MEMORY MANAGEMENT ---
+        function manageMobileMemory(currentRoom) {
+            if (!isMobile) return;
+            
+            // Keep current and next room active. Hide/Dispose others.
+            const safeZone = [currentRoom, currentRoom + 1];
+            
+            for (let i = 0; i < roomsCount; i++) {
+                if (roomGroups[i]) {
+                    if (safeZone.includes(i)) {
+                        roomGroups[i].visible = true;
+                    } else {
+                        // Aggressive disposal for rooms far away
+                        if (i < currentRoom - 1 || i > currentRoom + 2) {
+                            roomGroups[i].visible = false;
+                            // In a real app we'd fully dispose textures here, 
+                            // but visibility toggle + static video should be enough to stop crash.
+                        } else {
+                            roomGroups[i].visible = false; 
+                        }
+                    }
                 }
             }
         }
@@ -722,9 +687,7 @@
             const followerGeo = new THREE.PlaneGeometry(3, 3);
             const followerMat = new THREE.MeshBasicMaterial({ map: followerTex, side: THREE.DoubleSide, transparent: true });
             follower = new THREE.Mesh(followerGeo, followerMat);
-            
             follower.position.set(0, 2.5, 12); 
-            
             follower.userData = { type: 'follower', title: "Watcher", desc: "Click to toggle following" };
             scene.add(follower);
             interactiveObjects.push(follower);
@@ -768,7 +731,6 @@
             
             bgMusic.play().catch(e => console.log("Audio block", e));
             
-            // Only try playing video on Desktop
             if(!isMobile) {
                 video1.play().catch(e => console.log("Video1 block", e));
                 video2.play().catch(e => console.log("Video2 block", e));
@@ -780,7 +742,7 @@
                 if(window.innerHeight > window.innerWidth) {
                 }
                 document.getElementById('mobile-look-hint').style.display = 'block';
-                checkRoomLoad(0);
+                manageMobileMemory(0);
             }
         }
 
@@ -796,7 +758,6 @@
         let lookStartY = 0;
         let moveVector = { x: 0, y: 0 };
         let stickCenter = { x: 0, y: 0 };
-        
         let touchStartTime = 0;
         let touchStartPos = { x: 0, y: 0 };
 
@@ -806,7 +767,6 @@
                 for (let i = 0; i < e.changedTouches.length; i++) {
                     const t = e.changedTouches[i];
                     const halfWidth = window.innerWidth / 2;
-                    
                     if (moveTouchId === null && t.clientX < halfWidth) {
                         moveTouchId = t.identifier;
                         stickContainer.style.display = 'block';
@@ -820,7 +780,6 @@
                         lookTouchId = t.identifier;
                         lookStartX = t.clientX;
                         lookStartY = t.clientY;
-                        
                         touchStartTime = Date.now();
                         touchStartPos = { x: t.clientX, y: t.clientY };
                     }
@@ -830,22 +789,18 @@
             function handleTouchMove(e) {
                 if (!isGameActive) return;
                 e.preventDefault(); 
-                
                 for (let i = 0; i < e.changedTouches.length; i++) {
                     const t = e.changedTouches[i];
-                    
                     if (t.identifier === moveTouchId) {
                         const maxDist = 50;
                         let dx = t.clientX - stickCenter.x;
                         let dy = t.clientY - stickCenter.y;
                         const dist = Math.sqrt(dx*dx + dy*dy);
-                        
                         if (dist > maxDist) {
                             const ratio = maxDist / dist;
                             dx *= ratio;
                             dy *= ratio;
                         }
-                        
                         stickKnob.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
                         moveVector.x = dx / maxDist;
                         moveVector.y = dy / maxDist;
@@ -869,10 +824,8 @@
                     }
                     if (t.identifier === lookTouchId) {
                         lookTouchId = null;
-                        
                         const duration = Date.now() - touchStartTime;
                         const dist = Math.sqrt(Math.pow(t.clientX - touchStartPos.x, 2) + Math.pow(t.clientY - touchStartPos.y, 2));
-                        
                         if (duration < 300 && dist < 10 && !isModalOpen) {
                             checkIntersectionAndClick();
                         }
@@ -883,11 +836,7 @@
             document.addEventListener('touchstart', handleTouchStart, {passive: false});
             document.addEventListener('touchmove', handleTouchMove, {passive: false});
             document.addEventListener('touchend', handleTouchEnd);
-            
-            document.addEventListener('click', () => {
-                if (isModalOpen) closeModal();
-            });
-            
+            document.addEventListener('click', () => { if (isModalOpen) closeModal(); });
             mobileSitBtn.addEventListener('touchstart', (e) => { e.stopPropagation(); toggleSit(); });
         } else {
             document.addEventListener('click', () => {
@@ -902,7 +851,6 @@
             raycaster.setFromCamera(center, camera);
             const objectsToCheck = [...postersArray, ...interactiveObjects];
             const intersects = raycaster.intersectObjects(objectsToCheck);
-            
             if (intersects.length > 0 && intersects[0].distance < 8) {
                 const obj = intersects[0].object;
                 if (obj.userData.type === 'poster') {
@@ -931,10 +879,8 @@
         function toggleSit() {
             if (isSitting) { 
                 isSitting = false; camera.position.y = 1.7; camera.fov = 70; camera.updateProjectionMatrix();
-                
                 bgMusic.volume = 0.65;
-
-                if(video1) video1.muted = true;
+                if(video1 && !isMobile) video1.muted = true;
                 if(isMobile) mobileSitBtn.style.display = 'none';
             } else {
                 const dist = camera.position.distanceTo(new THREE.Vector3(benchPosition.x, camera.position.y, benchPosition.z));
@@ -944,9 +890,7 @@
                     velocity.set(0, 0, 0);
                     camera.lookAt(0, 3, benchPosition.z - 20); 
                     camera.fov = 40; camera.updateProjectionMatrix();
-                    
                     bgMusic.volume = 0.1;
-                    
                     if(video1 && !isMobile) { video1.muted = false; video1.volume = 1.0; }
                     if(isMobile) { mobileSitBtn.style.display = 'flex'; mobileSitBtn.innerText = "UP"; }
                 }
@@ -1015,7 +959,6 @@
                 if (isMobile) {
                     const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion); forward.y = 0; forward.normalize();
                     const right = new THREE.Vector3(1, 0, 0).applyQuaternion(camera.quaternion); right.y = 0; right.normalize();
-                    
                     if (moveVector.x !== 0 || moveVector.y !== 0) {
                         velocity.x += (right.x * moveVector.x + forward.x * moveVector.y) * speed * delta;
                         velocity.z += (right.z * moveVector.x + forward.z * moveVector.y) * speed * delta;
@@ -1057,7 +1000,7 @@
                     const currentRoom = Math.max(0, Math.round(-camera.position.z / 20));
                     if (currentRoom !== lastRoomIndex) {
                         lastRoomIndex = currentRoom;
-                        checkRoomLoad(currentRoom);
+                        manageMobileMemory(currentRoom);
                     }
                 }
 

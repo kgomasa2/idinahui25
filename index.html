@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Іді Нахуй</title>
     <style>
-        /* Cyberpunk / Terminal Font for Loading */
         @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
 
         body { margin: 0; overflow: hidden; background-color: #000; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; touch-action: none; user-select: none; -webkit-user-select: none; }
@@ -23,7 +22,6 @@
             #orientation-warning { display: flex !important; }
         }
 
-        /* --- LOADING SCREEN --- */
         #loading-screen {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: #050505; z-index: 100;
@@ -61,7 +59,6 @@
             height: 20px;
         }
 
-        /* --- START SCREEN --- */
         #start-screen {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.9); z-index: 50;
@@ -275,7 +272,6 @@
         document.body.appendChild(renderer.domElement);
 
         const bgMusic = document.getElementById('bgMusic');
-        // FIX: Volume 65% as requested
         bgMusic.volume = 0.65;
 
         // --- MATERIALS ---
@@ -319,12 +315,12 @@
             return { wallUrl, fullUrl, title, id };
         }
 
-        // FIX: Replaced lazy loader with direct loading to prevent lag
+        // FULL PRELOADING (No Lazy Loading)
         function addPoster(x, y, z, ry, w, h) {
             const data = getNextImage();
             const geo = new THREE.PlaneGeometry(w, h);
             
-            // Immediately start loading texture through the manager
+            // Texture is loaded immediately via manager
             const tex = textureLoader.load(data.wallUrl);
             tex.colorSpace = THREE.SRGBColorSpace;
             
@@ -361,6 +357,9 @@
         }
 
         function createHangingTV(x, z, ceilingHeight, rotationY = 0) {
+            // FIX: DISABLE TV ON MOBILE TO SAVE RAM
+            if (isMobile) return;
+
             const tvW = 1.78; const tvH = 3.16; const tvD = 0.1;
             const tvGeo = new THREE.BoxGeometry(tvW, tvH, tvD);
             const screenMat = new THREE.MeshBasicMaterial({ map: videoTex2 });
@@ -377,11 +376,10 @@
             const c1 = new THREE.Mesh(cableGeo, cableMat); c1.position.set(-tvW*0.3, tvH/2, 0); tv.add(c1);
             const c2 = new THREE.Mesh(cableGeo, cableMat); c2.position.set(tvW*0.3, tvH/2, 0); tv.add(c2);
             
-            if (!isMobile) { 
-                const screenLight = new THREE.PointLight(0xffffff, 2.0, 4.0); 
-                screenLight.position.set(0, 0, 1.0); 
-                tv.add(screenLight); 
-            }
+            // Desktop Lighting for TV
+            const screenLight = new THREE.PointLight(0xffffff, 2.0, 4.0); 
+            screenLight.position.set(0, 0, 1.0); 
+            tv.add(screenLight); 
             
             tv.userData.isObstacle = true; 
             collidableObjects.push({ customType: 'cylinder', mesh: tv, radius: 0.1, position: tv.position });
@@ -393,8 +391,8 @@
             if(!isMobile) { const light = new THREE.PointLight(0xaaaaff, 30, 25); light.position.set(x + Math.sin(rotationY), y, z + Math.cos(rotationY)); scene.add(light); }
         }
 
-        const cachedPipeGeo = new THREE.CylinderGeometry(0.05, 0.05, 1, isMobile ? 6 : 12); 
-        const cachedJointGeo = new THREE.SphereGeometry(0.09, isMobile ? 6 : 12, isMobile ? 4 : 8);
+        const cachedPipeGeo = new THREE.CylinderGeometry(0.05, 0.05, 1, 12); 
+        const cachedJointGeo = new THREE.SphereGeometry(0.09, 12, 8);
 
         function createScaffoldingStructure(x, z) {
             revolvingStage = new THREE.Group();
@@ -402,28 +400,38 @@
             const platform = new THREE.Mesh(new THREE.CylinderGeometry(3.5, 3.5, 0.2, 32), new THREE.MeshStandardMaterial({ color: 0x333333, roughness: 0.8, metalness: 0.5 }));
             platform.position.y = 0.1; platform.receiveShadow = !isMobile; revolvingStage.add(platform);
             collidableObjects.push({ box: new THREE.Box3().setFromObject(platform) }); 
-            const structureGroup = new THREE.Group(); structureGroup.position.y = 0.2; 
-            const metalMat = new THREE.MeshStandardMaterial({ color: 0xeeeeee, roughness: 0.2, metalness: 0.8 });
-            const w = 4; const h = 3.5; const d = 4;
             
-            function addPipe(px, py, pz, height, axis) {
-                const mesh = new THREE.Mesh(cachedPipeGeo, metalMat);
-                mesh.position.set(px, py, pz);
-                mesh.scale.set(1, height, 1);
-                if (axis === 'z') mesh.rotation.x = Math.PI / 2; if (axis === 'x') mesh.rotation.z = Math.PI / 2;
-                if(!isMobile) mesh.castShadow = true; 
-                structureGroup.add(mesh); collidableObjects.push({ box: new THREE.Box3().setFromObject(mesh) });
+            // FIX: MOBILE SIMPLIFICATION (Single Pillar instead of 300 pipes)
+            if (isMobile) {
+                const pillar = new THREE.Mesh(new THREE.CylinderGeometry(1.5, 1.5, 4.0, 16), darkWallMat);
+                pillar.position.y = 2.0;
+                revolvingStage.add(pillar);
+            } else {
+                // Desktop Complex Structure
+                const structureGroup = new THREE.Group(); structureGroup.position.y = 0.2; 
+                const metalMat = new THREE.MeshStandardMaterial({ color: 0xeeeeee, roughness: 0.2, metalness: 0.8 });
+                const w = 4; const h = 3.5; const d = 4;
+                
+                function addPipe(px, py, pz, height, axis) {
+                    const mesh = new THREE.Mesh(cachedPipeGeo, metalMat);
+                    mesh.position.set(px, py, pz);
+                    mesh.scale.set(1, height, 1);
+                    if (axis === 'z') mesh.rotation.x = Math.PI / 2; if (axis === 'x') mesh.rotation.z = Math.PI / 2;
+                    mesh.castShadow = true; 
+                    structureGroup.add(mesh); collidableObjects.push({ box: new THREE.Box3().setFromObject(mesh) });
+                }
+                function addJoint(jx, jy, jz) { 
+                    const mesh = new THREE.Mesh(cachedJointGeo, metalMat); 
+                    mesh.position.set(jx, jy, jz); structureGroup.add(mesh); 
+                }
+                
+                addPipe(-w/2, h/2, -d/2, h, 'y'); addPipe(w/2, h/2, -d/2, h, 'y'); addPipe(-w/2, h/2, d/2, h, 'y'); addPipe(w/2, h/2, d/2, h, 'y');
+                const levels = [0.2, h - 0.2];
+                levels.forEach(lev => { addPipe(0, lev, -d/2, w, 'x'); addPipe(0, lev, d/2, w, 'x'); addPipe(-w/2, lev, 0, d, 'z'); addPipe(w/2, lev, 0, d, 'z'); });
+                const cornersX = [-w/2, w/2]; const cornersZ = [-d/2, d/2];
+                levels.forEach(lev => { cornersX.forEach(cx => { cornersZ.forEach(cz => { addJoint(cx, lev, cz); }); }); });
+                revolvingStage.add(structureGroup);
             }
-            function addJoint(jx, jy, jz) { 
-                const mesh = new THREE.Mesh(cachedJointGeo, metalMat); 
-                mesh.position.set(jx, jy, jz); structureGroup.add(mesh); 
-            }
-            
-            addPipe(-w/2, h/2, -d/2, h, 'y'); addPipe(w/2, h/2, -d/2, h, 'y'); addPipe(-w/2, h/2, d/2, h, 'y'); addPipe(w/2, h/2, d/2, h, 'y');
-            const levels = [0.2, h - 0.2];
-            levels.forEach(lev => { addPipe(0, lev, -d/2, w, 'x'); addPipe(0, lev, d/2, w, 'x'); addPipe(-w/2, lev, 0, d, 'z'); addPipe(w/2, lev, 0, d, 'z'); });
-            const cornersX = [-w/2, w/2]; const cornersZ = [-d/2, d/2];
-            levels.forEach(lev => { cornersX.forEach(cx => { cornersZ.forEach(cz => { addJoint(cx, lev, cz); }); }); });
             
             function mountPoster(px, py, pz, ry, width, height, pipeYLevel, specificUrl = null) {
                 let data;
@@ -433,29 +441,37 @@
                     data = getNextImage();
                 }
 
-                // Immediate load logic for mounted posters too
                 const tex = textureLoader.load(data.wallUrl);
                 tex.colorSpace = THREE.SRGBColorSpace;
                 const mat = new THREE.MeshStandardMaterial({ map: tex, color: 0xffffff, roughness: 0.4, side: THREE.DoubleSide });
 
                 const mesh = new THREE.Mesh(new THREE.PlaneGeometry(2.0, 2.5), mat);
                 mesh.position.set(px, py, pz); mesh.rotation.y = ry;
-                const stringMat = new THREE.LineBasicMaterial({ color: 0x111111 });
-                const pW = 2.0; const pH = 2.5; const topOfPosterY = pH / 2; const distToPipe = (pipeYLevel - 0.05) - (py + topOfPosterY);
-                const pointsL = [new THREE.Vector3(-pW/2 + 0.15, topOfPosterY, 0), new THREE.Vector3(-pW/2 + 0.15, topOfPosterY + distToPipe, 0)];
-                const pointsR = [new THREE.Vector3(pW/2 - 0.15, topOfPosterY, 0), new THREE.Vector3(pW/2 - 0.15, topOfPosterY + distToPipe, 0)];
-                mesh.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pointsL), stringMat)); mesh.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pointsR), stringMat));
-                mesh.userData = { type: 'poster', url: data.fullUrl, title: data.title, year: "2025", desc: "Mounted Installation" };
-                structureGroup.add(mesh); postersArray.push(mesh);
-            }
-            const topPipeLevel = h - 0.2; const posterCenterY = h / 2;
-            
-            mountPoster(0, posterCenterY, d/2, 0, 2, 2.5, topPipeLevel); 
-            mountPoster(-w/2, posterCenterY, 0, Math.PI/2, 2, 2.5, topPipeLevel); 
-            mountPoster(0, posterCenterY, -d/2, Math.PI, 2.5, 1.8, topPipeLevel); 
-            mountPoster(w/2, posterCenterY, 0, -Math.PI/2, 2, 2.5, topPipeLevel, 'assets/image80.jpg');
+                
+                // Add strings only on Desktop
+                if (!isMobile) {
+                    const stringMat = new THREE.LineBasicMaterial({ color: 0x111111 });
+                    const pW = 2.0; const pH = 2.5; const topOfPosterY = pH / 2; const distToPipe = (pipeYLevel - 0.05) - (py + topOfPosterY);
+                    const pointsL = [new THREE.Vector3(-pW/2 + 0.15, topOfPosterY, 0), new THREE.Vector3(-pW/2 + 0.15, topOfPosterY + distToPipe, 0)];
+                    const pointsR = [new THREE.Vector3(pW/2 - 0.15, topOfPosterY, 0), new THREE.Vector3(pW/2 - 0.15, topOfPosterY + distToPipe, 0)];
+                    mesh.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pointsL), stringMat)); mesh.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pointsR), stringMat));
+                }
 
-            revolvingStage.add(structureGroup); scene.add(revolvingStage);
+                mesh.userData = { type: 'poster', url: data.fullUrl, title: data.title, year: "2025", desc: "Mounted Installation" };
+                revolvingStage.add(mesh); postersArray.push(mesh);
+            }
+            const topPipeLevel = 3.3; const posterCenterY = 3.5 / 2;
+            const d = 4; const w = 4;
+            
+            // Adjusted poster positions slightly for the mobile pillar
+            const dist = isMobile ? 1.6 : 2.0; // Closer on mobile so they stick to pillar
+            
+            mountPoster(0, posterCenterY, isMobile ? 1.6 : d/2, 0, 2, 2.5, topPipeLevel); 
+            mountPoster(isMobile ? -1.6 : -w/2, posterCenterY, 0, Math.PI/2, 2, 2.5, topPipeLevel); 
+            mountPoster(0, posterCenterY, isMobile ? -1.6 : -d/2, Math.PI, 2.5, 1.8, topPipeLevel); 
+            mountPoster(isMobile ? 1.6 : w/2, posterCenterY, 0, -Math.PI/2, 2, 2.5, topPipeLevel, 'assets/image80.jpg');
+
+            scene.add(revolvingStage);
         }
 
         function fixMaterial(object) {
@@ -617,17 +633,19 @@
                 const startZ = zCenter + (sideWallLength / 2) - (sideSpacing / 2); 
                 for (let k = 0; k < postersPerSide; k++) {
                     const zPos = startZ - (k * sideSpacing);
-                    addPoster(-9.7, 2.7, zPos, Math.PI/2, standardW, standardH, i);
-                    addPoster(9.7, 2.7, zPos, -Math.PI/2, standardW, standardH, i);
+                    addPoster(-9.7, 2.7, zPos, Math.PI/2, standardW, standardH);
+                    addPoster(9.7, 2.7, zPos, -Math.PI/2, standardW, standardH);
                 }
                 const offsetX = 6.0; const offsetZ = 0.3; 
-                addPoster(-offsetX, 2.7, zCenter - roomSize/2 + offsetZ, 0, standardW, standardH, i);
-                addPoster(offsetX, 2.7, zCenter - roomSize/2 + offsetZ, 0, standardW, standardH, i);
+                addPoster(-offsetX, 2.7, zCenter - roomSize/2 + offsetZ, 0, standardW, standardH);
+                addPoster(offsetX, 2.7, zCenter - roomSize/2 + offsetZ, 0, standardW, standardH);
                 if (i > 0) { 
-                   addPoster(-offsetX, 2.7, zCenter + roomSize/2 - offsetZ, Math.PI, standardW, standardH, i);
-                   addPoster(offsetX, 2.7, zCenter + roomSize/2 - offsetZ, Math.PI, standardW, standardH, i);
+                   addPoster(-offsetX, 2.7, zCenter + roomSize/2 - offsetZ, Math.PI, standardW, standardH);
+                   addPoster(offsetX, 2.7, zCenter + roomSize/2 - offsetZ, Math.PI, standardW, standardH);
                 }
             } else {
+                // Video projections are replaced by something simpler on mobile if needed, but video texture is already heavy
+                // For now keeping as is, but could replace with static image if mobile crashes persist
                 const projW = 9.0; const projH = 5.06;
                 const wallDist = (roomSize/2) - 0.4;
                 createProjection(-wallDist, 3, zCenter, projW, projH, Math.PI/2, videoTex1);

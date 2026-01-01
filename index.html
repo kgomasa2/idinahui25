@@ -9,19 +9,6 @@
 
         body { margin: 0; overflow: hidden; background-color: #000; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; touch-action: none; user-select: none; -webkit-user-select: none; }
         
-        #orientation-warning {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: #000; z-index: 9999;
-            display: none; flex-direction: column; align-items: center; justify-content: center;
-            color: white; text-align: center;
-        }
-        #orientation-icon { font-size: 3rem; margin-bottom: 20px; animation: rotatePhone 2s infinite; }
-        @keyframes rotatePhone { 0%, 10% { transform: rotate(0deg); } 50%, 60% { transform: rotate(-90deg); } 100% { transform: rotate(0deg); } }
-        
-        @media screen and (orientation: portrait) {
-            #orientation-warning { display: flex !important; }
-        }
-
         /* LOADING SCREEN */
         #loading-screen {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
@@ -44,8 +31,9 @@
             display: none;
             flex-direction: column; align-items: center; justify-content: center;
             color: white; text-align: center; backdrop-filter: blur(5px);
+            padding: 20px; box-sizing: border-box;
         }
-        #start-screen h1 { font-size: 1.8rem; max-width: 90%; line-height: 1.4; text-transform: uppercase; letter-spacing: 1px; }
+        #start-screen h1 { font-size: 1.8rem; max-width: 100%; line-height: 1.4; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 2rem; }
         
         #start-btn {
             margin-top: 30px; padding: 20px 60px; font-size: 1.2rem; font-weight: bold;
@@ -55,7 +43,7 @@
         }
         #start-btn:active { transform: scale(0.95); background: #ffff00; }
 
-        #instructions { margin-top: 20px; color: #aaa; font-size: 0.9rem; line-height: 1.6; max-width: 85%; }
+        #instructions { margin-top: 20px; color: #aaa; font-size: 0.9rem; line-height: 1.6; max-width: 90%; }
         .key { display: inline-block; border: 1px solid #777; padding: 2px 6px; border-radius: 3px; font-size: 0.8em; color: #fff; }
 
         #cursor {
@@ -72,18 +60,18 @@
         }
         
         .joystick-zone {
-            position: absolute; width: 120px; height: 120px;
+            position: absolute; width: 100px; height: 100px; /* Slightly smaller for portrait */
             background: rgba(255, 255, 255, 0.1); border-radius: 50%;
             border: 2px solid rgba(255, 255, 255, 0.2);
             display: none; z-index: 40; touch-action: none; pointer-events: none;
         }
         .stick-knob {
-            position: absolute; top: 50%; left: 50%; width: 50px; height: 50px;
+            position: absolute; top: 50%; left: 50%; width: 40px; height: 40px;
             background: rgba(255, 255, 255, 0.5); border-radius: 50%;
             transform: translate(-50%, -50%); pointer-events: none;
         }
         #mobile-look-hint {
-            position: absolute; right: 50px; bottom: 50px; color: rgba(255,255,255,0.3);
+            position: absolute; right: 20px; bottom: 120px; color: rgba(255,255,255,0.3);
             font-size: 0.8rem; pointer-events: none; display: none; text-align: right;
         }
         
@@ -93,17 +81,19 @@
             flex-direction: column; align-items: center; justify-content: center;
             text-align: center; cursor: pointer; color: white;
         }
-        #modal-img { max-height: 80vh; max-width: 95%; box-shadow: 0 10px 30px rgba(0,0,0,0.5); margin-bottom: 20px; object-fit: contain; }
+        #modal-img { max-height: 70vh; max-width: 95%; box-shadow: 0 10px 30px rgba(0,0,0,0.5); margin-bottom: 20px; object-fit: contain; }
         #modal-info { max-width: 600px; padding: 0 20px; }
         #modal-title { font-weight: 800; font-size: 1.5rem; margin: 0 0 5px 0; text-transform: uppercase; }
         
         #mobile-sit-btn {
-            position: absolute; right: 30px; top: 50%; transform: translateY(-50%);
-            width: 60px; height: 60px; border-radius: 50%;
+            position: absolute; 
+            right: 20px; bottom: 40px; /* PORTRAIT POSITION: Bottom Right */
+            width: 70px; height: 70px; border-radius: 50%;
             background: rgba(0, 0, 0, 0.6); border: 2px solid white;
             color: white; font-weight: bold; display: none; z-index: 45;
             align-items: center; justify-content: center; cursor: pointer;
             backdrop-filter: blur(5px);
+            box-shadow: 0 0 10px rgba(255,255,255,0.2);
         }
     </style>
     
@@ -117,11 +107,6 @@
     </script>
 </head>
 <body>
-    <div id="orientation-warning">
-        <div id="orientation-icon">↻</div>
-        <p>ПОВЕРНІТЬ ПРИСТРІЙ<br>ДЛЯ КРАЩОГО ДОСВІДУ</p>
-    </div>
-
     <div id="cursor"></div>
     <div id="sit-hint">Натисни <span class="key">C</span> щоб сісти</div>
     
@@ -195,9 +180,6 @@
         }, 600);
 
         const manager = new THREE.LoadingManager();
-        
-        // For Desktop: Use Manager to calculate progress based on all textures
-        // For Mobile: We will fake progress or rely on geometry load only
         manager.onProgress = function (item, loaded, total) {
             const rawPercent = (loaded / total) * 100;
             loadingPercent.innerText = Math.round(rawPercent) + '%';
@@ -219,9 +201,7 @@
                 setTimeout(() => {
                     loader.style.display = 'none';
                     document.getElementById('start-screen').style.display = 'flex';
-                    if (isMobile) {
-                        updateMobileRooms(0); // Load first room immediately
-                    }
+                    if (isMobile) checkRoomLoad(0);
                 }, 800); 
             }, remainingTime);
         };
@@ -232,7 +212,12 @@
 
         RectAreaLightUniformsLib.init();
 
-        const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 100);
+        // --- CAMERA SETUP (Portrait Optimized) ---
+        // If width < height (Portrait), we need wider Vertical FOV to not feel zoomed in
+        const aspectRatio = window.innerWidth / window.innerHeight;
+        const baseFov = aspectRatio < 1 ? 95 : 70; // 95 for portrait, 70 for landscape
+        
+        const camera = new THREE.PerspectiveCamera(baseFov, window.innerWidth / window.innerHeight, 0.1, 100);
         camera.position.set(0, 1.7, 8); 
         camera.rotation.order = 'YXZ'; 
 
@@ -246,7 +231,6 @@
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobile ? 1.0 : 1.5));
 
         if (isMobile) {
-            // Keep shadows on mobile (requested), but use lower resolution maps
             renderer.shadowMap.enabled = true;
             renderer.shadowMap.type = THREE.BasicShadowMap; // Cheaper shadows
         } else {
@@ -259,9 +243,7 @@
         const bgMusic = document.getElementById('bgMusic');
         bgMusic.volume = 0.65;
 
-        // --- MATERIALS & TEXTURES ---
-        // On Desktop, we use 'manager' to preload everything.
-        // On Mobile, we use 'lazyLoader' manually to avoid loading everything at start.
+        // --- MATERIALS ---
         const textureLoader = isMobile ? new THREE.TextureLoader() : new THREE.TextureLoader(manager);
         const lazyLoader = new THREE.TextureLoader(); // For dynamic loading
 
@@ -277,8 +259,6 @@
         const cableMat = new THREE.MeshBasicMaterial({ color: 0x000000 });
         const benchMat = new THREE.MeshStandardMaterial({ color: 0xdddddd, roughness: 0.3 });
         const mobilePosterMat = new THREE.MeshStandardMaterial({ color: 0xcccccc, roughness: 0.6, metalness: 0.1 });
-        
-        // Grey placeholder for mobile lazy loading
         const placeholderMat = new THREE.MeshStandardMaterial({ color: 0x888888, roughness: 0.8 });
 
         const video1 = document.getElementById('video1');
@@ -286,7 +266,7 @@
         let videoTex1, videoTex2;
 
         if (isMobile) {
-            // SAFE STATIC TEXTURES FOR MOBILE (No Video)
+            // SAFE STATIC TEXTURES FOR MOBILE
             const cvs = document.createElement('canvas');
             cvs.width = 2; cvs.height = 2;
             const ctx = cvs.getContext('2d');
@@ -303,15 +283,14 @@
         const collidableObjects = []; 
         const postersArray = []; 
         
-        // --- MOBILE MEMORY MANAGEMENT DATA ---
-        // Stores references to poster meshes in each room to load/unload textures
-        const roomPosters = {}; // { 0: [{mesh, url}, ...], 1: ... }
-        // Stores status of room loading
-        const roomStatus = {}; // { 0: 'loaded', 1: 'unloaded' }
+        // --- MOBILE MEMORY MANAGEMENT ---
+        const roomPosters = {}; 
+        const roomStatus = {}; 
 
         let revolvingStage = null;
         const animatedModels = [];
         const interactiveObjects = []; 
+        const roomGroups = {};
 
         let currentImageId = 1;
         const totalImages = 65; 
@@ -326,7 +305,14 @@
             return { wallUrl, fullUrl, title, id };
         }
 
-        // --- POSTER CREATION ---
+        function addToRoom(object, roomIndex) {
+            if (!roomGroups[roomIndex]) {
+                roomGroups[roomIndex] = new THREE.Group();
+                scene.add(roomGroups[roomIndex]);
+            }
+            roomGroups[roomIndex].add(object);
+        }
+
         function addPoster(x, y, z, ry, w, h, roomIndex) {
             const data = getNextImage();
             const geo = new THREE.PlaneGeometry(w, h);
@@ -334,22 +320,17 @@
             let mat;
             
             if (isMobile) {
-                // Mobile: Create with placeholder grey material
                 mat = placeholderMat.clone();
-                
-                // Track this poster for later loading
                 if (!roomPosters[roomIndex]) roomPosters[roomIndex] = [];
                 roomPosters[roomIndex].push({
-                    mesh: null, // assigned below
+                    mesh: null,
                     material: mat,
                     url: data.wallUrl
                 });
             } else {
-                // Desktop: Load immediately via Manager
                 const tex = textureLoader.load(data.wallUrl, (t) => {
                     t.colorSpace = THREE.SRGBColorSpace;
-                }, undefined, () => {
-                    // Fallback
+                }, undefined, (err) => {
                     const pngUrl = data.wallUrl.replace('small/', '').replace('.jpg', '.png');
                     textureLoader.load(pngUrl, (t2)=>{
                         t2.colorSpace = THREE.SRGBColorSpace;
@@ -362,7 +343,8 @@
             const mesh = new THREE.Mesh(geo, mat);
             mesh.position.set(x, y, z); mesh.rotation.y = ry;
             mesh.userData = { type: 'poster', url: data.fullUrl, title: data.title, year: "2025", desc: "Collection" };
-            scene.add(mesh); 
+            
+            addToRoom(mesh, roomIndex);
             postersArray.push(mesh);
             
             if (isMobile && roomPosters[roomIndex]) {
@@ -370,24 +352,21 @@
             }
         }
 
-        // --- MOBILE MEMORY MANAGER ---
-        // This is the core fix for the crash.
-        function updateMobileRooms(currentRoom) {
+        function checkRoomLoad(currentRoom) {
             if (!isMobile) return;
 
-            // Define which rooms should be loaded (Current + Next)
-            // Unload everything else to free VRAM.
+            // Load Current and Next room. Unload others.
             const keepLoaded = [currentRoom, currentRoom + 1];
 
-            // 1. Load needed rooms
+            // Load needed
             keepLoaded.forEach(idx => {
                 if (roomStatus[idx] !== 'loaded') {
                     loadRoomTextures(idx);
                 }
             });
 
-            // 2. Unload distant rooms (Garbage Collection)
-            for (let idx = 0; idx < 5; idx++) { // 5 rooms total
+            // Unload others
+            for (let idx = 0; idx < 5; idx++) {
                 if (!keepLoaded.includes(idx) && roomStatus[idx] === 'loaded') {
                     unloadRoomTextures(idx);
                 }
@@ -396,15 +375,13 @@
 
         function loadRoomTextures(roomIdx) {
             if (!roomPosters[roomIdx]) return;
-            console.log(`Loading Room ${roomIdx}...`);
             roomStatus[roomIdx] = 'loaded';
 
             roomPosters[roomIdx].forEach(item => {
-                // Use lazyLoader (not manager) to load on the fly
                 lazyLoader.load(item.url, (tex) => {
                     tex.colorSpace = THREE.SRGBColorSpace;
                     item.material.map = tex;
-                    item.material.color.setHex(0xffffff); // White
+                    item.material.color.setHex(0xffffff); 
                     item.material.needsUpdate = true;
                 }, undefined, () => {
                     // Fallback
@@ -421,21 +398,19 @@
 
         function unloadRoomTextures(roomIdx) {
             if (!roomPosters[roomIdx]) return;
-            console.log(`Unloading Room ${roomIdx}...`);
             roomStatus[roomIdx] = 'unloaded';
 
             roomPosters[roomIdx].forEach(item => {
                 if (item.material.map) {
-                    item.material.map.dispose(); // FREE VRAM
+                    item.material.map.dispose(); 
                     item.material.map = null;
                 }
-                item.material.color.setHex(0x888888); // Back to grey
+                item.material.color.setHex(0x888888); 
                 item.material.needsUpdate = true;
             });
         }
 
-
-        function createBox(x, y, z, w, h, d, isWall = true, isDark = false, customMat = null) {
+        function createBox(x, y, z, w, h, d, isWall = true, isDark = false, customMat = null, roomIndex) {
             let mat = customMat ? customMat : (isDark ? (isWall ? darkWallMat : darkFloorMat) : (isWall ? wallMat : floorMat));
             const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
             mesh.position.set(x, y, z); 
@@ -445,17 +420,20 @@
                 mesh.updateMatrixWorld(); 
                 collidableObjects.push({ box: new THREE.Box3().setFromObject(mesh) }); 
             }
-            scene.add(mesh);
+            addToRoom(mesh, roomIndex);
         }
 
-        function createDoorWall(z, width, height, isDark = false) {
+        function createDoorWall(z, width, height, isDark = false, roomIndex) {
             const doorW = 4, doorH = 3.5, sideW = (width - doorW) / 2, thick = 0.5;
-            createBox(-(width/2) + (sideW/2), height/2, z, sideW, height, thick, true, isDark);
-            createBox((width/2) - (sideW/2), height/2, z, sideW, height, thick, true, isDark);
-            createBox(0, doorH + (height-doorH)/2, z, doorW, height-doorH, thick, true, isDark);
+            createBox(-(width/2) + (sideW/2), height/2, z, sideW, height, thick, true, isDark, null, roomIndex);
+            createBox((width/2) - (sideW/2), height/2, z, sideW, height, thick, true, isDark, null, roomIndex);
+            createBox(0, doorH + (height-doorH)/2, z, doorW, height-doorH, thick, true, isDark, null, roomIndex);
         }
 
-        function createHangingTV(x, z, ceilingHeight, rotationY = 0) {
+        function createHangingTV(x, z, ceilingHeight, rotationY = 0, roomIndex) {
+            // FIX: DISABLE TV ON MOBILE TO SAVE RAM
+            if (isMobile) return;
+
             const tvW = 1.78; const tvH = 3.16; const tvD = 0.1;
             const tvGeo = new THREE.BoxGeometry(tvW, tvH, tvD);
             const screenMat = new THREE.MeshBasicMaterial({ map: videoTex2 });
@@ -464,7 +442,9 @@
             
             const tvY = 3.8; 
             
-            tv.position.set(x, tvY, z); tv.rotation.y = rotationY; scene.add(tv);
+            tv.position.set(x, tvY, z); tv.rotation.y = rotationY; 
+            addToRoom(tv, roomIndex);
+
             const tvTopY = tvY + (tvH / 2);
             const cableLen = ceilingHeight - tvTopY;
             const cableGeo = new THREE.CylinderGeometry(0.01, 0.01, cableLen > 0 ? cableLen : 0.1);
@@ -480,27 +460,31 @@
             collidableObjects.push({ customType: 'cylinder', mesh: tv, radius: 0.1, position: tv.position });
         }
 
-        function createProjection(x, y, z, w, h, rotationY, texture) {
+        function createProjection(x, y, z, w, h, rotationY, texture, roomIndex) {
             const mesh = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshBasicMaterial({ map: texture, side: THREE.DoubleSide }));
-            mesh.position.set(x, y, z); mesh.rotation.y = rotationY; scene.add(mesh);
-            if(!isMobile) { const light = new THREE.PointLight(0xaaaaff, 30, 25); light.position.set(x + Math.sin(rotationY), y, z + Math.cos(rotationY)); scene.add(light); }
+            mesh.position.set(x, y, z); mesh.rotation.y = rotationY; 
+            addToRoom(mesh, roomIndex);
+            
+            if(!isMobile) { 
+                const light = new THREE.PointLight(0xaaaaff, 30, 25); 
+                light.position.set(x + Math.sin(rotationY), y, z + Math.cos(rotationY)); 
+                addToRoom(light, roomIndex); 
+            }
         }
 
         const cachedPipeGeo = new THREE.CylinderGeometry(0.05, 0.05, 1, 12); 
         const cachedJointGeo = new THREE.SphereGeometry(0.09, 12, 8);
 
-        function createScaffoldingStructure(x, z) {
+        function createScaffoldingStructure(x, z, roomIndex) {
             revolvingStage = new THREE.Group();
             revolvingStage.position.set(x, 0, z);
             
-            // SIMPLIFIED STRUCTURE FOR MOBILE TO SAVE DRAW CALLS
             if (isMobile) {
-                // Central pillar instead of pipes
+                // Simplified for Mobile
                 const pillar = new THREE.Mesh(new THREE.CylinderGeometry(1.5, 1.5, 4.0, 16), darkWallMat);
                 pillar.position.y = 2.0;
                 revolvingStage.add(pillar);
             } else {
-                // Full Scaffolding for Desktop
                 const platform = new THREE.Mesh(new THREE.CylinderGeometry(3.5, 3.5, 0.2, 32), new THREE.MeshStandardMaterial({ color: 0x333333, roughness: 0.8, metalness: 0.5 }));
                 platform.position.y = 0.1; platform.receiveShadow = !isMobile; revolvingStage.add(platform);
                 collidableObjects.push({ box: new THREE.Box3().setFromObject(platform) }); 
@@ -530,7 +514,6 @@
                 revolvingStage.add(structureGroup);
             }
             
-            // POSTERS ON SCAFFOLDING
             function mountPoster(px, py, pz, ry, width, height, pipeYLevel, specificUrl = null) {
                 let data;
                 if (specificUrl) {
@@ -539,17 +522,15 @@
                     data = getNextImage();
                 }
 
-                // Logic for scaffold posters
                 let mat;
-                
-                if (isMobile) {
-                    // Mobile Scaffold poster
+                if(isMobile) {
                     mat = placeholderMat.clone();
-                    if(!roomPosters[2]) roomPosters[2] = []; // Room 2 is scaffold room
-                    roomPosters[2].push({ mesh: null, material: mat, url: data.wallUrl });
+                    if (!roomPosters[roomIndex]) roomPosters[roomIndex] = [];
+                    roomPosters[roomIndex].push({ mesh: null, material: mat, url: data.wallUrl });
                 } else {
-                    const tex = textureLoader.load(data.wallUrl, (t) => { t.colorSpace = THREE.SRGBColorSpace; }, undefined, () => {
-                        const pngUrl = data.wallUrl.replace('small/', '').replace('.jpg', '.png');
+                    const tex = textureLoader.load(data.wallUrl, (t) => { t.colorSpace = THREE.SRGBColorSpace; }, undefined, 
+                    () => {
+                        const pngUrl = data.wallUrl.replace('small/', '').replace('small_mobile/', '').replace('.jpg', '.png');
                         textureLoader.load(pngUrl, (t2)=>{ t2.colorSpace=THREE.SRGBColorSpace; mat.map=t2; mat.needsUpdate=true; });
                     });
                     mat = new THREE.MeshStandardMaterial({ map: tex, color: 0xffffff, roughness: 0.4, side: THREE.DoubleSide });
@@ -558,8 +539,8 @@
                 const mesh = new THREE.Mesh(new THREE.PlaneGeometry(2.0, 2.5), mat);
                 mesh.position.set(px, py, pz); mesh.rotation.y = ry;
                 
-                if (isMobile && roomPosters[2]) {
-                    roomPosters[2][roomPosters[2].length - 1].mesh = mesh;
+                if (isMobile && roomPosters[roomIndex]) {
+                    roomPosters[roomIndex][roomPosters[roomIndex].length - 1].mesh = mesh;
                 }
 
                 if (!isMobile) {
@@ -575,15 +556,15 @@
             }
             
             const topPipeLevel = 3.3; const posterCenterY = 3.5 / 2;
-            const d = 4; const w = 4;
-            const dist = isMobile ? 1.6 : 2.0; 
+            const d2 = 4; const w2 = 4;
+            const dist = isMobile ? 1.6 : 2.0;
             
-            mountPoster(0, posterCenterY, isMobile ? 1.6 : d/2, 0, 2, 2.5, topPipeLevel, null); 
-            mountPoster(isMobile ? -1.6 : -w/2, posterCenterY, 0, Math.PI/2, 2, 2.5, topPipeLevel, null); 
-            mountPoster(0, posterCenterY, isMobile ? -1.6 : -d/2, Math.PI, 2.5, 1.8, topPipeLevel, null); 
-            mountPoster(isMobile ? 1.6 : w/2, posterCenterY, 0, -Math.PI/2, 2, 2.5, topPipeLevel, 'assets/image80.jpg');
+            mountPoster(0, posterCenterY, isMobile ? 1.6 : d2/2, 0, 2, 2.5, topPipeLevel); 
+            mountPoster(isMobile ? -1.6 : -w2/2, posterCenterY, 0, Math.PI/2, 2, 2.5, topPipeLevel); 
+            mountPoster(0, posterCenterY, isMobile ? -1.6 : -d2/2, Math.PI, 2.5, 1.8, topPipeLevel); 
+            mountPoster(isMobile ? 1.6 : w2/2, posterCenterY, 0, -Math.PI/2, 2, 2.5, topPipeLevel, 'assets/image80.jpg');
 
-            scene.add(revolvingStage);
+            addToRoom(revolvingStage, roomIndex);
         }
 
         function fixMaterial(object) {
@@ -601,9 +582,11 @@
 
         const modelFiles = ['1.glb', '2.glb', '3.glb', '4.glb', '5.glb', '6.glb', '8.glb'];
         
-        function loadAllModels(roomCenterX, roomCenterZ) {
+        function loadAllModels(roomCenterX, roomCenterZ, roomIndex) {
+            // No models on mobile to save memory
+            if(isMobile) return; 
+
             const gltfLoader = new GLTFLoader(manager);
-            
             modelFiles.forEach((filename, index) => {
                 const angle = (index / modelFiles.length) * Math.PI * 2;
                 const radius = 5; 
@@ -613,29 +596,24 @@
                 gltfLoader.load(fullPath, (gltf) => {
                     const object = gltf.scene;
                     fixMaterial(object);
-
                     object.scale.set(1, 1, 1); 
                     const box = new THREE.Box3().setFromObject(object);
                     const size = new THREE.Vector3(); box.getSize(size);
                     const maxDim = Math.max(size.x, size.y, size.z);
                     let targetScale = 1.0;
                     if (maxDim > 5) { targetScale = 3.0 / maxDim; } else if (maxDim < 0.5) { targetScale = 2.0 / maxDim; }
-                    
                     let multiplier = 2.3; 
-                    if (filename === '3.glb') { multiplier *= 0.8; }
-                    if (filename === '5.glb' || filename === '6.glb') { multiplier = 1.9; }
-                    if (filename === '8.glb') { multiplier = (2.3 / 3.0) * 1.4; } 
-
+                    if (filename === '3.glb') multiplier *= 0.8;
+                    if (filename === '5.glb' || filename === '6.glb') multiplier = 1.9;
+                    if (filename === '8.glb') multiplier = (2.3 / 3.0) * 1.4; 
                     targetScale *= multiplier;
                     object.scale.set(targetScale, targetScale, targetScale);
                     object.rotation.set(0, 0, 0); 
-
-                    if (filename === '4.glb') { animatedModels.push(object); }
-
+                    if (filename === '4.glb') animatedModels.push(object); 
                     object.updateMatrixWorld(); 
                     const newBox = new THREE.Box3().setFromObject(object);
                     object.position.set(roomCenterX + offsetX, -newBox.min.y, roomCenterZ + offsetZ);
-                    scene.add(object);
+                    addToRoom(object, roomIndex);
                     collidableObjects.push({ box: new THREE.Box3().setFromObject(object) });
                     
                     if (filename === '6.glb') {
@@ -653,7 +631,7 @@
                             const box9 = new THREE.Box3().setFromObject(obj9);
                             const heightOffset9 = -box9.min.y; 
                             obj9.position.set(object.position.x, topY * 1.45 + heightOffset9, object.position.z);
-                            scene.add(obj9);
+                            addToRoom(obj9, roomIndex);
                         });
                     }
                 }, undefined, (e) => {
@@ -662,7 +640,8 @@
             });
         }
 
-        function createHangingModel7(x, z, roomCeiling) {
+        function createHangingModel7(x, z, roomCeiling, roomIndex) {
+            if(isMobile) return; 
             const gltfLoader = new GLTFLoader(manager);
             gltfLoader.load('assets/3d/7.glb', (gltf) => {
                 const object = gltf.scene;
@@ -671,14 +650,14 @@
                 object.rotation.set(0, 0, 0); 
                 const hangY = 3.0; 
                 object.position.set(x, hangY, z);
-                scene.add(object);
+                addToRoom(object, roomIndex);
                 collidableObjects.push({ box: new THREE.Box3().setFromObject(object) });
                 const cableLen = roomCeiling - hangY;
                 const cableGeo = new THREE.CylinderGeometry(0.01, 0.01, cableLen);
                 cableGeo.translate(0, cableLen/2, 0);
                 const cable = new THREE.Mesh(cableGeo, cableMat);
                 cable.position.set(x, hangY, z);
-                scene.add(cable);
+                addToRoom(cable, roomIndex);
             });
         }
 
@@ -697,45 +676,49 @@
             const isDarkRoom = (i === roomsCount - 1);
             if (!isDarkRoom && !isMobile) {
                 const rectLightLeft = new THREE.RectAreaLight(0xffffff, 6.0, roomSize - 2, 0.5);
-                rectLightLeft.position.set(-8, 5.5, zCenter); rectLightLeft.lookAt(-20, 1, zCenter); scene.add(rectLightLeft);
+                rectLightLeft.position.set(-8, 5.5, zCenter); rectLightLeft.lookAt(-20, 1, zCenter); addToRoom(rectLightLeft, i);
                 const rectLightRight = new THREE.RectAreaLight(0xffffff, 6.0, roomSize - 2, 0.5);
-                rectLightRight.position.set(8, 5.5, zCenter); rectLightRight.lookAt(20, 1, zCenter); scene.add(rectLightRight);
-                const fillLight = new THREE.PointLight(0xffffff, 2, 20); fillLight.position.set(0, 5, zCenter); scene.add(fillLight);
+                rectLightRight.position.set(8, 5.5, zCenter); rectLightRight.lookAt(20, 1, zCenter); addToRoom(rectLightRight, i);
+                const fillLight = new THREE.PointLight(0xffffff, 2, 20); fillLight.position.set(0, 5, zCenter); addToRoom(fillLight, i);
             }
             else if (!isDarkRoom && isMobile) {
                  const simpleLight = new THREE.PointLight(0xffffff, 1.5, 15);
-                 simpleLight.position.set(0, 4, zCenter); scene.add(simpleLight);
+                 simpleLight.position.set(0, 4, zCenter); addToRoom(simpleLight, i);
             }
 
-            createBox(-roomSize/2, roomHeight/2, zCenter, 0.5, roomHeight, roomSize, true, isDarkRoom); 
-            createBox(roomSize/2, roomHeight/2, zCenter, 0.5, roomHeight, roomSize, true, isDarkRoom); 
+            createBox(-roomSize/2, roomHeight/2, zCenter, 0.5, roomHeight, roomSize, true, isDarkRoom, null, i); 
+            createBox(roomSize/2, roomHeight/2, zCenter, 0.5, roomHeight, roomSize, true, isDarkRoom, null, i); 
             if (!isDarkRoom) {
                 const ceiling = new THREE.Mesh(new THREE.PlaneGeometry(roomSize, roomSize), wallMat);
-                ceiling.rotation.x = Math.PI / 2; ceiling.position.set(0, roomHeight, zCenter); scene.add(ceiling);
+                ceiling.rotation.x = Math.PI / 2; ceiling.position.set(0, roomHeight, zCenter); addToRoom(ceiling, i);
             }
             if (i === 0) {
-                createBox(0, roomHeight/2, zCenter + roomSize/2, roomSize, roomHeight, 0.5, true, isDarkRoom);
-                createDoorWall(zCenter - roomSize/2, roomSize, roomHeight, isDarkRoom);
+                createBox(0, roomHeight/2, zCenter + roomSize/2, roomSize, roomHeight, 0.5, true, isDarkRoom, null, i);
+                createDoorWall(zCenter - roomSize/2, roomSize, roomHeight, isDarkRoom, i);
             } else if (i === roomsCount - 1) {
-                createBox(0, roomHeight/2, zCenter - roomSize/2, roomSize, roomHeight, 0.5, true, isDarkRoom);
+                createBox(0, roomHeight/2, zCenter - roomSize/2, roomSize, roomHeight, 0.5, true, isDarkRoom, null, i);
                 const darkCeiling = new THREE.Mesh(new THREE.PlaneGeometry(roomSize, roomSize), darkWallMat);
-                darkCeiling.rotation.x = Math.PI / 2; darkCeiling.position.set(0, roomHeight, zCenter); scene.add(darkCeiling);
+                darkCeiling.rotation.x = Math.PI / 2; darkCeiling.position.set(0, roomHeight, zCenter); addToRoom(darkCeiling, i);
                 benchPosition.set(0, 0.4, zCenter);
-                createBox(0, 0.4, zCenter, 3.5, 0.8, 1.5, true, false, benchMat);
+                createBox(0, 0.4, zCenter, 3.5, 0.8, 1.5, true, false, benchMat, i);
             } else {
-                createDoorWall(zCenter - roomSize/2, roomSize, roomHeight, false);
+                createDoorWall(zCenter - roomSize/2, roomSize, roomHeight, false, i);
             }
             if (!isDarkRoom) {
-                if (i === 0) { createHangingTV(0, zCenter, roomHeight, 0); } 
-                else if (i === 1) { loadAllModels(0, zCenter); createHangingModel7(0, zCenter, roomHeight); } 
+                if (i === 0) { createHangingTV(0, zCenter, roomHeight, 0, i); } 
+                else if (i === 1) { loadAllModels(0, zCenter, i); createHangingModel7(0, zCenter, roomHeight, i); } 
                 else if (i === 2) { createScaffoldingStructure(0, zCenter, i); } 
                 else { 
                     let rotation = (i === 3) ? 0 : Math.random() * Math.PI;
-                    createHangingTV(0, zCenter, roomHeight, rotation); 
+                    createHangingTV(0, zCenter, roomHeight, rotation, i); 
                 }
                 
-                const standardW = 2.6; const standardH = 3.25; 
-                const postersPerSide = 6; const sideSpacing = 3.0; 
+                // MOBILE POSTER DENSITY TWEAK
+                const standardW = isMobile ? 2.2 : 2.6; 
+                const standardH = isMobile ? 2.8 : 3.25; 
+                const postersPerSide = isMobile ? 7 : 6; 
+                const sideSpacing = isMobile ? 2.5 : 3.0; 
+                
                 const sideWallLength = postersPerSide * sideSpacing;
                 const startZ = zCenter + (sideWallLength / 2) - (sideSpacing / 2); 
                 for (let k = 0; k < postersPerSide; k++) {
@@ -753,10 +736,10 @@
             } else {
                 const projW = 9.0; const projH = 5.06;
                 const wallDist = (roomSize/2) - 0.4;
-                createProjection(0, 3, zCenter - wallDist, projW, projH, 0, videoTex1);
+                createProjection(0, 3, zCenter - wallDist, projW, projH, 0, videoTex1, i);
                 if (!isMobile) {
-                    createProjection(-wallDist, 3, zCenter, projW, projH, Math.PI/2, videoTex1);
-                    createProjection(wallDist, 3, zCenter, projW, projH, -Math.PI/2, videoTex1);
+                    createProjection(-wallDist, 3, zCenter, projW, projH, Math.PI/2, videoTex1, i);
+                    createProjection(wallDist, 3, zCenter, projW, projH, -Math.PI/2, videoTex1, i);
                 }
             }
         }
@@ -782,18 +765,18 @@
         const ambientLight = new THREE.AmbientLight(0xffffff, 0.6); 
         scene.add(ambientLight);
         
-        const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 1.2); 
-        hemiLight.position.set(0, 20, 0);
-        scene.add(hemiLight);
+        if (!isMobile) {
+            const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 1.2); 
+            hemiLight.position.set(0, 20, 0);
+            scene.add(hemiLight);
 
-        const dirLight = new THREE.DirectionalLight(0xffffff, 1.0);
-        dirLight.position.set(5, 10, 7);
-        if(!isMobile) {
+            const dirLight = new THREE.DirectionalLight(0xffffff, 1.0);
+            dirLight.position.set(5, 10, 7);
             dirLight.castShadow = true;
             dirLight.shadow.mapSize.width = 512; 
             dirLight.shadow.mapSize.height = 512;
+            scene.add(dirLight);
         }
-        scene.add(dirLight);
 
         // --- CONTROLS ---
         const controls = new PointerLockControls(camera, document.body);
@@ -828,8 +811,7 @@
                 if(window.innerHeight > window.innerWidth) {
                 }
                 document.getElementById('mobile-look-hint').style.display = 'block';
-                // Trigger initial mobile load
-                updateMobileRooms(0);
+                checkRoomLoad(0);
             }
         }
 
@@ -1106,8 +1088,7 @@
                     const currentRoom = Math.max(0, Math.round(-camera.position.z / 20));
                     if (currentRoom !== lastRoomIndex) {
                         lastRoomIndex = currentRoom;
-                        // Trigger Memory Management on Mobile
-                        updateMobileRooms(currentRoom);
+                        checkRoomLoad(currentRoom);
                     }
                 }
 
@@ -1124,7 +1105,11 @@
         animate();
 
         window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
+            // Recalculate FOV based on aspect ratio for portrait support
+            const aspect = window.innerWidth / window.innerHeight;
+            camera.fov = aspect < 1 ? 95 : 70;
+            
+            camera.aspect = aspect;
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
         });

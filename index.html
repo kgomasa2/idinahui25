@@ -3,17 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Olympia Gallery - Final Fix</title>
+    <title>Olympia Gallery - Final & Fast</title>
     <style>
         body { margin: 0; overflow: hidden; background-color: #000; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; touch-action: none; user-select: none; -webkit-user-select: none; }
         
-        #debug-log {
-            position: absolute; top: 0; left: 0; max-width: 300px; max-height: 200px;
-            overflow-y: auto; background: rgba(0,0,0,0.7); color: lime; 
-            font-family: monospace; font-size: 10px; padding: 5px; z-index: 1000;
-            pointer-events: none; display: none; /* Сховав дебаг, якщо все ок */
-        }
-
         #loading-screen {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: #000; z-index: 100;
@@ -26,7 +19,7 @@
 
         #start-screen {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.9); z-index: 50;
+            background: rgba(0,0,0,0.85); z-index: 50;
             display: none;
             flex-direction: column; align-items: center; justify-content: center;
             color: white; text-align: center; backdrop-filter: blur(5px);
@@ -56,18 +49,17 @@
             border-radius: 20px; font-size: 0.9rem; display: none; pointer-events: none; z-index: 20;
         }
         
-        .joystick-zone {
-            position: absolute; bottom: 30px; width: 140px; height: 140px;
-            background: rgba(255, 255, 255, 0.05); border-radius: 50%;
-            border: 2px solid rgba(255, 255, 255, 0.15);
-            display: none; z-index: 40; touch-action: none;
+        /* --- NEW FLOATING JOYSTICK STYLES --- */
+        .joystick-visual {
+            position: absolute; width: 100px; height: 100px;
+            background: rgba(255, 255, 255, 0.1); border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%; pointer-events: none; display: none; z-index: 40;
+            transform: translate(-50%, -50%);
         }
-        #stick-left { left: 20px; }
-        #stick-right { right: 20px; }
-        .stick-knob {
-            position: absolute; top: 50%; left: 50%; width: 60px; height: 60px;
-            background: rgba(255, 255, 255, 0.3); border-radius: 50%;
-            transform: translate(-50%, -50%); pointer-events: none;
+        .joystick-knob {
+            position: absolute; top: 50%; left: 50%; width: 40px; height: 40px;
+            background: rgba(255, 255, 255, 0.8); border-radius: 50%;
+            transform: translate(-50%, -50%);
         }
         
         #artwork-modal {
@@ -81,7 +73,7 @@
         #modal-title { font-weight: 800; font-size: 1.5rem; margin: 0 0 5px 0; text-transform: uppercase; }
         
         #mobile-sit-btn {
-            position: absolute; right: 40px; bottom: 190px; 
+            position: absolute; right: 30px; bottom: 150px; 
             width: 70px; height: 70px; border-radius: 50%;
             background: rgba(0, 0, 0, 0.6); border: 2px solid white;
             color: white; font-weight: bold; display: none; z-index: 45;
@@ -100,7 +92,6 @@
     </script>
 </head>
 <body>
-    <div id="debug-log"></div>
     <div id="cursor"></div>
     <div id="sit-hint">Натисни <span class="key">C</span> щоб сісти</div>
     
@@ -113,13 +104,13 @@
         <h1>EXHIBITION 2025</h1>
         <div id="instructions">
             <p>ПК: <span class="key">WASD</span> рух &nbsp; <span class="key">C</span> сісти</p>
-            <p>Мобільний: Джойстики на екрані</p>
+            <p>Мобільний: Ліва частина екрану - Рух, Права - Огляд</p>
         </div>
         <button id="start-btn" type="button">УВІЙТИ</button>
     </div>
 
-    <div id="stick-left" class="joystick-zone"><div class="stick-knob"></div></div>
-    <div id="stick-right" class="joystick-zone"><div class="stick-knob"></div></div>
+    <div id="joy-left" class="joystick-visual"><div class="joystick-knob"></div></div>
+    <div id="joy-right" class="joystick-visual"><div class="joystick-knob"></div></div>
     <div id="mobile-sit-btn">SIT</div>
 
     <audio id="bgMusic" loop preload="auto">
@@ -148,9 +139,6 @@
         import { RectAreaLightUniformsLib } from 'three/addons/lights/RectAreaLightUniformsLib.js';
         import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
-        // --- DEBUGGER ---
-        function log(msg) { console.log(msg); }
-
         const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
         // --- MANAGER ---
@@ -178,16 +166,22 @@
         camera.position.set(0, 1.7, 8); 
         camera.rotation.order = 'YXZ'; 
 
+        // --- OPTIMIZATION FOR LAPTOPS ---
         const renderer = new THREE.WebGLRenderer({ antialias: !isMobile, powerPreference: "high-performance" });
         renderer.setSize(window.innerWidth, window.innerHeight);
         
+        // LIMIT PIXEL RATIO (Crucial for performance on Retina/HighDPI)
+        const maxPixelRatio = isMobile ? 1.0 : 1.25; 
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, maxPixelRatio));
+        
+        renderer.outputColorSpace = THREE.SRGBColorSpace; 
+        renderer.toneMapping = THREE.NoToneMapping; 
+
         if (isMobile) {
             renderer.shadowMap.enabled = false; 
-            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5)); 
         } else {
             renderer.shadowMap.enabled = true;
             renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5)); 
         }
         
         document.body.appendChild(renderer.domElement);
@@ -195,7 +189,7 @@
         const bgMusic = document.getElementById('bgMusic');
         bgMusic.volume = 0.5;
 
-        // --- 2. МАТЕРІАЛИ ---
+        // --- MATERIALS ---
         const textureLoader = new THREE.TextureLoader(manager);
         const concreteTex = textureLoader.load('https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/plaster_grey_04/plaster_grey_04_diff_1k.jpg');
         concreteTex.wrapS = concreteTex.wrapT = THREE.RepeatWrapping;
@@ -219,7 +213,6 @@
 
         const collidableObjects = []; 
         const postersArray = []; 
-        let posterIdx = 0;
         let revolvingStage = null;
         const animatedModels = [];
 
@@ -249,6 +242,7 @@
                     const newMat = new THREE.MeshStandardMaterial({ map: tex, color: 0xffffff, roughness: 0.4, side: item.side || THREE.FrontSide });
                     item.mesh.material = newMat; item.mesh.material.needsUpdate = true;
                 }, undefined, () => {
+                    // Fallback to generic png if jpg fails
                     const pngUrl = item.url.replace('small_mobile/', '').replace('small/', '').replace('.jpg', '.png');
                     lazyLoader.load(pngUrl, (tex2)=>{
                         tex2.colorSpace = THREE.SRGBColorSpace;
@@ -259,13 +253,27 @@
             });
         }
 
-        function addPoster(x, y, z, ry, w, h, roomIndex) {
-            const data = getNextImage();
+        // Modified signature to accept specific URL
+        function addPoster(x, y, z, ry, w, h, roomIndex, specificUrl = null) {
+            let data;
+            if (specificUrl) {
+                // Manually create data object for specific poster (image80)
+                data = { 
+                    wallUrl: specificUrl, 
+                    fullUrl: specificUrl, // Uses same for full view
+                    title: "Special Artwork", 
+                    id: 80 
+                };
+            } else {
+                data = getNextImage();
+            }
+
             const geo = new THREE.PlaneGeometry(w, h);
             const mesh = new THREE.Mesh(geo, mobilePosterMat);
             mesh.position.set(x, y, z); mesh.rotation.y = ry;
             mesh.userData = { isPoster: true, url: data.fullUrl, title: data.title, year: "2025", desc: "Collection" };
             scene.add(mesh); postersArray.push(mesh); 
+            
             if (!pendingPosters[roomIndex]) pendingPosters[roomIndex] = [];
             pendingPosters[roomIndex].push({ mesh: mesh, url: data.wallUrl, side: THREE.FrontSide });
         }
@@ -332,8 +340,14 @@
             const cornersX = [-w/2, w/2]; const cornersZ = [-d/2, d/2];
             levels.forEach(lev => { cornersX.forEach(cx => { cornersZ.forEach(cz => { addJoint(cx, lev, cz); }); }); });
             
-            function mountPoster(px, py, pz, ry, width, height, pipeYLevel) {
-                const data = getNextImage();
+            function mountPoster(px, py, pz, ry, width, height, pipeYLevel, specificUrl = null) {
+                let data;
+                if(specificUrl) {
+                    data = { wallUrl: specificUrl, fullUrl: specificUrl, title: "Special", id: 80 };
+                } else {
+                    data = getNextImage();
+                }
+
                 const mesh = new THREE.Mesh(new THREE.PlaneGeometry(2.0, 2.5), mobilePosterMat);
                 mesh.material.side = THREE.DoubleSide; 
                 mesh.position.set(px, py, pz); mesh.rotation.y = ry;
@@ -348,13 +362,34 @@
                 pendingPosters[roomIndex].push({ mesh: mesh, url: data.wallUrl, side: THREE.DoubleSide });
             }
             const topPipeLevel = h - 0.2; const posterCenterY = h / 2;
-            mountPoster(0, posterCenterY, d/2, 0, 2, 2.5, topPipeLevel); mountPoster(-w/2, posterCenterY, 0, Math.PI/2, 2, 2.5, topPipeLevel); mountPoster(0, posterCenterY, -d/2, Math.PI, 2.5, 1.8, topPipeLevel); 
+            
+            // Existing posters
+            mountPoster(0, posterCenterY, d/2, 0, 2, 2.5, topPipeLevel); 
+            mountPoster(-w/2, posterCenterY, 0, Math.PI/2, 2, 2.5, topPipeLevel); 
+            mountPoster(0, posterCenterY, -d/2, Math.PI, 2.5, 1.8, topPipeLevel); 
+            
+            // --- NEW POSTER 4 (RIGHT SIDE) ---
+            mountPoster(w/2, posterCenterY, 0, -Math.PI/2, 2, 2.5, topPipeLevel, 'assets/image80.jpg');
+
             revolvingStage.add(structureGroup); scene.add(revolvingStage);
         }
 
-        // --- NEW FILE NAMES: 1.glb ... 9.glb ---
-        // Тут ми вже використовуємо правильні назви з вашого скріншоту
-        const modelFiles = ['1.glb', '2.glb', '3.glb', '4.glb', '5.glb', '6.glb', '9.glb'];
+        // --- GLB FIX: LIGHTING & MATERIAL ---
+        function fixMaterial(object) {
+            object.traverse((child) => {
+                if (child.isMesh) {
+                    child.castShadow = false; 
+                    child.receiveShadow = !isMobile;
+                    
+                    if (child.material) {
+                        child.material.metalness = 0; 
+                        child.material.roughness = 0.8; 
+                    }
+                }
+            });
+        }
+
+        const modelFiles = ['1.glb', '2.glb', '3.glb', '4.glb', '5.glb', '6.glb', '8.glb'];
         
         function loadAllModels(roomCenterX, roomCenterZ) {
             const gltfLoader = new GLTFLoader(manager);
@@ -363,80 +398,74 @@
                 const angle = (index / modelFiles.length) * Math.PI * 2;
                 const radius = 5; 
                 const offsetX = Math.cos(angle) * radius; const offsetZ = Math.sin(angle) * radius;
-                
                 const fullPath = `assets/3d/${filename}`;
                 
-                gltfLoader.load(
-                    fullPath, 
-                    (gltf) => {
-                        const object = gltf.scene;
-                        object.scale.set(1, 1, 1); 
-                        const box = new THREE.Box3().setFromObject(object);
-                        const size = new THREE.Vector3(); box.getSize(size);
-                        const maxDim = Math.max(size.x, size.y, size.z);
-                        let targetScale = 1.0;
-                        if (maxDim > 5) { targetScale = 3.0 / maxDim; } else if (maxDim < 0.5) { targetScale = 2.0 / maxDim; }
-                        
-                        let multiplier = 2.3; 
-                        if (filename === '3.glb') { multiplier *= 0.8; }
-                        if (filename === '9.glb') { multiplier = (1.9 / 4.0) * 1.4; }
-                        if (filename === '5.glb' || filename === '6.glb') { multiplier = 1.9; }
-                        
-                        targetScale *= multiplier;
-                        object.scale.set(targetScale, targetScale, targetScale);
-                        
-                        object.traverse((child) => { if (child.isMesh) { child.castShadow = false; child.receiveShadow = !isMobile; } });
-                        object.rotation.set(0, 0, 0); 
-                        if (filename === '4.glb') { animatedModels.push(object); }
+                gltfLoader.load(fullPath, (gltf) => {
+                    const object = gltf.scene;
+                    fixMaterial(object);
 
-                        object.updateMatrixWorld(); 
-                        const newBox = new THREE.Box3().setFromObject(object);
-                        object.position.set(roomCenterX + offsetX, -newBox.min.y, roomCenterZ + offsetZ);
-                        scene.add(object);
-                        collidableObjects.push({ box: new THREE.Box3().setFromObject(object) });
-                        
-                        // Stacked logic for 6.glb (loads 7.glb)
-                        if (filename === '6.glb') {
-                            const loader7 = new GLTFLoader();
-                            loader7.load('assets/3d/7.glb', (gltf7) => {
-                                const obj7 = gltf7.scene;
-                                const smallScale = targetScale / 4;
-                                obj7.scale.set(smallScale, smallScale, smallScale); 
-                                obj7.rotation.set(0, 0, 0);
-                                animatedModels.push(obj7);
-                                obj7.traverse((child) => { if (child.isMesh) { child.castShadow = false; child.receiveShadow = !isMobile; } });
-                                const box6 = new THREE.Box3().setFromObject(object);
-                                const topY = box6.max.y;
-                                obj7.updateMatrixWorld();
-                                const box7 = new THREE.Box3().setFromObject(obj7);
-                                const heightOffset7 = -box7.min.y; 
-                                obj7.position.set(object.position.x, topY + 0.05 + heightOffset7, object.position.z);
-                                scene.add(obj7);
-                            });
-                        }
-                    }, 
-                    undefined, 
-                    (error) => {
-                        console.error(`FAIL: ${filename}`, error);
+                    object.scale.set(1, 1, 1); 
+                    const box = new THREE.Box3().setFromObject(object);
+                    const size = new THREE.Vector3(); box.getSize(size);
+                    const maxDim = Math.max(size.x, size.y, size.z);
+                    let targetScale = 1.0;
+                    if (maxDim > 5) { targetScale = 3.0 / maxDim; } else if (maxDim < 0.5) { targetScale = 2.0 / maxDim; }
+                    
+                    let multiplier = 2.3; 
+                    if (filename === '3.glb') { multiplier *= 0.8; }
+                    if (filename === '5.glb' || filename === '6.glb') { multiplier = 1.9; }
+                    if (filename === '8.glb') { multiplier = (2.3 / 3.0) * 1.4; } 
+
+                    targetScale *= multiplier;
+                    object.scale.set(targetScale, targetScale, targetScale);
+                    object.rotation.set(0, 0, 0); 
+
+                    if (filename === '4.glb') { animatedModels.push(object); }
+
+                    object.updateMatrixWorld(); 
+                    const newBox = new THREE.Box3().setFromObject(object);
+                    object.position.set(roomCenterX + offsetX, -newBox.min.y, roomCenterZ + offsetZ);
+                    scene.add(object);
+                    collidableObjects.push({ box: new THREE.Box3().setFromObject(object) });
+                    
+                    // 6 + 9 stack
+                    if (filename === '6.glb') {
+                        const loader9 = new GLTFLoader();
+                        loader9.load('assets/3d/9.glb', (gltf9) => {
+                            const obj9 = gltf9.scene;
+                            fixMaterial(obj9);
+
+                            const smallScale = (((1.9 / 4.0) * 1.4) / 3.0) * 1.5;
+                            
+                            obj9.scale.set(smallScale, smallScale, smallScale); 
+                            obj9.rotation.set(0, 0, 0);
+                            
+                            animatedModels.push(obj9); 
+                            
+                            const box6 = new THREE.Box3().setFromObject(object);
+                            const topY = box6.max.y;
+                            obj9.updateMatrixWorld();
+                            const box9 = new THREE.Box3().setFromObject(obj9);
+                            const heightOffset9 = -box9.min.y; 
+                            
+                            obj9.position.set(object.position.x, topY * 1.45 + heightOffset9, object.position.z);
+                            scene.add(obj9);
+                        });
                     }
-                );
+                }, undefined, (e) => {
+                    console.error("Failed to load model:", filename);
+                });
             });
         }
 
-        function createHangingModel8(x, z, roomCeiling) {
+        function createHangingModel7(x, z, roomCeiling) {
             const gltfLoader = new GLTFLoader(manager);
-            gltfLoader.load('assets/3d/8.glb', (gltf) => {
+            gltfLoader.load('assets/3d/7.glb', (gltf) => {
                 const object = gltf.scene;
-                object.scale.set(1, 1, 1);
-                const box = new THREE.Box3().setFromObject(object);
-                const size = new THREE.Vector3(); box.getSize(size);
-                const maxDim = Math.max(size.x, size.y, size.z);
-                let targetScale = (maxDim > 5) ? 3.0 / maxDim : (maxDim < 0.5 ? 2.0 / maxDim : 1.0);
-                targetScale *= 1.2; 
-                object.scale.set(targetScale, targetScale, targetScale);
-                object.traverse((child) => { if (child.isMesh) { child.castShadow = false; child.receiveShadow = !isMobile; } });
+                fixMaterial(object);
+                object.scale.set(1.4, 1.4, 1.4); 
                 object.rotation.set(0, 0, 0); 
-                const hangY = 2.5;
+                const hangY = 3.0; 
                 object.position.set(x, hangY, z);
                 scene.add(object);
                 collidableObjects.push({ box: new THREE.Box3().setFromObject(object) });
@@ -494,7 +523,7 @@
             }
             if (!isDarkRoom) {
                 if (i === 0) { createHangingTV(0, zCenter, roomHeight, 0); } 
-                else if (i === 1) { loadAllModels(0, zCenter); createHangingModel8(0, zCenter, roomHeight); } 
+                else if (i === 1) { loadAllModels(0, zCenter); createHangingModel7(0, zCenter, roomHeight); } 
                 else if (i === 2) { createScaffoldingStructure(0, zCenter, i); } 
                 else { let rotation = Math.random() * Math.PI; createHangingTV(0, zCenter, roomHeight, rotation); }
                 
@@ -529,7 +558,17 @@
         const followerMat = new THREE.MeshBasicMaterial({ map: followerTex, side: THREE.DoubleSide, transparent: true });
         const follower = new THREE.Mesh(followerGeo, followerMat);
         follower.position.set(0, 2.5, 0); scene.add(follower);
-        const ambientLight = new THREE.AmbientLight(0xffffff, 1.5); scene.add(ambientLight);
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6); 
+        scene.add(ambientLight);
+        
+        // --- LIGHTING ---
+        const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 1.2); 
+        hemiLight.position.set(0, 20, 0);
+        scene.add(hemiLight);
+
+        const dirLight = new THREE.DirectionalLight(0xffffff, 1.0);
+        dirLight.position.set(5, 10, 7);
+        scene.add(dirLight);
 
         // --- УПРАВЛІННЯ ---
         const controls = new PointerLockControls(camera, document.body);
@@ -564,8 +603,6 @@
                 controls.lock();
                 checkRoomLoad(0); 
             } else {
-                document.getElementById('stick-left').style.display = 'block';
-                document.getElementById('stick-right').style.display = 'block';
                 checkRoomLoad(0);
             }
         }
@@ -573,12 +610,9 @@
         startBtn.addEventListener('click', startGame);
         startBtn.addEventListener('touchstart', startGame);
 
-        const joystickL = { active: false, id: null, startX: 0, startY: 0, moveX: 0, moveY: 0 };
-        const joystickR = { active: false, id: null, startX: 0, startY: 0, deltaX: 0, deltaY: 0 };
-        const stickL = document.getElementById('stick-left');
-        const stickR = document.getElementById('stick-right');
-        const knobL = stickL.querySelector('.stick-knob');
-        const knobR = stickR.querySelector('.stick-knob');
+        // --- NEW FLOATING JOYSTICK LOGIC ---
+        const joyLeft = { active: false, startX: 0, startY: 0, moveX: 0, moveY: 0, el: document.getElementById('joy-left'), knob: document.getElementById('joy-left').querySelector('.joystick-knob') };
+        const joyRight = { active: false, startX: 0, startY: 0, deltaX: 0, deltaY: 0, el: document.getElementById('joy-right'), knob: document.getElementById('joy-right').querySelector('.joystick-knob') };
 
         if(isMobile) {
             function handleTouch(e, type) {
@@ -588,42 +622,63 @@
                 e.preventDefault();
                 for (let i = 0; i < e.changedTouches.length; i++) {
                     const t = e.changedTouches[i];
-                    if (type === 'start' && !joystickL.active && t.clientX < window.innerWidth / 2) {
-                        joystickL.active = true; joystickL.id = t.identifier;
-                        joystickL.startX = t.clientX; joystickL.startY = t.clientY;
-                        stickL.style.left = (t.clientX - 60) + 'px';
-                        stickL.style.bottom = (window.innerHeight - t.clientY - 60) + 'px';
-                        knobL.style.transform = `translate(-50%, -50%)`;
-                    }
-                    if (joystickL.active && t.identifier === joystickL.id) {
-                        if (type === 'move') {
-                            const dx = t.clientX - joystickL.startX;
-                            const dy = t.clientY - joystickL.startY;
-                            const dist = Math.min(50, Math.sqrt(dx*dx + dy*dy));
-                            const angle = Math.atan2(dy, dx);
-                            joystickL.moveX = (Math.cos(angle) * dist) / 50; 
-                            joystickL.moveY = (Math.sin(angle) * dist) / 50;
-                            knobL.style.transform = `translate(calc(-50% + ${Math.cos(angle)*dist}px), calc(-50% + ${Math.sin(angle)*dist}px))`;
-                        } else if (type === 'end') {
-                            joystickL.active = false; joystickL.moveX = 0; joystickL.moveY = 0;
-                            knobL.style.transform = `translate(-50%, -50%)`;
-                            stickL.style.left = '20px'; stickL.style.bottom = '30px';
+                    const x = t.clientX;
+                    const y = t.clientY;
+
+                    // START
+                    if (type === 'start') {
+                        // LEFT ZONE (Movement)
+                        if (!joyLeft.active && x < window.innerWidth / 2) {
+                            joyLeft.active = true; joyLeft.id = t.identifier;
+                            joyLeft.startX = x; joyLeft.startY = y;
+                            joyLeft.el.style.display = 'block';
+                            joyLeft.el.style.left = x + 'px'; joyLeft.el.style.top = y + 'px';
+                            joyLeft.knob.style.transform = `translate(-50%, -50%)`;
+                        }
+                        // RIGHT ZONE (Look)
+                        else if (!joyRight.active && x > window.innerWidth / 2) {
+                            joyRight.active = true; joyRight.id = t.identifier;
+                            joyRight.startX = x; joyRight.startY = y;
+                            joyRight.el.style.display = 'block';
+                            joyRight.el.style.left = x + 'px'; joyRight.el.style.top = y + 'px';
+                            joyRight.knob.style.transform = `translate(-50%, -50%)`;
                         }
                     }
-                    if (type === 'start' && !joystickR.active && t.clientX > window.innerWidth / 2) {
-                        joystickR.active = true; joystickR.id = t.identifier;
-                        joystickR.startX = t.clientX; joystickR.startY = t.clientY;
-                        stickR.style.right = 'auto'; stickR.style.left = (t.clientX - 60) + 'px';
-                        stickR.style.bottom = (window.innerHeight - t.clientY - 60) + 'px';
+
+                    // MOVE
+                    if (type === 'move') {
+                        if (joyLeft.active && t.identifier === joyLeft.id) {
+                            const dx = x - joyLeft.startX;
+                            const dy = y - joyLeft.startY;
+                            const dist = Math.min(50, Math.sqrt(dx*dx + dy*dy));
+                            const angle = Math.atan2(dy, dx);
+                            joyLeft.moveX = (Math.cos(angle) * dist) / 50; 
+                            joyLeft.moveY = (Math.sin(angle) * dist) / 50;
+                            joyLeft.knob.style.transform = `translate(calc(-50% + ${Math.cos(angle)*dist}px), calc(-50% + ${Math.sin(angle)*dist}px))`;
+                        }
+                        if (joyRight.active && t.identifier === joyRight.id) {
+                            const dx = x - joyRight.startX;
+                            const dy = y - joyRight.startY;
+                            const dist = Math.min(50, Math.sqrt(dx*dx + dy*dy));
+                            const angle = Math.atan2(dy, dx);
+                            // Smooth visual update for right stick
+                            joyRight.knob.style.transform = `translate(calc(-50% + ${Math.cos(angle)*dist}px), calc(-50% + ${Math.sin(angle)*dist}px))`;
+                            
+                            // Rotation Delta
+                            joyRight.deltaX = (x - joyRight.startX) * 0.005;
+                            joyRight.deltaY = (y - joyRight.startY) * 0.005;
+                            // Reset start to continuous scrolling feel, or keep absolute? 
+                            // Let's keep absolute from start touch for smoother feeling
+                        }
                     }
-                    if (joystickR.active && t.identifier === joystickR.id) {
-                        if (type === 'move') {
-                            joystickR.deltaX = (t.clientX - joystickR.startX) * 0.005;
-                            joystickR.deltaY = (t.clientY - joystickR.startY) * 0.005;
-                            joystickR.startX = t.clientX; joystickR.startY = t.clientY; 
-                        } else if (type === 'end') {
-                            joystickR.active = false; joystickR.deltaX = 0; joystickR.deltaY = 0;
-                            stickR.style.left = 'auto'; stickR.style.right = '20px'; stickR.style.bottom = '30px';
+
+                    // END
+                    if (type === 'end') {
+                        if (joyLeft.active && t.identifier === joyLeft.id) {
+                            joyLeft.active = false; joyLeft.moveX = 0; joyLeft.moveY = 0; joyLeft.el.style.display = 'none';
+                        }
+                        if (joyRight.active && t.identifier === joyRight.id) {
+                            joyRight.active = false; joyRight.deltaX = 0; joyRight.deltaY = 0; joyRight.el.style.display = 'none';
                         }
                     }
                 }
@@ -717,7 +772,7 @@
             if (!isGameActive) return;
             const time = performance.now(); const delta = (time - prevTime) / 1000;
             if (revolvingStage) { revolvingStage.rotation.y += 0.1 * delta; }
-            animatedModels.forEach(model => { model.rotation.z -= 1.0 * delta; });
+            animatedModels.forEach(model => { model.rotation.y -= 1.0 * delta; });
             
             if (follower) {
                 follower.lookAt(camera.position);
@@ -736,19 +791,27 @@
                 const speed = (move.shift ? 150 : 80);
                 const direction = new THREE.Vector3();
                 if (isMobile) {
-                    if (joystickL.active) { direction.z = joystickL.moveY; direction.x = joystickL.moveX; }
-                    if (joystickR.active) { camera.rotation.y -= joystickR.deltaX * 300 * delta; }
+                    // Mobile Inputs from Floating Joystick
+                    if (joyLeft.active) { 
+                        // joyLeft.moveY is -1 (forward) to 1 (back)
+                        direction.z = joyLeft.moveY; 
+                        direction.x = joyLeft.moveX; 
+                    }
+                    if (joyRight.active) { 
+                        // Use raw delta for rotation speed
+                        camera.rotation.y -= joyRight.deltaX * 100 * delta; 
+                    }
                 } else {
                     direction.z = Number(move.f) - Number(move.b);
                     direction.x = Number(move.r) - Number(move.l);
                 }
                 direction.normalize();
                 if (isMobile) {
-                     if (joystickL.active) {
+                     if (joyLeft.active) {
                          const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion); forward.y = 0; forward.normalize();
                          const right = new THREE.Vector3(1, 0, 0).applyQuaternion(camera.quaternion); right.y = 0; right.normalize();
-                         velocity.x += (right.x * joystickL.moveX + forward.x * joystickL.moveY) * speed * delta;
-                         velocity.z += (right.z * joystickL.moveX + forward.z * joystickL.moveY) * speed * delta;
+                         velocity.x += (right.x * joyLeft.moveX + forward.x * joyLeft.moveY) * speed * delta;
+                         velocity.z += (right.z * joyLeft.moveX + forward.z * joyLeft.moveY) * speed * delta;
                      }
                 } else {
                     if (move.f || move.b) velocity.z -= direction.z * speed * delta;
@@ -773,7 +836,6 @@
                     else { controls.moveForward(velocity.z * delta); controls.moveRight(velocity.x * delta); }
                 }
                 
-                // LAZY LOAD TRIGGER
                 const currentRoom = Math.max(0, Math.round(-camera.position.z / 20));
                 checkRoomLoad(currentRoom);
 

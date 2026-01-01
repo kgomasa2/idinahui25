@@ -195,6 +195,7 @@
         }, 600);
 
         const manager = new THREE.LoadingManager();
+        
         manager.onProgress = function (item, loaded, total) {
             const rawPercent = (loaded / total) * 100;
             loadingPercent.innerText = Math.round(rawPercent) + '%';
@@ -216,6 +217,7 @@
                 setTimeout(() => {
                     loader.style.display = 'none';
                     document.getElementById('start-screen').style.display = 'flex';
+                    // Force pre-check on mobile (but using lazy logic)
                     if (isMobile) checkRoomLoad(0);
                 }, 800); 
             }, remainingTime);
@@ -233,15 +235,16 @@
 
         const renderer = new THREE.WebGLRenderer({ antialias: !isMobile, powerPreference: "high-performance" });
         renderer.setSize(window.innerWidth, window.innerHeight);
-        
-        // RESTORED: Standard color space for both
         renderer.outputColorSpace = THREE.SRGBColorSpace; 
         renderer.toneMapping = THREE.NoToneMapping; 
-        
-        // Optimized shadow map
-        renderer.shadowMap.enabled = true;
-        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobile ? 1.2 : 1.5));
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+
+        if (isMobile) {
+            renderer.shadowMap.enabled = false; // Shadows are heavy on mobile
+        } else {
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        }
         
         document.body.appendChild(renderer.domElement);
 
@@ -250,13 +253,13 @@
 
         // --- MATERIALS ---
         const textureLoader = new THREE.TextureLoader(manager);
+        // Fallback loader for mobile lazy loading
         const lazyLoader = new THREE.TextureLoader();
 
         const concreteTex = textureLoader.load('https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/plaster_grey_04/plaster_grey_04_diff_1k.jpg');
         concreteTex.wrapS = concreteTex.wrapT = THREE.RepeatWrapping;
         concreteTex.repeat.set(10, 40); concreteTex.colorSpace = THREE.SRGBColorSpace;
 
-        // RESTORED: Standard Materials for everyone
         const wallMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.5 });
         const floorMat = new THREE.MeshStandardMaterial({ map: concreteTex, roughness: 0.8, color: 0xaaaaaa });
         const darkWallMat = new THREE.MeshStandardMaterial({ color: 0x050505, roughness: 0.9 });
@@ -265,25 +268,25 @@
         const cableMat = new THREE.MeshBasicMaterial({ color: 0x000000 });
         const benchMat = new THREE.MeshStandardMaterial({ color: 0xdddddd, roughness: 0.3 });
         const mobilePosterMat = new THREE.MeshStandardMaterial({ color: 0xcccccc, roughness: 0.6, metalness: 0.1 });
+        // Placeholder for mobile lazy load
         const placeholderMat = new THREE.MeshStandardMaterial({ color: 0x888888, roughness: 0.8 });
 
-        // CRITICAL FIX: STATIC VIDEO TEXTURES FOR MOBILE
-        // On mobile, we use a plain color or static image instead of video to prevent crash
+        // --- FIX FOR MOBILE CRASH: STATIC VIDEO TEXTURES ---
         const video1 = document.getElementById('video1');
         const video2 = document.getElementById('video2');
-        
         let videoTex1, videoTex2;
-        
+
         if (isMobile) {
-            // Mobile: Safe Dummy Textures
+            // Create a dummy static texture for mobile to prevent video decoding crash
             const canvas = document.createElement('canvas');
             canvas.width = 2; canvas.height = 2;
             const ctx = canvas.getContext('2d');
-            ctx.fillStyle = '#111144'; ctx.fillRect(0,0,2,2); // Dark blue static
+            ctx.fillStyle = '#111122'; // Dark blue screen color
+            ctx.fillRect(0,0,2,2);
             videoTex1 = new THREE.CanvasTexture(canvas);
             videoTex2 = new THREE.CanvasTexture(canvas);
         } else {
-            // Desktop: Real Video Textures
+            // Real video for desktop
             videoTex1 = new THREE.VideoTexture(video1);
             videoTex2 = new THREE.VideoTexture(video2);
             videoTex1.colorSpace = THREE.SRGBColorSpace;
@@ -292,6 +295,8 @@
 
         const collidableObjects = []; 
         const postersArray = []; 
+        
+        // --- MOBILE OPTIMIZATION VARS ---
         const pendingPosters = {}; 
         const roomsLoaded = {};
 
@@ -312,7 +317,7 @@
             return { wallUrl, fullUrl, title, id };
         }
 
-        // --- HYBRID LOADER ---
+        // --- HYBRID LOADER LOGIC ---
         function addPoster(x, y, z, ry, w, h, roomIndex) {
             const data = getNextImage();
             const geo = new THREE.PlaneGeometry(w, h);
@@ -320,6 +325,7 @@
             let mat;
             
             if (isMobile) {
+                // MOBILE: Use placeholder, load later
                 mat = placeholderMat.clone(); 
                 if (!pendingPosters[roomIndex]) pendingPosters[roomIndex] = [];
                 pendingPosters[roomIndex].push({ 
@@ -328,9 +334,11 @@
                     material: mat 
                 });
             } else {
+                // DESKTOP: Immediate Load with Manager (Preloading)
                 const tex = textureLoader.load(data.wallUrl, (t) => {
                     t.colorSpace = THREE.SRGBColorSpace;
                 }, undefined, (err) => {
+                    // Fallback
                     const pngUrl = data.wallUrl.replace('small/', '').replace('.jpg', '.png');
                     textureLoader.load(pngUrl, (t2)=>{
                         t2.colorSpace = THREE.SRGBColorSpace;
@@ -346,14 +354,16 @@
             scene.add(mesh); 
             postersArray.push(mesh);
             
+            // Link mesh to pending list if mobile
             if (isMobile && pendingPosters[roomIndex]) {
                 const item = pendingPosters[roomIndex][pendingPosters[roomIndex].length - 1];
                 item.mesh = mesh;
             }
         }
 
+        // Function called when entering a room (Mobile Only)
         function checkRoomLoad(roomIndex) {
-            if (!isMobile) return; 
+            if (!isMobile) return; // Desktop is already loaded
             
             [roomIndex, roomIndex + 1].forEach(idx => {
                 if (roomsLoaded[idx]) return;
@@ -366,9 +376,10 @@
                     lazyLoader.load(item.url, (tex) => {
                         tex.colorSpace = THREE.SRGBColorSpace;
                         item.material.map = tex;
-                        item.material.color.setHex(0xffffff); 
+                        item.material.color.setHex(0xffffff); // Reset grey to white
                         item.material.needsUpdate = true;
                     }, undefined, () => {
+                        // Fallback logic for mobile
                         const pngUrl = item.url.replace('small_mobile/', '').replace('.jpg', '.png');
                         lazyLoader.load(pngUrl, (tex2) => {
                             tex2.colorSpace = THREE.SRGBColorSpace;
@@ -387,7 +398,7 @@
             mesh.position.set(x, y, z); 
             mesh.receiveShadow = !isMobile;
             if(isWall) { 
-                if (w > 1 && h > 1) mesh.castShadow = true;
+                if (!isMobile && !isDark && w > 1 && h > 1) mesh.castShadow = true;
                 mesh.updateMatrixWorld(); 
                 collidableObjects.push({ box: new THREE.Box3().setFromObject(mesh) }); 
             }
@@ -402,7 +413,7 @@
         }
 
         function createHangingTV(x, z, ceilingHeight, rotationY = 0) {
-            // FIX: Restore TV for mobile, but it uses static texture (videoTex2 is safe now)
+            // Allow TV on mobile now (texture is safe)
             const tvW = 1.78; const tvH = 3.16; const tvD = 0.1;
             const tvGeo = new THREE.BoxGeometry(tvW, tvH, tvD);
             const screenMat = new THREE.MeshBasicMaterial({ map: videoTex2 });
@@ -410,8 +421,8 @@
             const tv = new THREE.Mesh(tvGeo, materials);
             
             const tvY = 3.8; 
-            tv.position.set(x, tvY, z); tv.rotation.y = rotationY; scene.add(tv);
             
+            tv.position.set(x, tvY, z); tv.rotation.y = rotationY; scene.add(tv);
             const tvTopY = tvY + (tvH / 2);
             const cableLen = ceilingHeight - tvTopY;
             const cableGeo = new THREE.CylinderGeometry(0.01, 0.01, cableLen > 0 ? cableLen : 0.1);
@@ -419,7 +430,7 @@
             const c1 = new THREE.Mesh(cableGeo, cableMat); c1.position.set(-tvW*0.3, tvH/2, 0); tv.add(c1);
             const c2 = new THREE.Mesh(cableGeo, cableMat); c2.position.set(tvW*0.3, tvH/2, 0); tv.add(c2);
             
-            if (!isMobile) {
+            if(!isMobile) {
                 const screenLight = new THREE.PointLight(0xffffff, 2.0, 4.0); 
                 screenLight.position.set(0, 0, 1.0); 
                 tv.add(screenLight); 
@@ -435,19 +446,16 @@
             if(!isMobile) { const light = new THREE.PointLight(0xaaaaff, 30, 25); light.position.set(x + Math.sin(rotationY), y, z + Math.cos(rotationY)); scene.add(light); }
         }
 
-        // RESTORED: Geometry Cache
         const cachedPipeGeo = new THREE.CylinderGeometry(0.05, 0.05, 1, 12); 
         const cachedJointGeo = new THREE.SphereGeometry(0.09, 12, 8);
 
-        function createScaffoldingStructure(x, z) {
+        function createScaffoldingStructure(x, z, roomIndex) {
             revolvingStage = new THREE.Group();
             revolvingStage.position.set(x, 0, z);
-            
             const platform = new THREE.Mesh(new THREE.CylinderGeometry(3.5, 3.5, 0.2, 32), new THREE.MeshStandardMaterial({ color: 0x333333, roughness: 0.8, metalness: 0.5 }));
             platform.position.y = 0.1; platform.receiveShadow = !isMobile; revolvingStage.add(platform);
             collidableObjects.push({ box: new THREE.Box3().setFromObject(platform) }); 
-
-            // RESTORED: Full Structure for Mobile too (but safe textures)
+            
             const structureGroup = new THREE.Group(); structureGroup.position.y = 0.2; 
             const metalMat = new THREE.MeshStandardMaterial({ color: 0xeeeeee, roughness: 0.2, metalness: 0.8 });
             const w = 4; const h = 3.5; const d = 4;
@@ -457,7 +465,7 @@
                 mesh.position.set(px, py, pz);
                 mesh.scale.set(1, height, 1);
                 if (axis === 'z') mesh.rotation.x = Math.PI / 2; if (axis === 'x') mesh.rotation.z = Math.PI / 2;
-                if (!isMobile) mesh.castShadow = true; // No shadows on pipes for mobile to save perf
+                if(!isMobile) mesh.castShadow = true; 
                 structureGroup.add(mesh); collidableObjects.push({ box: new THREE.Box3().setFromObject(mesh) });
             }
             function addJoint(jx, jy, jz) { 
@@ -470,8 +478,9 @@
             levels.forEach(lev => { addPipe(0, lev, -d/2, w, 'x'); addPipe(0, lev, d/2, w, 'x'); addPipe(-w/2, lev, 0, d, 'z'); addPipe(w/2, lev, 0, d, 'z'); });
             const cornersX = [-w/2, w/2]; const cornersZ = [-d/2, d/2];
             levels.forEach(lev => { cornersX.forEach(cx => { cornersZ.forEach(cz => { addJoint(cx, lev, cz); }); }); });
+            revolvingStage.add(structureGroup);
             
-            // FIX: BLACK POSTER FIX FOR DESKTOP & MOBILE SCAFFOLD
+            // FIX: BLACK POSTERS ON SCAFFOLDING
             function mountPoster(px, py, pz, ry, width, height, pipeYLevel, specificUrl = null) {
                 let data;
                 if (specificUrl) {
@@ -480,16 +489,16 @@
                     data = getNextImage();
                 }
 
-                // Robust texture loader for scaffold
+                // Robust texture loading with fallback for scaffold posters
                 const mat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.4, side: THREE.DoubleSide });
                 
-                // Use a dedicated loader for these to handle fallback
+                // Use a separate loader to ensure fallbacks work here too
                 const scaffoldLoader = new THREE.TextureLoader();
-                scaffoldLoader.load(data.wallUrl, (t)=>{
+                scaffoldLoader.load(data.wallUrl, (t) => {
                     t.colorSpace = THREE.SRGBColorSpace;
                     mat.map = t; mat.needsUpdate = true;
-                }, undefined, ()=>{
-                    // FALLBACK
+                }, undefined, () => {
+                    // Fallback
                     const pngUrl = data.wallUrl.replace('small/', '').replace('small_mobile/', '').replace('.jpg', '.png');
                     scaffoldLoader.load(pngUrl, (t2)=>{
                         t2.colorSpace = THREE.SRGBColorSpace;
@@ -500,32 +509,34 @@
                 const mesh = new THREE.Mesh(new THREE.PlaneGeometry(2.0, 2.5), mat);
                 mesh.position.set(px, py, pz); mesh.rotation.y = ry;
                 
-                const stringMat = new THREE.LineBasicMaterial({ color: 0x111111 });
-                const pW = 2.0; const pH = 2.5; const topOfPosterY = pH / 2; const distToPipe = (pipeYLevel - 0.05) - (py + topOfPosterY);
-                const pointsL = [new THREE.Vector3(-pW/2 + 0.15, topOfPosterY, 0), new THREE.Vector3(-pW/2 + 0.15, topOfPosterY + distToPipe, 0)];
-                const pointsR = [new THREE.Vector3(pW/2 - 0.15, topOfPosterY, 0), new THREE.Vector3(pW/2 - 0.15, topOfPosterY + distToPipe, 0)];
-                mesh.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pointsL), stringMat)); mesh.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pointsR), stringMat));
+                // Only add strings on Desktop to save draw calls on mobile
+                if (!isMobile) {
+                    const stringMat = new THREE.LineBasicMaterial({ color: 0x111111 });
+                    const topOfPosterY = 2.5 / 2; const distToPipe = (pipeYLevel - 0.05) - (py + topOfPosterY);
+                    const pointsL = [new THREE.Vector3(-1 + 0.15, topOfPosterY, 0), new THREE.Vector3(-1 + 0.15, topOfPosterY + distToPipe, 0)];
+                    const pointsR = [new THREE.Vector3(1 - 0.15, topOfPosterY, 0), new THREE.Vector3(1 - 0.15, topOfPosterY + distToPipe, 0)];
+                    mesh.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pointsL), stringMat)); mesh.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pointsR), stringMat));
+                }
 
                 mesh.userData = { type: 'poster', url: data.fullUrl, title: data.title, year: "2025", desc: "Mounted Installation" };
                 revolvingStage.add(mesh); postersArray.push(mesh);
             }
-            
             const topPipeLevel = 3.3; const posterCenterY = 3.5 / 2;
             const d2 = 4; const w2 = 4;
-            mountPoster(0, posterCenterY, d2/2, 0, 2, 2.5, topPipeLevel); 
-            mountPoster(-w2/2, posterCenterY, 0, Math.PI/2, 2, 2.5, topPipeLevel); 
-            mountPoster(0, posterCenterY, -d2/2, Math.PI, 2.5, 1.8, topPipeLevel); 
-            mountPoster(w2/2, posterCenterY, 0, -Math.PI/2, 2, 2.5, topPipeLevel, 'assets/image80.jpg');
             
-            revolvingStage.add(structureGroup);
+            mountPoster(0, posterCenterY, d2/2, 0, 2, 2.5, topPipeLevel, null); 
+            mountPoster(-w2/2, posterCenterY, 0, Math.PI/2, 2, 2.5, topPipeLevel, null); 
+            mountPoster(0, posterCenterY, -d2/2, Math.PI, 2.5, 1.8, topPipeLevel, null); 
+            mountPoster(w2/2, posterCenterY, 0, -Math.PI/2, 2, 2.5, topPipeLevel, 'assets/image80.jpg');
+
             scene.add(revolvingStage);
         }
 
         function fixMaterial(object) {
             object.traverse((child) => {
                 if (child.isMesh) {
-                    child.castShadow = true; 
-                    child.receiveShadow = true;
+                    child.castShadow = false; 
+                    child.receiveShadow = !isMobile;
                     if (child.material) {
                         child.material.metalness = 0; 
                         child.material.roughness = 0.8; 
@@ -538,6 +549,7 @@
         
         function loadAllModels(roomCenterX, roomCenterZ) {
             const gltfLoader = new GLTFLoader(manager);
+            
             modelFiles.forEach((filename, index) => {
                 const angle = (index / modelFiles.length) * Math.PI * 2;
                 const radius = 5; 
@@ -556,15 +568,15 @@
                     if (maxDim > 5) { targetScale = 3.0 / maxDim; } else if (maxDim < 0.5) { targetScale = 2.0 / maxDim; }
                     
                     let multiplier = 2.3; 
-                    if (filename === '3.glb') multiplier *= 0.8;
-                    if (filename === '5.glb' || filename === '6.glb') multiplier = 1.9;
-                    if (filename === '8.glb') multiplier = (2.3 / 3.0) * 1.4; 
+                    if (filename === '3.glb') { multiplier *= 0.8; }
+                    if (filename === '5.glb' || filename === '6.glb') { multiplier = 1.9; }
+                    if (filename === '8.glb') { multiplier = (2.3 / 3.0) * 1.4; } 
 
                     targetScale *= multiplier;
                     object.scale.set(targetScale, targetScale, targetScale);
                     object.rotation.set(0, 0, 0); 
 
-                    if (filename === '4.glb') animatedModels.push(object); 
+                    if (filename === '4.glb') { animatedModels.push(object); }
 
                     object.updateMatrixWorld(); 
                     const newBox = new THREE.Box3().setFromObject(object);
@@ -590,7 +602,9 @@
                             scene.add(obj9);
                         });
                     }
-                }, undefined, (e) => { console.error("Model fail", filename); });
+                }, undefined, (e) => {
+                    console.error("Failed to load model:", filename);
+                });
             });
         }
 
@@ -660,15 +674,19 @@
             if (!isDarkRoom) {
                 if (i === 0) { createHangingTV(0, zCenter, roomHeight, 0); } 
                 else if (i === 1) { loadAllModels(0, zCenter); createHangingModel7(0, zCenter, roomHeight); } 
-                else if (i === 2) { createScaffoldingStructure(0, zCenter); } 
+                else if (i === 2) { createScaffoldingStructure(0, zCenter, i); } 
                 else { 
-                    let rotation = (i === 3) ? 0 : Math.random() * Math.PI;
+                    let rotation;
+                    if (i === 3) {
+                        rotation = 0; 
+                    } else {
+                        rotation = Math.random() * Math.PI;
+                    }
                     createHangingTV(0, zCenter, roomHeight, rotation); 
                 }
                 
                 const standardW = 2.6; const standardH = 3.25; 
                 const postersPerSide = 6; const sideSpacing = 3.0; 
-                
                 const sideWallLength = postersPerSide * sideSpacing;
                 const startZ = zCenter + (sideWallLength / 2) - (sideSpacing / 2); 
                 for (let k = 0; k < postersPerSide; k++) {
@@ -686,7 +704,6 @@
             } else {
                 const projW = 9.0; const projH = 5.06;
                 const wallDist = (roomSize/2) - 0.4;
-                // FIX: Mobile uses videoTex1 (which is static texture on mobile)
                 createProjection(0, 3, zCenter - wallDist, projW, projH, 0, videoTex1);
                 if (!isMobile) {
                     createProjection(-wallDist, 3, zCenter, projW, projH, Math.PI/2, videoTex1);
@@ -713,6 +730,22 @@
             interactiveObjects.push(follower);
         }
 
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6); 
+        scene.add(ambientLight);
+        
+        const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 1.2); 
+        hemiLight.position.set(0, 20, 0);
+        scene.add(hemiLight);
+
+        const dirLight = new THREE.DirectionalLight(0xffffff, 1.0);
+        dirLight.position.set(5, 10, 7);
+        if(!isMobile) {
+            dirLight.castShadow = true;
+            dirLight.shadow.mapSize.width = 512; 
+            dirLight.shadow.mapSize.height = 512;
+        }
+        scene.add(dirLight);
+
         // --- CONTROLS ---
         const controls = new PointerLockControls(camera, document.body);
         const startScreen = document.getElementById('start-screen');
@@ -734,7 +767,8 @@
             isGameActive = true;
             
             bgMusic.play().catch(e => console.log("Audio block", e));
-            // Only try playing video if elements exist (which they do, but might be canvas on mobile)
+            
+            // Only try playing video on Desktop
             if(!isMobile) {
                 video1.play().catch(e => console.log("Video1 block", e));
                 video2.play().catch(e => console.log("Video2 block", e));
@@ -950,10 +984,10 @@
             const time = performance.now(); 
             const delta = Math.min((time - prevTime) / 1000, 0.1);
             
-            if (revolvingStage && !isMobile) { revolvingStage.rotation.y += 0.1 * delta; }
-            animatedModels.forEach(model => { 
-                if(!isMobile) model.rotation.y -= 1.0 * delta; 
-            });
+            if (!isMobile) {
+                if (revolvingStage) { revolvingStage.rotation.y += 0.1 * delta; }
+                animatedModels.forEach(model => { model.rotation.y -= 1.0 * delta; });
+            }
             
             if (follower && isFollowing) {
                 follower.lookAt(camera.position);

@@ -175,9 +175,15 @@
 
         const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
+        // --- ANTI-CRASH MEASURE: DISABLE CACHE ON MOBILE ---
+        // This forces Three.js to release memory immediately when dispose is called
+        if (isMobile) {
+            THREE.Cache.enabled = false;
+        }
+
         // --- LOADING SYSTEM ---
         const loadStartTime = Date.now();
-        const minLoadTime = 4500; 
+        const minLoadTime = 4000; 
         const loadingStatus = document.getElementById('loader-status');
         const loadingPercent = document.getElementById('loader-percent');
         const loadingFill = document.getElementById('progress-fill');
@@ -256,11 +262,12 @@
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.outputColorSpace = THREE.SRGBColorSpace; 
         renderer.toneMapping = THREE.NoToneMapping; 
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobile ? 1.0 : 1.5));
+        // FIX: Lower pixel ratio for mobile to prevent memory spike
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobile ? 0.85 : 1.5));
 
         if (isMobile) {
-            renderer.shadowMap.enabled = true;
-            renderer.shadowMap.type = THREE.BasicShadowMap; 
+            // FIX: Disable shadows completely on mobile for maximum stability
+            renderer.shadowMap.enabled = false; 
         } else {
             renderer.shadowMap.enabled = true;
             renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -379,25 +386,30 @@
 
         function checkRoomLoad(currentRoom) {
             if (!isMobile) return;
-            // FIX: INCREASE LOADING RANGE FOR LAST ROOMS
-            // Load Current, Previous, and TWO steps ahead to prevent grey posters
-            const keepLoaded = [currentRoom - 1, currentRoom, currentRoom + 1, currentRoom + 2];
             
-            keepLoaded.forEach(idx => {
-                if (idx >= 0 && idx < 5 && roomStatus[idx] !== 'loaded') {
-                    loadRoomTextures(idx);
-                }
-            });
-
+            // FIX: KEEP MEMORY CLEAN - Only 2 rooms loaded
+            // [Current, Next] is safe. [Current, Previous] is handled if moving back.
+            // Loading too many ahead causes the crash.
+            const keepLoaded = [currentRoom, currentRoom + 1];
+            
+            // Unload distant rooms first (Aggressive GC)
             for (let idx = 0; idx < 5; idx++) {
                 if (!keepLoaded.includes(idx) && roomStatus[idx] === 'loaded') {
                     unloadRoomTextures(idx);
                 }
             }
+
+            // Then load what is needed
+            keepLoaded.forEach(idx => {
+                if (idx >= 0 && idx < 5 && roomStatus[idx] !== 'loaded') {
+                    loadRoomTextures(idx);
+                }
+            });
         }
 
         function loadRoomTextures(roomIdx) {
             if (!roomPosters[roomIdx]) return;
+            // console.log("Loading Room", roomIdx);
             roomStatus[roomIdx] = 'loaded';
             roomPosters[roomIdx].forEach(item => {
                 lazyLoader.load(item.url, (tex) => {
@@ -419,10 +431,11 @@
 
         function unloadRoomTextures(roomIdx) {
             if (!roomPosters[roomIdx]) return;
+            // console.log("Unloading Room", roomIdx);
             roomStatus[roomIdx] = 'unloaded';
             roomPosters[roomIdx].forEach(item => {
                 if (item.material.map) {
-                    item.material.map.dispose(); 
+                    item.material.map.dispose(); // Explicit dispose
                     item.material.map = null;
                 }
                 item.material.color.setHex(0x888888); 
@@ -436,7 +449,7 @@
             mesh.position.set(x, y, z); 
             mesh.receiveShadow = !isMobile;
             if(isWall) { 
-                if (w > 1 && h > 1) mesh.castShadow = true;
+                if (w > 1 && h > 1 && !isMobile) mesh.castShadow = true;
                 mesh.updateMatrixWorld(); 
                 collidableObjects.push({ box: new THREE.Box3().setFromObject(mesh) }); 
             }
@@ -569,8 +582,8 @@
         function fixMaterial(object) {
             object.traverse((child) => {
                 if (child.isMesh) {
-                    child.castShadow = true; 
-                    child.receiveShadow = true;
+                    if (!isMobile) child.castShadow = true; 
+                    child.receiveShadow = !isMobile;
                     if (child.material) {
                         child.material.metalness = 0; 
                         child.material.roughness = 0.8; 
@@ -740,8 +753,8 @@
                 
                 const standardW = isMobile ? 2.2 : 2.6; 
                 const standardH = isMobile ? 2.8 : 3.25; 
-                const postersPerSide = isMobile ? 7 : 6; 
-                const sideSpacing = isMobile ? 2.5 : 3.0; 
+                const postersPerSide = isMobile ? 8 : 6; // Denser
+                const sideSpacing = isMobile ? 2.4 : 3.0; // Tighter
                 
                 const startZ = zCenter + (postersPerSide * sideSpacing / 2) - (sideSpacing / 2); 
                 for (let k = 0; k < postersPerSide; k++) {
@@ -769,7 +782,7 @@
             }
         }
 
-        // --- FOLLOWER LOGIC (Desktop Only) ---
+        // --- FOLLOWER LOGIC ---
         let isFollowing = true;
         let follower = null;
         
@@ -785,6 +798,7 @@
             interactiveObjects.push(follower);
         }
 
+        // --- GLOBAL LIGHTS ---
         const ambientLight = new THREE.AmbientLight(0xffffff, isMobile ? 1.6 : 0.6); 
         scene.add(ambientLight);
         
@@ -823,6 +837,9 @@
         let isGameActive = false;
         let currentTarget = null; 
 
+        // Throttle raycaster for mobile (check every 5 frames)
+        let frameCount = 0;
+
         function startGame(e) {
             e.preventDefault(); e.stopPropagation();
             startScreen.style.display = 'none';
@@ -836,7 +853,6 @@
                 controls.lock();
             } else {
                 document.getElementById('mobile-look-hint').style.display = 'block';
-                // Trigger initial mobile load
                 checkRoomLoad(0);
             }
         }
@@ -1113,7 +1129,10 @@
                         lastRoomIndex = currentRoom;
                         checkRoomLoad(currentRoom);
                     }
-                    if (!isModalOpen) checkIntersectionAndClick();
+                    
+                    // Throttle raycaster
+                    frameCount++;
+                    if (frameCount % 5 === 0 && !isModalOpen) checkIntersectionAndClick();
                 }
 
             } else { sitHint.style.display = 'none'; velocity.set(0,0,0); }

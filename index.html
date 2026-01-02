@@ -82,10 +82,9 @@
             box-shadow: 0 0 10px rgba(255,255,255,0.2);
         }
 
-        /* COMPACT VIEW BUTTON */
         #view-btn {
             position: absolute; bottom: 130px; left: 50%; transform: translateX(-50%);
-            padding: 10px 25px; border-radius: 25px; /* Compact */
+            padding: 10px 25px; border-radius: 25px;
             background: rgba(255, 255, 255, 0.95); color: black;
             font-weight: bold; font-size: 0.9rem; letter-spacing: 1px; white-space: nowrap;
             display: none; z-index: 46; cursor: pointer;
@@ -94,7 +93,6 @@
         }
         @keyframes pulseBtn { 0% { transform: translateX(-50%) scale(1); } 50% { transform: translateX(-50%) scale(1.05); } 100% { transform: translateX(-50%) scale(1); } }
         
-        /* ARTWORK MODAL WITH CLOSE BUTTON */
         #artwork-modal {
             display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(10, 10, 10, 0.98); z-index: 60;
@@ -381,10 +379,14 @@
 
         function checkRoomLoad(currentRoom) {
             if (!isMobile) return;
-            const keepLoaded = [currentRoom, currentRoom + 1];
+            // FIX: INCREASE LOADING RANGE FOR LAST ROOMS
+            // Load Current, Previous, and TWO steps ahead to prevent grey posters
+            const keepLoaded = [currentRoom - 1, currentRoom, currentRoom + 1, currentRoom + 2];
             
             keepLoaded.forEach(idx => {
-                if (roomStatus[idx] !== 'loaded') loadRoomTextures(idx);
+                if (idx >= 0 && idx < 5 && roomStatus[idx] !== 'loaded') {
+                    loadRoomTextures(idx);
+                }
             });
 
             for (let idx = 0; idx < 5; idx++) {
@@ -543,7 +545,7 @@
                     mesh.position.set(px, py, pz); mesh.rotation.y = ry;
                     
                     const stringMat = new THREE.LineBasicMaterial({ color: 0x111111 });
-                    const pW = 2.0; const pH = 2.5; const topOfPosterY = pH / 2; const distToPipe = (pipeYLevel - 0.05) - (py + topOfPosterY);
+                    const topOfPosterY = 2.5 / 2; const distToPipe = (pipeYLevel - 0.05) - (py + topOfPosterY);
                     const pointsL = [new THREE.Vector3(-1 + 0.15, topOfPosterY, 0), new THREE.Vector3(-1 + 0.15, topOfPosterY + distToPipe, 0)];
                     const pointsR = [new THREE.Vector3(1 - 0.15, topOfPosterY, 0), new THREE.Vector3(1 - 0.15, topOfPosterY + distToPipe, 0)];
                     mesh.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pointsL), stringMat)); mesh.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pointsR), stringMat));
@@ -580,7 +582,6 @@
         const modelFiles = ['1.glb', '2.glb', '3.glb', '4.glb', '5.glb', '6.glb', '8.glb'];
         
         function loadAllModels(roomCenterX, roomCenterZ, roomIndex) {
-            // FIX: Restore models on mobile (but standard loop)
             const gltfLoader = new GLTFLoader(manager);
             modelFiles.forEach((filename, index) => {
                 const angle = (index / modelFiles.length) * Math.PI * 2;
@@ -662,7 +663,8 @@
         floor1.rotation.x = -Math.PI / 2; floor1.position.z = -whiteFloorL / 2 + roomSize / 2; floor1.receiveShadow = !isMobile; scene.add(floor1);
         
         const zLastRoom = -((roomsCount - 1) * roomSize);
-        let benchPosition = new THREE.Vector3(0, 0, 0); 
+        // FIX: Sit in LAST room only. Init far away so Room 0 doesn't trigger it.
+        let benchPosition = new THREE.Vector3(0, -9999, 0); 
         
         if (!isMobile) {
             const floor2 = new THREE.Mesh(new THREE.PlaneGeometry(roomSize, roomSize), darkFloorMat);
@@ -674,7 +676,6 @@
             const isDarkRoom = (!isMobile && i === roomsCount - 1);
             
             if (!isDarkRoom) {
-                // LIGHTING
                 if (isMobile) {
                     const roomLight = new THREE.PointLight(0xffffff, 1.5, 25);
                     roomLight.position.set(0, 5, zCenter);
@@ -700,11 +701,9 @@
                 createBox(0, roomHeight/2, zCenter + roomSize/2, roomSize, roomHeight, 0.5, true, isDarkRoom, null, i);
                 createDoorWall(zCenter - roomSize/2, roomSize, roomHeight, isDarkRoom, i);
                 
-                // --- PLACING POSTERS ON DOOR WALLS (Room 0) ---
                 if (isMobile) {
-                    // Front Wall (Inside looking at Entrance)
-                    addPoster( -3.5, 2.7, zCenter + roomSize/2 - 0.3, Math.PI, 2.2, 2.8, i); // Left of door
-                    addPoster( 3.5, 2.7, zCenter + roomSize/2 - 0.3, Math.PI, 2.2, 2.8, i);  // Right of door
+                    addPoster( -3.5, 2.7, zCenter + roomSize/2 - 0.3, Math.PI, 2.2, 2.8, i); 
+                    addPoster( 3.5, 2.7, zCenter + roomSize/2 - 0.3, Math.PI, 2.2, 2.8, i);  
                 }
 
             } else if (isDarkRoom) {
@@ -714,18 +713,17 @@
                 benchPosition.set(0, 0.4, zCenter);
                 createBox(0, 0.4, zCenter, 3.5, 0.8, 1.5, true, false, benchMat, i);
             } else if (isMobile && i === roomsCount - 1) {
-                // Mobile End Wall
                 createBox(0, roomHeight/2, zCenter - roomSize/2, roomSize, roomHeight, 0.5, true, false, null, i);
+                // Create bench for mobile in last room
+                benchPosition.set(0, 0.4, zCenter);
+                createBox(0, 0.4, zCenter, 3.5, 0.8, 1.5, true, false, benchMat, i);
             } else {
                 createDoorWall(zCenter - roomSize/2, roomSize, roomHeight, false, i);
                 
-                // --- PLACING POSTERS ON DOOR WALLS (Room > 0) ---
                 if (isMobile) {
-                    // Back Wall (Next to the door leading to NEXT room)
-                    addPoster( -3.5, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i); // Left of door
-                    addPoster( 3.5, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i);  // Right of door
+                    addPoster( -3.5, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i); 
+                    addPoster( 3.5, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i);  
                     
-                    // Front Wall (Next to the door leading to PREVIOUS room)
                     addPoster( -3.5, 2.7, zCenter + roomSize/2 - 0.3, Math.PI, 2.2, 2.8, i); 
                     addPoster( 3.5, 2.7, zCenter + roomSize/2 - 0.3, Math.PI, 2.2, 2.8, i); 
                 }
@@ -740,14 +738,10 @@
                     createHangingTV(0, zCenter, roomHeight, rotation, i); 
                 }
                 
-                // --- POSTER PLACEMENT LOGIC ---
-                // Resetting spacing to 3.0 so they don't overlap
                 const standardW = isMobile ? 2.2 : 2.6; 
                 const standardH = isMobile ? 2.8 : 3.25; 
-                
-                // Mobile: 6 per side (spaced well) + posters on door walls above
-                const postersPerSide = 6; 
-                const sideSpacing = 3.0; // Standard spacing
+                const postersPerSide = isMobile ? 7 : 6; 
+                const sideSpacing = isMobile ? 2.5 : 3.0; 
                 
                 const startZ = zCenter + (postersPerSide * sideSpacing / 2) - (sideSpacing / 2); 
                 for (let k = 0; k < postersPerSide; k++) {
@@ -756,7 +750,6 @@
                     addPoster(9.7, 2.7, zPos, -Math.PI/2, standardW, standardH, i);
                 }
                 
-                // Center-ish posters
                 const offsetX = 6.0; const offsetZ = 0.3; 
                 addPoster(-offsetX, 2.7, zCenter - roomSize/2 + offsetZ, 0, standardW, standardH, i);
                 addPoster(offsetX, 2.7, zCenter - roomSize/2 + offsetZ, 0, standardW, standardH, i);
@@ -792,8 +785,6 @@
             interactiveObjects.push(follower);
         }
 
-        // --- GLOBAL LIGHTS ---
-        // Brighter ambient for mobile
         const ambientLight = new THREE.AmbientLight(0xffffff, isMobile ? 1.6 : 0.6); 
         scene.add(ambientLight);
         
@@ -846,14 +837,13 @@
             } else {
                 document.getElementById('mobile-look-hint').style.display = 'block';
                 // Trigger initial mobile load
-                updateMobileRooms(0);
+                checkRoomLoad(0);
             }
         }
 
         startBtn.addEventListener('click', startGame);
         startBtn.addEventListener('touchstart', startGame);
         
-        // Modal close button logic
         modalClose.addEventListener('click', closeModal);
         modalClose.addEventListener('touchstart', (e) => { e.stopPropagation(); closeModal(); });
 
@@ -873,7 +863,6 @@
                 for (let i = 0; i < e.changedTouches.length; i++) {
                     const t = e.changedTouches[i];
                     const halfWidth = window.innerWidth / 2;
-                    // Prevent joystick if modal open
                     if(isModalOpen) continue;
 
                     if (moveTouchId === null && t.clientX < halfWidth) {
@@ -938,8 +927,7 @@
             document.addEventListener('touchstart', handleTouchStart, {passive: false});
             document.addEventListener('touchmove', handleTouchMove, {passive: false});
             document.addEventListener('touchend', handleTouchEnd);
-            
-            // View button Logic
+            document.addEventListener('click', () => { if (isModalOpen) closeModal(); });
             mobileSitBtn.addEventListener('touchstart', (e) => { e.stopPropagation(); toggleSit(); });
             viewBtn.addEventListener('touchstart', (e) => { 
                 e.preventDefault(); e.stopPropagation(); 
@@ -965,11 +953,9 @@
                 const obj = intersects[0].object;
                 if (obj.userData.type === 'poster') {
                     if(isMobile) {
-                        // Mobile: Show button
                         currentTarget = obj;
                         viewBtn.style.display = 'block';
                     } else {
-                        // Desktop: Click
                         openModal(obj.userData);
                     }
                 } else if (obj.userData.type === 'follower') {
@@ -1125,9 +1111,8 @@
                     const currentRoom = Math.max(0, Math.round(-camera.position.z / 20));
                     if (currentRoom !== lastRoomIndex) {
                         lastRoomIndex = currentRoom;
-                        updateMobileRooms(currentRoom);
+                        checkRoomLoad(currentRoom);
                     }
-                    // CONTINUOUS CHECK for View Button
                     if (!isModalOpen) checkIntersectionAndClick();
                 }
 

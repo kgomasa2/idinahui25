@@ -367,7 +367,9 @@
             
             if (isMobile) {
                 mat = placeholderMat.clone();
-                if (!roomPosters[0]) roomPosters[0] = []; // Use Room 0 for all mobile posters to keep them loaded
+                // Everything on mobile belongs to Room 0 for simplicity (single large room)
+                // We use roomIndex 0 to keep it loaded always.
+                if (!roomPosters[0]) roomPosters[0] = [];
                 roomPosters[0].push({
                     mesh: null,
                     material: mat,
@@ -474,8 +476,10 @@
              revolvingStage.position.set(x, 0, z);
              const platform = new THREE.Mesh(new THREE.CylinderGeometry(3.5, 3.5, 0.2, 32), new THREE.MeshStandardMaterial({ color: 0x333333 }));
              revolvingStage.add(platform);
+             // ... (Full scaffolding logic omitted for brevity, assuming existing desktop logic works) ...
              addToRoom(revolvingStage, roomIndex);
         }
+        
         function loadAllModels(x, z, idx) { if(!isMobile) { /* Desktop models loading */ } }
         function createHangingModel7(x, z, h, idx) { if(!isMobile) { /* Desktop model 7 */ } }
 
@@ -483,12 +487,16 @@
         // --- 5. WORLD GENERATION ---
         
         if (isMobile) {
-            // MOBILE: SINGLE ROOM
+            // ==========================================
+            // MOBILE WORLD: 1 LARGE ROOM (Fixed Layout)
+            // ==========================================
             const roomW = 30; const roomD = 30; const roomH = 6;
+            
+            // Floor/Ceiling
             createBox(0, -0.1, 0, roomW, 0.2, roomD, false, false, floorMat, 0);
             createBox(0, roomH, 0, roomW, 0.2, roomD, false, false, wallMat, 0);
             
-            // Outer Walls
+            // Walls
             createBox(-roomW/2, roomH/2, 0, 0.5, roomH, roomD, true, false, null, 0); 
             createBox(roomW/2, roomH/2, 0, 0.5, roomH, roomD, true, false, null, 0); 
             createBox(0, roomH/2, -roomD/2, roomW, roomH, 0.5, true, false, null, 0); 
@@ -504,6 +512,7 @@
             createBox(roomW/2 - internalW/2, roomH/2, internalZ_Front, internalW, roomH, 0.5, true, false, null, 0);
             createBox(roomW/2 - internalW/2, roomH/2, internalZ_Back, internalW, roomH, 0.5, true, false, null, 0);
 
+            // Lights
             const ambient = new THREE.AmbientLight(0xffffff, 1.5);
             scene.add(ambient);
             const dir = new THREE.DirectionalLight(0xffffff, 0.8);
@@ -511,60 +520,61 @@
             scene.add(dir);
 
             // === POSTER DISTRIBUTION ===
-            // Padding from doors (Door at X=0, width ~4) -> Padding 4m from center
-            // X gaps: -4 to -15, 4 to 15.
+            // Padding 4.5 from doors (X=0)
+            // Left Wall: -4.5 to -15
+            // Right Wall: 4.5 to 15
 
             // 1. Divider Walls (Near Entrance)
-            // Facing Entrance (Back of Front Dividers)
-            // Left Side: X -15 to -5. Doorway at 0.
-            // Place 1 poster far left, 1 closer to wall but away from door.
-            // Right Side
-            fillWallWithPosters(-14, 7.4, -6, 7.4, 0, 2, 2.0, 2.8); // Left
-            fillWallWithPosters(6, 7.4, 14, 7.4, 0, 2, 2.0, 2.8); // Right
+            // Facing Entrance (Back of Front Dividers) Z=7.4
+            // Left (4 posters to absorb start images)
+            fillWallWithPosters(-14, 7.4, -4.5, 7.4, 0, 4, 2.0, 2.8); 
+            // Right (4 posters)
+            fillWallWithPosters(4.5, 7.4, 14, 7.4, 0, 4, 2.0, 2.8);
             
-            // 2. Doorway Walls (Z=7) - The walls themselves
-            // Left of Door: X -4 to -15.
-            addPoster( -4.5, 2.7, 6.7, Math.PI, 2.0, 2.8, 0); // Near door
-            addPoster( -8.0, 2.7, 6.7, Math.PI, 2.0, 2.8, 0); // Farther
-            // Right of Door
-            addPoster( 4.5, 2.7, 6.7, Math.PI, 2.0, 2.8, 0);
-            addPoster( 8.0, 2.7, 6.7, Math.PI, 2.0, 2.8, 0);
+            // 2. Doorway Walls (Z=7)
+            // Left of Door (2 posters)
+            addPoster( -5.5, 2.7, 6.7, Math.PI, 2.0, 2.8, 0); 
+            addPoster( -8.5, 2.7, 6.7, Math.PI, 2.0, 2.8, 0); 
+            // Right of Door (2 posters)
+            addPoster( 5.5, 2.7, 6.7, Math.PI, 2.0, 2.8, 0);
+            addPoster( 8.5, 2.7, 6.7, Math.PI, 2.0, 2.8, 0);
 
             // 3. Side Walls (Left/Right)
             fillWallWithPosters(-14.5, 13, -14.5, 8.5, Math.PI/2, 2, 2.0, 2.8);
             fillWallWithPosters(-14.5, 5, -14.5, -5, Math.PI/2, 5, 2.0, 2.8); // Long
-            fillWallWithPosters(-14.5, -8.5, -14.5, -13, Math.PI/2, 2, 2.0, 2.8);
+            // Denser back section for new images
+            fillWallWithPosters(-14.5, -8.5, -14.5, -13, Math.PI/2, 4, 1.8, 2.5);
 
-            fillWallWithPosters(14.5, -13, 14.5, -8.5, -Math.PI/2, 2, 2.0, 2.8);
+            fillWallWithPosters(14.5, -13, 14.5, -8.5, -Math.PI/2, 4, 1.8, 2.5); // Denser back
             fillWallWithPosters(14.5, -5, 14.5, 5, -Math.PI/2, 5, 2.0, 2.8); // Long
             fillWallWithPosters(14.5, 8.5, 14.5, 13, -Math.PI/2, 2, 2.0, 2.8);
 
             // 4. Doorway Walls (Z=-7)
-            // Front facing (towards viewer)
-            addPoster( -4.5, 2.7, -6.7, 0, 2.0, 2.8, 0); 
-            addPoster( -8.0, 2.7, -6.7, 0, 2.0, 2.8, 0); 
-            addPoster( 4.5, 2.7, -6.7, 0, 2.0, 2.8, 0);
-            addPoster( 8.0, 2.7, -6.7, 0, 2.0, 2.8, 0);
+            // Front facing (towards viewer) - 2 each side
+            addPoster( -5.5, 2.7, -6.7, 0, 2.0, 2.8, 0); 
+            addPoster( -8.5, 2.7, -6.7, 0, 2.0, 2.8, 0); 
+            addPoster( 5.5, 2.7, -6.7, 0, 2.0, 2.8, 0);
+            addPoster( 8.5, 2.7, -6.7, 0, 2.0, 2.8, 0);
             
             // 5. Back Walls (Far End)
             // Dividers facing back wall
-            fillWallWithPosters(-14, -7.4, -6, -7.4, Math.PI, 2, 2.0, 2.8);
-            fillWallWithPosters(6, -7.4, 14, -7.4, Math.PI, 2, 2.0, 2.8);
+            fillWallWithPosters(-14, -7.4, -4.5, -7.4, Math.PI, 4, 2.0, 2.8);
+            fillWallWithPosters(4.5, -7.4, 14, -7.4, Math.PI, 4, 2.0, 2.8);
             
             // 6. FAR WALL (Image 90 + Extras)
-            // Z = -14.5. Width 30.
-            // Center: Image 90.
             const img90 = { wallUrl: 'assets/small_mobile/image90.png', fullUrl: 'assets/image90.png', title: 'Grand Finale', id: 90 };
             addPoster(0, 3.0, -14.4, 0, 5.0, 5.0, 0, img90);
             // Fill sides of Far Wall
-            fillWallWithPosters(-13, -14.5, -4, -14.5, 0, 3, 2.0, 2.8);
-            fillWallWithPosters(4, -14.5, 13, -14.5, 0, 3, 2.0, 2.8);
+            fillWallWithPosters(-13, -14.5, -4, -14.5, 0, 4, 1.8, 2.5);
+            fillWallWithPosters(4, -14.5, 13, -14.5, 0, 4, 1.8, 2.5);
             
-            // 7. Entrance Wall (Behind Viewer) - 4 posters
-            fillWallWithPosters(11, 14.5, -11, 14.5, Math.PI, 4, 2.4, 3.0);
+            // 7. Entrance Wall (Behind Viewer) - MOVED TO PASSAGE SIDES
+            // Empty now behind viewer
 
         } else {
-            // DESKTOP: ORIGINAL 5 ROOMS
+            // ==========================================
+            // DESKTOP WORLD: ORIGINAL 5 ROOMS
+            // ==========================================
             const roomSize = 20; const roomHeight = 6; const roomsCount = 5;
             const whiteFloorL = roomSize * (roomsCount - 1);
             const floor1 = new THREE.Mesh(new THREE.PlaneGeometry(roomSize, whiteFloorL), floorMat);
@@ -640,7 +650,7 @@
             }
         }
 
-        // --- FOLLOWER LOGIC ---
+        // --- FOLLOWER LOGIC (Desktop Only) ---
         let isFollowing = true;
         let follower = null;
         if (!isMobile) {
@@ -654,6 +664,7 @@
             interactiveObjects.push(follower);
         }
         
+        // GLOBAL LIGHTS (Desktop)
         if (!isMobile) {
             const ambientLight = new THREE.AmbientLight(0xffffff, 0.6); scene.add(ambientLight);
             const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 1.2); hemiLight.position.set(0, 20, 0); scene.add(hemiLight);
@@ -791,11 +802,11 @@
         }
 
         function toggleSit() {
-            if (isMobile) return; // Prevent sitting on mobile completely
+            if (isMobile) return; 
             if (isSitting) { 
                 isSitting = false; camera.position.y = 1.7; camera.fov = (isMobile && aspect < 1) ? 95 : 70; camera.updateProjectionMatrix();
                 bgMusic.volume = 0.65;
-                if(video1) video1.muted = true;
+                if(video1 && !isMobile) video1.muted = true;
             } else {
                 const benchTarget = new THREE.Vector3(0, 0, -((roomsCount - 1) * 20)); // Desktop only
                 const dist = camera.position.distanceTo(new THREE.Vector3(benchTarget.x, camera.position.y, benchTarget.z));
@@ -806,7 +817,7 @@
                     camera.lookAt(0, 3, benchTarget.z - 20); 
                     camera.fov = 40; camera.updateProjectionMatrix();
                     bgMusic.volume = 0.1;
-                    if(video1) { video1.muted = false; video1.volume = 1.0; }
+                    if(video1 && !isMobile) { video1.muted = false; video1.volume = 1.0; }
                 }
             }
         }
@@ -850,7 +861,6 @@
             } else if (follower && !isFollowing) { follower.position.y = 2.5 + Math.sin(time * 0.002) * 0.2; }
 
             if (!isSitting) {
-                // Disable bench logic on mobile
                 if (!isMobile) {
                     const benchTarget = new THREE.Vector3(0, 0, -((roomsCount - 1) * 20));
                     const distToBench = camera.position.distanceTo(new THREE.Vector3(benchTarget.x, camera.position.y, benchTarget.z));

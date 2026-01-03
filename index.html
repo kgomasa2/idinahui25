@@ -59,7 +59,6 @@
             border-radius: 20px; font-size: 0.9rem; display: none; pointer-events: none; z-index: 20;
         }
         
-        /* Mobile UI Elements */
         .joystick-zone {
             position: absolute; width: 100px; height: 100px; 
             background: rgba(255, 255, 255, 0.1); border-radius: 50%;
@@ -179,7 +178,6 @@
             THREE.Cache.enabled = false;
         }
 
-        // --- LOADING SYSTEM ---
         const loadStartTime = Date.now();
         const minLoadTime = 4500; 
         const loadingStatus = document.getElementById('loader-status');
@@ -263,7 +261,8 @@
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobile ? 1.0 : 1.5));
 
         if (isMobile) {
-            renderer.shadowMap.enabled = false;
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.BasicShadowMap; 
         } else {
             renderer.shadowMap.enabled = true;
             renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -341,8 +340,14 @@
             roomGroups[roomIndex].add(object);
         }
 
-        function addPoster(x, y, z, ry, w, h, roomIndex) {
-            const data = getNextImage();
+        function addPoster(x, y, z, ry, w, h, roomIndex, specificData = null) {
+            let data;
+            if (specificData) {
+                data = specificData;
+            } else {
+                data = getNextImage();
+            }
+
             const geo = new THREE.PlaneGeometry(w, h);
             
             let mat;
@@ -705,8 +710,16 @@
                 // --- PLACING POSTERS ON DOOR WALLS (Room 0) ---
                 if (isMobile) {
                     // Front Wall (Inside looking at Entrance)
-                    addPoster( -3.5, 2.7, zCenter + roomSize/2 - 0.3, Math.PI, 2.0, 2.8, i); // Left of door
-                    addPoster( 3.5, 2.7, zCenter + roomSize/2 - 0.3, Math.PI, 2.0, 2.8, i);  // Right of door
+                    const backZ = zCenter + roomSize/2 - 0.3;
+                    const spread = [-6, -2, 2, 6];
+                    spread.forEach(x => addPoster(x, 2.7, backZ, Math.PI, 2.0, 2.8, i));
+                    
+                    // Door Wall (Next to passage)
+                    const doorZ = zCenter - roomSize/2 + 0.3;
+                    addPoster( -3.0, 2.7, doorZ, 0, 2.0, 2.8, i); 
+                    addPoster( -6.5, 2.7, doorZ, 0, 2.0, 2.8, i); 
+                    addPoster( 3.0, 2.7, doorZ, 0, 2.0, 2.8, i); 
+                    addPoster( 6.5, 2.7, doorZ, 0, 2.0, 2.8, i); 
                 }
 
             } else if (isDarkRoom) {
@@ -716,20 +729,39 @@
                 benchPosition.set(0, 0.4, zCenter);
                 createBox(0, 0.4, zCenter, 3.5, 0.8, 1.5, true, false, benchMat, i);
             } else if (isMobile && i === roomsCount - 1) {
-                // Mobile End Wall (no bench visible)
+                // Mobile End Wall (Last Room)
                 createBox(0, roomHeight/2, zCenter - roomSize/2, roomSize, roomHeight, 0.5, true, false, null, i);
+                // No Bench on Mobile here
+                // Add Image90 on far wall
+                const img90 = { wallUrl: 'assets/small_mobile/image90.png', fullUrl: 'assets/image90.png', title: 'Special', id: 90 };
+                const farZ = zCenter - roomSize/2 + 0.3;
+                addPoster(0, 2.7, farZ, 0, 4.0, 4.0, i, img90);
+                
+                // Door Wall (Previous Room side)
+                const doorZ = zCenter + roomSize/2 - 0.3;
+                addPoster( -3.0, 2.7, doorZ, Math.PI, 2.0, 2.8, i); 
+                addPoster( -6.5, 2.7, doorZ, Math.PI, 2.0, 2.8, i); 
+                addPoster( 3.0, 2.7, doorZ, Math.PI, 2.0, 2.8, i); 
+                addPoster( 6.5, 2.7, doorZ, Math.PI, 2.0, 2.8, i); 
+
             } else {
                 createDoorWall(zCenter - roomSize/2, roomSize, roomHeight, false, i);
                 
-                // --- PLACING POSTERS ON DOOR WALLS (Room > 0) ---
+                // --- PLACING POSTERS ON DOOR WALLS (Middle Rooms) ---
                 if (isMobile) {
-                    // Back Wall (Next to the door leading to NEXT room)
-                    addPoster( -3.5, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.0, 2.8, i); // Left of door
-                    addPoster( 3.5, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.0, 2.8, i);  // Right of door
+                    // Back Wall (Next to door to NEXT room)
+                    const nextZ = zCenter - roomSize/2 + 0.3;
+                    addPoster( -3.0, 2.7, nextZ, 0, 2.0, 2.8, i); 
+                    addPoster( -6.5, 2.7, nextZ, 0, 2.0, 2.8, i); 
+                    addPoster( 3.0, 2.7, nextZ, 0, 2.0, 2.8, i); 
+                    addPoster( 6.5, 2.7, nextZ, 0, 2.0, 2.8, i); 
                     
-                    // Front Wall (Next to the door leading to PREVIOUS room)
-                    addPoster( -3.5, 2.7, zCenter + roomSize/2 - 0.3, Math.PI, 2.0, 2.8, i); 
-                    addPoster( 3.5, 2.7, zCenter + roomSize/2 - 0.3, Math.PI, 2.0, 2.8, i); 
+                    // Front Wall (Next to door to PREV room)
+                    const prevZ = zCenter + roomSize/2 - 0.3;
+                    addPoster( -3.0, 2.7, prevZ, Math.PI, 2.0, 2.8, i); 
+                    addPoster( -6.5, 2.7, prevZ, Math.PI, 2.0, 2.8, i); 
+                    addPoster( 3.0, 2.7, prevZ, Math.PI, 2.0, 2.8, i); 
+                    addPoster( 6.5, 2.7, prevZ, Math.PI, 2.0, 2.8, i); 
                 }
             }
             
@@ -742,12 +774,10 @@
                     createHangingTV(0, zCenter, roomHeight, rotation, i); 
                 }
                 
-                // --- POSTER PLACEMENT LOGIC ---
+                // --- LONG WALL POSTERS ---
                 if (isMobile) {
-                     // EVENLY SPACED POSTERS FOR MOBILE (Left & Right)
-                     // Space Z from -7 to +7 relative to center (Margin 3.0 from corners)
                      const longWallCount = 5;
-                     const zStep = 14 / (longWallCount - 1); // Spread over 14 units
+                     const zStep = 14 / (longWallCount - 1); 
                      const startZ = zCenter - 7;
 
                      for (let k = 0; k < longWallCount; k++) {
@@ -756,7 +786,6 @@
                          addPoster(9.7, 2.7, zPos, -Math.PI/2, 2.4, 3.0, i);
                      }
                 } else {
-                    // DESKTOP Standard
                     const standardW = 2.6; const standardH = 3.25; 
                     const postersPerSide = 6; const sideSpacing = 3.0; 
                     const startZ = zCenter + (postersPerSide * sideSpacing / 2) - (sideSpacing / 2); 

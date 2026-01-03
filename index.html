@@ -325,7 +325,8 @@
         const interactiveObjects = []; 
 
         let currentImageId = 1;
-        const totalImages = 65; 
+        // CHANGE: Increased total images to include 68-79
+        const totalImages = 79; 
 
         function getNextImage() {
             const id = currentImageId;
@@ -715,8 +716,10 @@
                 createDoorWall(zCenter - roomSize/2, roomSize, roomHeight, isDarkRoom, i);
                 
                 if (isMobile) {
-                    addPoster( -3.5, 2.7, zCenter + roomSize/2 - 0.3, Math.PI, 2.2, 2.8, i); 
-                    addPoster( 3.5, 2.7, zCenter + roomSize/2 - 0.3, Math.PI, 2.2, 2.8, i);  
+                    // CHANGE: Moved posters from back wall to front wall flanking the door
+                    // Increased spacing so they are not too close to the "hole"
+                    addPoster( -4.5, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i); 
+                    addPoster( 4.5, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i);  
                 }
 
             } else if (isDarkRoom) {
@@ -730,15 +733,26 @@
                 // Create bench for mobile in last room
                 benchPosition.set(0, 0.4, zCenter);
                 createBox(0, 0.4, zCenter, 3.5, 0.8, 1.5, true, false, benchMat, i);
+                
+                // CHANGE: Add extra posters on the BACK WALL of the last room to fit new images (68-79)
+                addPoster(-6, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i);
+                addPoster(0, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i);
+                addPoster(6, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i);
+                
+                // CHANGE: Add extra posters flanking the entrance to the last room
+                const offsetXLast = 6.0; const offsetZLast = 0.3;
+                addPoster(-offsetXLast - 3.0, 2.7, zCenter + roomSize/2 - offsetZLast, Math.PI, 2.2, 2.8, i);
+                addPoster(offsetXLast + 3.0, 2.7, zCenter + roomSize/2 - offsetZLast, Math.PI, 2.2, 2.8, i);
+
             } else {
                 createDoorWall(zCenter - roomSize/2, roomSize, roomHeight, false, i);
                 
                 if (isMobile) {
-                    addPoster( -3.5, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i); 
-                    addPoster( 3.5, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i);  
+                    addPoster( -4.5, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i); 
+                    addPoster( 4.5, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i);  
                     
-                    addPoster( -3.5, 2.7, zCenter + roomSize/2 - 0.3, Math.PI, 2.2, 2.8, i); 
-                    addPoster( 3.5, 2.7, zCenter + roomSize/2 - 0.3, Math.PI, 2.2, 2.8, i); 
+                    addPoster( -4.5, 2.7, zCenter + roomSize/2 - 0.3, Math.PI, 2.2, 2.8, i); 
+                    addPoster( 4.5, 2.7, zCenter + roomSize/2 - 0.3, Math.PI, 2.2, 2.8, i); 
                 }
             }
             
@@ -753,8 +767,10 @@
                 
                 const standardW = isMobile ? 2.2 : 2.6; 
                 const standardH = isMobile ? 2.8 : 3.25; 
-                const postersPerSide = isMobile ? 8 : 6; // Denser
-                const sideSpacing = isMobile ? 2.4 : 3.0; // Tighter
+                // CHANGE: Reduced posters count per side on mobile (8 -> 7) to increase gap near doors
+                const postersPerSide = isMobile ? 7 : 6; 
+                // CHANGE: Adjusted spacing slightly for mobile
+                const sideSpacing = isMobile ? 2.2 : 3.0; 
                 
                 const startZ = zCenter + (postersPerSide * sideSpacing / 2) - (sideSpacing / 2); 
                 for (let k = 0; k < postersPerSide; k++) {
@@ -763,13 +779,14 @@
                     addPoster(9.7, 2.7, zPos, -Math.PI/2, standardW, standardH, i);
                 }
                 
-                const offsetX = 6.0; const offsetZ = 0.3; 
-                addPoster(-offsetX, 2.7, zCenter - roomSize/2 + offsetZ, 0, standardW, standardH, i);
-                addPoster(offsetX, 2.7, zCenter - roomSize/2 + offsetZ, 0, standardW, standardH, i);
-                
-                if (i > 0) { 
-                   addPoster(-offsetX, 2.7, zCenter + roomSize/2 - offsetZ, Math.PI, standardW, standardH, i);
-                   addPoster(offsetX, 2.7, zCenter + roomSize/2 - offsetZ, Math.PI, standardW, standardH, i);
+                // Only for rooms that are NOT the last one on mobile (handled separately) and not Room 0 (handled separately)
+                if (i > 0 && !(isMobile && i === roomsCount - 1)) {
+                    const offsetX = 6.0; const offsetZ = 0.3; 
+                    addPoster(-offsetX, 2.7, zCenter - roomSize/2 + offsetZ, 0, standardW, standardH, i);
+                    addPoster(offsetX, 2.7, zCenter - roomSize/2 + offsetZ, 0, standardW, standardH, i);
+                    
+                    addPoster(-offsetX, 2.7, zCenter + roomSize/2 - offsetZ, Math.PI, standardW, standardH, i);
+                    addPoster(offsetX, 2.7, zCenter + roomSize/2 - offsetZ, Math.PI, standardW, standardH, i);
                 }
             } else {
                 const projW = 9.0; const projH = 5.06;
@@ -852,7 +869,6 @@
             if (!isMobile) {
                 controls.lock();
             } else {
-                document.getElementById('mobile-look-hint').style.display = 'block';
                 checkRoomLoad(0);
             }
         }
@@ -1074,8 +1090,15 @@
 
             if (!isSitting) {
                 const distToBench = camera.position.distanceTo(new THREE.Vector3(benchPosition.x, camera.position.y, benchPosition.z));
-                if (distToBench < 5.0) { if (isMobile) { mobileSitBtn.style.display = 'flex'; mobileSitBtn.innerText = "SIT"; } else { sitHint.style.display = 'block'; } } 
-                else { sitHint.style.display = 'none'; if (isMobile && !isSitting) mobileSitBtn.style.display = 'none'; }
+                // FIX: Added STRICT room check for mobile sit button
+                // It only shows if you are close AND in the last room (room index 3 on mobile)
+                if (distToBench < 5.0 && (!isMobile || (isMobile && lastRoomIndex === roomsCount - 1))) { 
+                    if (isMobile) { mobileSitBtn.style.display = 'flex'; mobileSitBtn.innerText = "SIT"; } else { sitHint.style.display = 'block'; } 
+                } 
+                else { 
+                    sitHint.style.display = 'none'; 
+                    if (isMobile && !isSitting) mobileSitBtn.style.display = 'none'; 
+                }
                 
                 velocity.x -= velocity.x * 10.0 * delta; velocity.z -= velocity.z * 10.0 * delta; velocity.y -= 30.0 * delta; 
                 

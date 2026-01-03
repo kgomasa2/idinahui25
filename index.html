@@ -166,7 +166,6 @@
 
         if (isMobile) THREE.Cache.enabled = false;
 
-        // --- LOADING ---
         const loadStartTime = Date.now();
         const minLoadTime = 4000; 
         const loadingStatus = document.getElementById('loader-status');
@@ -190,14 +189,12 @@
             loadingPercent.innerText = "100%";
             loadingFill.style.width = "100%";
             loadingStatus.innerText = "SYSTEM READY";
-
             setTimeout(() => {
                 const loader = document.getElementById('loading-screen');
                 loader.style.opacity = 0;
                 setTimeout(() => {
                     loader.style.display = 'none';
                     document.getElementById('start-screen').style.display = 'flex';
-                    if (isMobile) checkRoomLoad(0);
                 }, 800); 
             }, 500);
         }
@@ -225,8 +222,6 @@
                 const remainingTime = Math.max(0, minLoadTime - elapsedTime);
                 setTimeout(finishLoading, remainingTime);
             };
-            // Fallback just in case manager hangs
-            setTimeout(finishLoading, 6000);
         }
 
         const scene = new THREE.Scene();
@@ -260,8 +255,7 @@
 
         // --- MATERIALS ---
         const textureLoader = isMobile ? new THREE.TextureLoader() : new THREE.TextureLoader(manager);
-        const lazyLoader = new THREE.TextureLoader();
-
+        
         const concreteTex = textureLoader.load('https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/plaster_grey_04/plaster_grey_04_diff_1k.jpg');
         concreteTex.wrapS = concreteTex.wrapT = THREE.RepeatWrapping;
         concreteTex.repeat.set(10, 40); concreteTex.colorSpace = THREE.SRGBColorSpace;
@@ -289,13 +283,10 @@
 
         const collidableObjects = []; 
         const postersArray = []; 
-        const roomPosters = {}; 
-        const roomStatus = {}; 
-        const roomGroups = {};
+        const interactiveObjects = []; 
 
         let revolvingStage = null;
         const animatedModels = [];
-        const interactiveObjects = []; 
 
         let currentImageId = 1;
         const totalImages = 79; 
@@ -311,19 +302,7 @@
             return { wallUrl, fullUrl, title, id };
         }
 
-        function addToRoom(object, roomIndex) {
-            if (isMobile) {
-                scene.add(object); 
-            } else {
-                if (!roomGroups[roomIndex]) {
-                    roomGroups[roomIndex] = new THREE.Group();
-                    scene.add(roomGroups[roomIndex]);
-                }
-                roomGroups[roomIndex].add(object);
-            }
-        }
-
-        function createBox(x, y, z, w, h, d, isWall = true, isDark = false, customMat = null, roomIndex = 0) {
+        function createBox(x, y, z, w, h, d, isWall = true, isDark = false, customMat = null) {
             let mat = customMat ? customMat : (isDark ? (isWall ? darkWallMat : darkFloorMat) : (isWall ? wallMat : floorMat));
             const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
             mesh.position.set(x, y, z); 
@@ -333,10 +312,10 @@
                 mesh.updateMatrixWorld(); 
                 collidableObjects.push({ box: new THREE.Box3().setFromObject(mesh) }); 
             }
-            addToRoom(mesh, roomIndex);
+            scene.add(mesh);
         }
 
-        function addPoster(x, y, z, ry, w, h, roomIndex, specificData = null) {
+        function addPoster(x, y, z, ry, w, h, specificData = null) {
             let data;
             if (specificData) { data = specificData; } else { data = getNextImage(); globalPosterIndex++; }
             const geo = new THREE.PlaneGeometry(w, h);
@@ -344,8 +323,13 @@
             
             if (isMobile) {
                 mat = placeholderMat.clone();
-                if (!roomPosters[0]) roomPosters[0] = [];
-                roomPosters[0].push({ mesh: null, material: mat, url: data.wallUrl });
+                // Load immediately on mobile (One Room)
+                const tex = textureLoader.load(data.wallUrl, (t)=>{
+                    t.colorSpace = THREE.SRGBColorSpace; mat.map=t; mat.color.setHex(0xffffff); mat.needsUpdate=true;
+                }, undefined, ()=>{
+                    const pngUrl = data.wallUrl.replace('small_mobile/', '').replace('.jpg', '.png');
+                    textureLoader.load(pngUrl, (t2)=>{ t2.colorSpace=THREE.SRGBColorSpace; mat.map=t2; mat.color.setHex(0xffffff); mat.needsUpdate=true; });
+                });
             } else {
                 const tex = textureLoader.load(data.wallUrl, (t) => { t.colorSpace = THREE.SRGBColorSpace; }, undefined, (err) => {
                     const pngUrl = data.wallUrl.replace('small/', '').replace('.jpg', '.png');
@@ -357,66 +341,61 @@
             const mesh = new THREE.Mesh(geo, mat);
             mesh.position.set(x, y, z); mesh.rotation.y = ry;
             mesh.userData = { type: 'poster', url: data.fullUrl, title: data.title, year: "2025", desc: "Collection" };
-            addToRoom(mesh, roomIndex);
+            scene.add(mesh);
             postersArray.push(mesh);
-            if (isMobile && roomPosters[0]) roomPosters[0][roomPosters[0].length - 1].mesh = mesh;
         }
 
         function fillWallWithPosters(x1, z1, x2, z2, angle, count, posterW, posterH) {
             const dx = x2 - x1; const dz = z2 - z1;
             const stepX = dx / count; const stepZ = dz / count;
             for(let k=0; k<count; k++) {
-                if (globalPosterIndex >= 79) return;
+                if (globalPosterIndex >= totalImages) return;
                 const posX = x1 + stepX * (k + 0.5); const posZ = z1 + stepZ * (k + 0.5);
-                addPoster(posX, 2.7, posZ, angle, posterW, posterH, 0);
+                addPoster(posX, 2.7, posZ, angle, posterW, posterH);
             }
         }
 
-        function checkRoomLoad(currentRoom) {
-            if (!isMobile) return;
-            if (roomStatus[0] !== 'loaded') loadRoomTextures(0);
-        }
-
-        function loadRoomTextures(roomIdx) {
-            if (!roomPosters[roomIdx]) return;
-            roomStatus[roomIdx] = 'loaded';
-            roomPosters[roomIdx].forEach(item => {
-                lazyLoader.load(item.url, (tex) => { tex.colorSpace = THREE.SRGBColorSpace; item.material.map = tex; item.material.color.setHex(0xffffff); item.material.needsUpdate = true; }, undefined, () => {
-                    const pngUrl = item.url.replace('small_mobile/', '').replace('.jpg', '.png');
-                    lazyLoader.load(pngUrl, (tex2) => { tex2.colorSpace = THREE.SRGBColorSpace; item.material.map = tex2; item.material.color.setHex(0xffffff); item.material.needsUpdate = true; });
-                });
-            });
+        function createDoorWall(z, width, height, isDark) {
+            const doorW = 4, doorH = 3.5, sideW = (width - doorW) / 2, thick = 0.5;
+            createBox(-(width/2) + (sideW/2), height/2, z, sideW, height, thick, true, isDark);
+            createBox((width/2) - (sideW/2), height/2, z, sideW, height, thick, true, isDark);
+            createBox(0, doorH + (height-doorH)/2, z, doorW, height-doorH, thick, true, isDark);
         }
 
         // --- WORLD GENERATION ---
         
         if (isMobile) {
-            // === MOBILE WORLD ===
+            // === MOBILE WORLD (One Room) ===
             const roomW = 30; const roomD = 30; const roomH = 6;
-            createBox(0, -0.1, 0, roomW, 0.2, roomD, false, false, floorMat, 0);
-            createBox(0, roomH, 0, roomW, 0.2, roomD, false, false, wallMat, 0);
-            createBox(-roomW/2, roomH/2, 0, 0.5, roomH, roomD, true, false, null, 0); 
-            createBox(roomW/2, roomH/2, 0, 0.5, roomH, roomD, true, false, null, 0); 
-            createBox(0, roomH/2, -roomD/2, roomW, roomH, 0.5, true, false, null, 0); 
-            createBox(0, roomH/2, roomD/2, roomW, roomH, 0.5, true, false, null, 0); 
+            createBox(0, -0.1, 0, roomW, 0.2, roomD, false, false, floorMat);
+            createBox(0, roomH, 0, roomW, 0.2, roomD, false, false, wallMat);
+            createBox(-roomW/2, roomH/2, 0, 0.5, roomH, roomD, true, false, null); 
+            createBox(roomW/2, roomH/2, 0, 0.5, roomH, roomD, true, false, null); 
+            createBox(0, roomH/2, -roomD/2, roomW, roomH, 0.5, true, false, null); 
+            createBox(0, roomH/2, roomD/2, roomW, roomH, 0.5, true, false, null); 
             
             const internalW = 10; const internalZ_Front = 7; const internalZ_Back = -7;
-            createBox(-roomW/2 + internalW/2, roomH/2, internalZ_Front, internalW, roomH, 0.5, true, false, null, 0);
-            createBox(-roomW/2 + internalW/2, roomH/2, internalZ_Back, internalW, roomH, 0.5, true, false, null, 0);
-            createBox(roomW/2 - internalW/2, roomH/2, internalZ_Front, internalW, roomH, 0.5, true, false, null, 0);
-            createBox(roomW/2 - internalW/2, roomH/2, internalZ_Back, internalW, roomH, 0.5, true, false, null, 0);
+            createBox(-roomW/2 + internalW/2, roomH/2, internalZ_Front, internalW, roomH, 0.5, true, false, null);
+            createBox(-roomW/2 + internalW/2, roomH/2, internalZ_Back, internalW, roomH, 0.5, true, false, null);
+            createBox(roomW/2 - internalW/2, roomH/2, internalZ_Front, internalW, roomH, 0.5, true, false, null);
+            createBox(roomW/2 - internalW/2, roomH/2, internalZ_Back, internalW, roomH, 0.5, true, false, null);
 
             const ambient = new THREE.AmbientLight(0xffffff, 1.5); scene.add(ambient);
             const dir = new THREE.DirectionalLight(0xffffff, 0.8); dir.position.set(0, 10, 0); scene.add(dir);
 
-            // POSTERS
-            // 1. Divider Walls (Front)
-            fillWallWithPosters(-14, 7.4, -4.5, 7.4, 0, 4, 2.0, 2.8); 
-            fillWallWithPosters(4.5, 7.4, 14, 7.4, 0, 4, 2.0, 2.8);
+            // POSTERS (Mobile)
+            // 1. Entrance Area (Passage Sides) - Replacing old entrance wall
+            // Left Passage (near Z=7, X=-5) -> Side of divider facing center
+            // X=-5 is the edge. Posters at X=-6 to -14 are divider face.
+            // Let's place them on the Front Dividers BACK faces (facing entrance)
+            fillWallWithPosters(-14, 7.4, -4.5, 7.4, 0, 4, 2.0, 2.8); // Left
+            fillWallWithPosters(4.5, 7.4, 14, 7.4, 0, 4, 2.0, 2.8); // Right
             
             // 2. Doorway Walls (Z=7)
-            addPoster( -5.5, 2.7, 6.7, Math.PI, 2.0, 2.8, 0); addPoster( -8.5, 2.7, 6.7, Math.PI, 2.0, 2.8, 0); 
-            addPoster( 5.5, 2.7, 6.7, Math.PI, 2.0, 2.8, 0); addPoster( 8.5, 2.7, 6.7, Math.PI, 2.0, 2.8, 0);
+            addPoster( -5.5, 2.7, 6.7, Math.PI, 2.0, 2.8); 
+            addPoster( -8.5, 2.7, 6.7, Math.PI, 2.0, 2.8); 
+            addPoster( 5.5, 2.7, 6.7, Math.PI, 2.0, 2.8);
+            addPoster( 8.5, 2.7, 6.7, Math.PI, 2.0, 2.8);
 
             // 3. Side Walls
             fillWallWithPosters(-14.5, 13, -14.5, 8.5, Math.PI/2, 2, 2.0, 2.8);
@@ -428,30 +407,23 @@
             fillWallWithPosters(14.5, 8.5, 14.5, 13, -Math.PI/2, 2, 2.0, 2.8);
 
             // 4. Doorway Walls (Z=-7)
-            addPoster( -5.5, 2.7, -6.7, 0, 2.0, 2.8, 0); addPoster( -8.5, 2.7, -6.7, 0, 2.0, 2.8, 0); 
-            addPoster( 5.5, 2.7, -6.7, 0, 2.0, 2.8, 0); addPoster( 8.5, 2.7, -6.7, 0, 2.0, 2.8, 0);
+            addPoster( -5.5, 2.7, -6.7, 0, 2.0, 2.8); 
+            addPoster( -8.5, 2.7, -6.7, 0, 2.0, 2.8); 
+            addPoster( 5.5, 2.7, -6.7, 0, 2.0, 2.8);
+            addPoster( 8.5, 2.7, -6.7, 0, 2.0, 2.8);
             
             // 5. Back Walls (Far End)
             fillWallWithPosters(-14, -7.4, -4.5, -7.4, Math.PI, 4, 2.0, 2.8);
             fillWallWithPosters(4.5, -7.4, 14, -7.4, Math.PI, 4, 2.0, 2.8);
             
-            // 6. FAR WALL
+            // 6. FAR WALL (Image 90 + Extras)
             const img90 = { wallUrl: 'assets/small_mobile/image90.png', fullUrl: 'assets/image90.png', title: 'Grand Finale', id: 90 };
-            addPoster(0, 3.0, -14.4, 0, 5.0, 5.0, 0, img90);
+            addPoster(0, 3.0, -14.4, 0, 5.0, 5.0, img90);
             fillWallWithPosters(-13, -14.5, -4, -14.5, 0, 4, 1.8, 2.5);
             fillWallWithPosters(4, -14.5, 13, -14.5, 0, 4, 1.8, 2.5);
 
-            // 7. Passage Sides (Replaced Entrance Wall)
-            // Left Passage (near Z=7, X=-5) -> Placing on side of divider facing center
-            addPoster(-10, 2.7, 5, -Math.PI/2, 2.0, 2.8, 0);
-            addPoster(-10, 2.7, 2, -Math.PI/2, 2.0, 2.8, 0);
-             // Right Passage
-            addPoster(10, 2.7, 5, Math.PI/2, 2.0, 2.8, 0);
-            addPoster(10, 2.7, 2, Math.PI/2, 2.0, 2.8, 0);
-
-
         } else {
-            // === DESKTOP WORLD ===
+            // === DESKTOP WORLD: 5 ROOMS ===
             const roomSize = 20; const roomHeight = 6; const roomsCount = 5;
             const whiteFloorL = roomSize * (roomsCount - 1);
             const floor1 = new THREE.Mesh(new THREE.PlaneGeometry(roomSize, whiteFloorL), floorMat);
@@ -461,108 +433,33 @@
             const floor2 = new THREE.Mesh(new THREE.PlaneGeometry(roomSize, roomSize), darkFloorMat);
             floor2.rotation.x = -Math.PI / 2; floor2.position.z = zLastRoom; scene.add(floor2);
             
-            // Helpers
-            function createDoorWallDesktop(z, roomIndex, isDark) {
-                const doorW = 4; const height = 6; const width = 20;
-                const sideW = (width - doorW) / 2;
-                createBox(-(width/2) + (sideW/2), height/2, z, sideW, height, 0.5, true, isDark, null, roomIndex);
-                createBox((width/2) - (sideW/2), height/2, z, sideW, height, 0.5, true, isDark, null, roomIndex);
-                createBox(0, 3.5 + (height-3.5)/2, z, doorW, height-3.5, 0.5, true, isDark, null, roomIndex);
-            }
-
-            for (let i = 0; i < roomsCount; i++) {
-                const zCenter = -(i * roomSize);
-                const isDarkRoom = (i === roomsCount - 1);
-
-                // Lights
-                if (!isDarkRoom) {
-                     const rectLightLeft = new THREE.RectAreaLight(0xffffff, 6.0, roomSize - 2, 0.5);
-                     rectLightLeft.position.set(-8, 5.5, zCenter); rectLightLeft.lookAt(-20, 1, zCenter); addToRoom(rectLightLeft, i);
-                     const rectLightRight = new THREE.RectAreaLight(0xffffff, 6.0, roomSize - 2, 0.5);
-                     rectLightRight.position.set(8, 5.5, zCenter); rectLightRight.lookAt(20, 1, zCenter); addToRoom(rectLightRight, i);
-                     const fillLight = new THREE.PointLight(0xffffff, 2, 20); fillLight.position.set(0, 5, zCenter); addToRoom(fillLight, i);
-                }
-
-                // Side Walls
-                createBox(-roomSize/2, roomHeight/2, zCenter, 0.5, roomHeight, roomSize, true, isDarkRoom, null, i); 
-                createBox(roomSize/2, roomHeight/2, zCenter, 0.5, roomHeight, roomSize, true, isDarkRoom, null, i); 
-                
-                if (!isDarkRoom) {
-                    const ceiling = new THREE.Mesh(new THREE.PlaneGeometry(roomSize, roomSize), wallMat);
-                    ceiling.rotation.x = Math.PI / 2; ceiling.position.set(0, roomHeight, zCenter); addToRoom(ceiling, i);
-                }
-
-                if (i === 0) {
-                    createBox(0, roomHeight/2, zCenter + roomSize/2, roomSize, roomHeight, 0.5, true, isDarkRoom, null, i); // Back wall
-                    createDoorWallDesktop(zCenter - roomSize/2, i, isDarkRoom);
-                } else if (isDarkRoom) {
-                    createBox(0, roomHeight/2, zCenter - roomSize/2, roomSize, roomHeight, 0.5, true, isDarkRoom, null, i); // Far wall
-                    const darkCeiling = new THREE.Mesh(new THREE.PlaneGeometry(roomSize, roomSize), darkWallMat);
-                    darkCeiling.rotation.x = Math.PI / 2; darkCeiling.position.set(0, roomHeight, zCenter); addToRoom(darkCeiling, i);
-                    createBox(0, 0.4, zCenter, 3.5, 0.8, 1.5, true, false, benchMat, i);
-                } else {
-                    createDoorWallDesktop(zCenter - roomSize/2, i, false);
-                }
-
-                if (!isDarkRoom) {
-                    if (i === 0) { createHangingTVDesktop(0, zCenter, roomHeight, 0, i); }
-                    else if (i === 1) { loadAllModelsDesktop(0, zCenter, i); createHangingModel7Desktop(0, zCenter, roomHeight, i); }
-                    else if (i === 2) { createScaffoldingStructureDesktop(0, zCenter, i); }
-                    else { createHangingTVDesktop(0, zCenter, roomHeight, Math.random()*Math.PI, i); }
-                    
-                    const standardW = 2.6; const standardH = 3.25; 
-                    const postersPerSide = 6; const sideSpacing = 3.0; 
-                    const startZ = zCenter + (postersPerSide * sideSpacing / 2) - (sideSpacing / 2); 
-                    for (let k = 0; k < postersPerSide; k++) {
-                        const zPos = startZ - (k * sideSpacing);
-                        addPoster(-9.7, 2.7, zPos, Math.PI/2, standardW, standardH, i);
-                        addPoster(9.7, 2.7, zPos, -Math.PI/2, standardW, standardH, i);
-                    }
-                    const offsetX = 6.0; const offsetZ = 0.3; 
-                    addPoster(-offsetX, 2.7, zCenter - roomSize/2 + offsetZ, 0, standardW, standardH, i);
-                    addPoster(offsetX, 2.7, zCenter - roomSize/2 + offsetZ, 0, standardW, standardH, i);
-                    if (i > 0) { 
-                       addPoster(-offsetX, 2.7, zCenter + roomSize/2 - offsetZ, Math.PI, standardW, standardH, i);
-                       addPoster(offsetX, 2.7, zCenter + roomSize/2 - offsetZ, Math.PI, standardW, standardH, i);
-                    }
-                } else {
-                    const projW = 9.0; const projH = 5.06;
-                    const wallDist = (roomSize/2) - 0.4;
-                    createProjection(0, 3, zCenter - wallDist, projW, projH, 0, videoTex1, i);
-                    createProjection(-wallDist, 3, zCenter, projW, projH, Math.PI/2, videoTex1, i);
-                    createProjection(wallDist, 3, zCenter, projW, projH, -Math.PI/2, videoTex1, i);
-                }
-            }
-            
-            // Desktop-specific functions inline to access scope
-            function createHangingTVDesktop(x, z, ceilingHeight, rotationY, roomIndex) {
+            // Functions for Desktop
+            function createHangingTV(x, z, ceilingHeight, rotationY) {
                  const tvW = 1.78; const tvH = 3.16; const tvD = 0.1;
                  const tv = new THREE.Mesh(new THREE.BoxGeometry(tvW, tvH, tvD), [tvFrameMat, tvFrameMat, tvFrameMat, tvFrameMat, new THREE.MeshBasicMaterial({ map: videoTex2 }), tvFrameMat]);
                  const tvY = 3.8; 
-                 tv.position.set(x, tvY, z); tv.rotation.y = rotationY; 
-                 addToRoom(tv, roomIndex);
+                 tv.position.set(x, tvY, z); tv.rotation.y = rotationY; scene.add(tv);
                  const c1 = new THREE.Mesh(new THREE.CylinderGeometry(0.01, 0.01, ceilingHeight - 3.8), cableMat); c1.position.set(-0.5, 3.16/2, 0); c1.geometry.translate(0, (ceilingHeight-3.8)/2, 0); tv.add(c1);
                  const c2 = new THREE.Mesh(new THREE.CylinderGeometry(0.01, 0.01, ceilingHeight - 3.8), cableMat); c2.position.set(0.5, 3.16/2, 0); c2.geometry.translate(0, (ceilingHeight-3.8)/2, 0); tv.add(c2);
                  const screenLight = new THREE.PointLight(0xffffff, 2.0, 4.0); screenLight.position.set(0, 0, 1.0); tv.add(screenLight); 
                  tv.userData.isObstacle = true; collidableObjects.push({ customType: 'cylinder', mesh: tv, radius: 0.1, position: tv.position });
             }
 
-            function createProjection(x, y, z, w, h, rotationY, texture, roomIndex) {
+            function createProjection(x, y, z, w, h, rotationY, texture) {
                 const mesh = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshBasicMaterial({ map: texture, side: THREE.DoubleSide }));
-                mesh.position.set(x, y, z); mesh.rotation.y = rotationY; addToRoom(mesh, roomIndex);
-                const light = new THREE.PointLight(0xaaaaff, 30, 25); light.position.set(x + Math.sin(rotationY), y, z + Math.cos(rotationY)); addToRoom(light, roomIndex);
+                mesh.position.set(x, y, z); mesh.rotation.y = rotationY; scene.add(mesh);
+                const light = new THREE.PointLight(0xaaaaff, 30, 25); light.position.set(x + Math.sin(rotationY), y, z + Math.cos(rotationY)); scene.add(light);
             }
-            
-            function createScaffoldingStructureDesktop(x, z, roomIndex) {
+
+            function createScaffoldingStructure(x, z) {
                  revolvingStage = new THREE.Group();
                  revolvingStage.position.set(x, 0, z);
                  const platform = new THREE.Mesh(new THREE.CylinderGeometry(3.5, 3.5, 0.2, 32), new THREE.MeshStandardMaterial({ color: 0x333333 }));
                  platform.position.y = 0.1; platform.receiveShadow = true; revolvingStage.add(platform);
                  collidableObjects.push({ box: new THREE.Box3().setFromObject(platform) });
-
+                 
                  const structureGroup = new THREE.Group(); structureGroup.position.y = 0.2; 
                  const metalMat = new THREE.MeshStandardMaterial({ color: 0xeeeeee, roughness: 0.2 });
-                 const w = 4; const h = 3.5; const d = 4;
                  const pipeGeo = new THREE.CylinderGeometry(0.05, 0.05, 1, 12);
                  const jointGeo = new THREE.SphereGeometry(0.09, 12, 8);
 
@@ -574,78 +471,109 @@
                  }
                  function addJoint(jx, jy, jz) { const mesh = new THREE.Mesh(jointGeo, metalMat); mesh.position.set(jx, jy, jz); structureGroup.add(mesh); }
                  
+                 const w=4, h=3.5, d=4;
                  addPipe(-w/2, h/2, -d/2, h, 'y'); addPipe(w/2, h/2, -d/2, h, 'y'); addPipe(-w/2, h/2, d/2, h, 'y'); addPipe(w/2, h/2, d/2, h, 'y');
                  const levels = [0.2, h - 0.2];
                  levels.forEach(lev => { addPipe(0, lev, -d/2, w, 'x'); addPipe(0, lev, d/2, w, 'x'); addPipe(-w/2, lev, 0, d, 'z'); addPipe(w/2, lev, 0, d, 'z'); });
                  const cornersX = [-w/2, w/2]; const cornersZ = [-d/2, d/2];
                  levels.forEach(lev => { cornersX.forEach(cx => { cornersZ.forEach(cz => { addJoint(cx, lev, cz); }); }); });
 
-                 // Posters on Scaffold
-                 function mountPoster(px, py, pz, ry, width, height, pipeYLevel, specificUrl) {
+                 function mountPoster(px, py, pz, ry, specificUrl) {
                     let data = specificUrl ? { wallUrl: specificUrl, fullUrl: specificUrl, title: "Special", id: 80 } : getNextImage();
                     const mat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.4, side: THREE.DoubleSide });
                     const tex = textureLoader.load(data.wallUrl, (t) => { t.colorSpace = THREE.SRGBColorSpace; mat.map = t; mat.needsUpdate = true; }, undefined, 
                         () => { const pngUrl = data.wallUrl.replace('small/', '').replace('.jpg', '.png'); textureLoader.load(pngUrl, (t2)=>{ t2.colorSpace=THREE.SRGBColorSpace; mat.map=t2; mat.needsUpdate=true; }); });
                     const mesh = new THREE.Mesh(new THREE.PlaneGeometry(2.0, 2.5), mat);
                     mesh.position.set(px, py, pz); mesh.rotation.y = ry;
-                    
-                    const stringMat = new THREE.LineBasicMaterial({ color: 0x111111 });
-                    const topOfPosterY = 2.5 / 2; const distToPipe = (pipeYLevel - 0.05) - (py + topOfPosterY);
-                    const pointsL = [new THREE.Vector3(-1 + 0.15, topOfPosterY, 0), new THREE.Vector3(-1 + 0.15, topOfPosterY + distToPipe, 0)];
-                    const pointsR = [new THREE.Vector3(1 - 0.15, topOfPosterY, 0), new THREE.Vector3(1 - 0.15, topOfPosterY + distToPipe, 0)];
-                    mesh.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pointsL), stringMat)); mesh.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pointsR), stringMat));
                     mesh.userData = { type: 'poster', url: data.fullUrl, title: data.title, year: "2025", desc: "Mounted Installation" };
                     revolvingStage.add(mesh); postersArray.push(mesh);
                  }
-                 const topPipeLevel = 3.3; const posterCenterY = 3.5 / 2;
-                 const d2 = 4; const w2 = 4;
-                 mountPoster(0, posterCenterY, d2/2, 0, 2, 2.5, topPipeLevel); 
-                 mountPoster(-w2/2, posterCenterY, 0, Math.PI/2, 2, 2.5, topPipeLevel); 
-                 mountPoster(0, posterCenterY, -d2/2, Math.PI, 2.5, 1.8, topPipeLevel); 
-                 mountPoster(w2/2, posterCenterY, 0, -Math.PI/2, 2, 2.5, topPipeLevel, 'assets/image80.jpg');
-
+                 const posterCenterY = 3.5 / 2;
+                 mountPoster(0, posterCenterY, d/2, 0); mountPoster(-w/2, posterCenterY, 0, Math.PI/2); 
+                 mountPoster(0, posterCenterY, -d/2, Math.PI); mountPoster(w/2, posterCenterY, 0, -Math.PI/2, 'assets/image80.jpg');
                  revolvingStage.add(structureGroup);
-                 addToRoom(revolvingStage, roomIndex);
+                 scene.add(revolvingStage);
             }
-            
-            function createHangingModel7Desktop(x, z, h, idx) { 
-                 const gltfLoader = new GLTFLoader(manager);
-                 gltfLoader.load('assets/3d/7.glb', (gltf) => {
-                     const obj = gltf.scene; fixMaterial(obj); obj.scale.set(1.4, 1.4, 1.4); obj.position.set(x, 3.0, z);
-                     addToRoom(obj, idx); collidableObjects.push({ box: new THREE.Box3().setFromObject(obj) });
-                 });
+
+            function fixMaterial(object) {
+                object.traverse((child) => { if (child.isMesh) { child.castShadow = true; child.receiveShadow = true; if (child.material) { child.material.metalness = 0; child.material.roughness = 0.8; } } });
             }
-            
-            function loadAllModelsDesktop(roomCenterX, roomCenterZ, roomIndex) {
+
+            function loadAllModels(roomCenterX, roomCenterZ) {
                  const gltfLoader = new GLTFLoader(manager);
+                 const modelFiles = ['1.glb', '2.glb', '3.glb', '4.glb', '5.glb', '6.glb', '8.glb'];
                  modelFiles.forEach((filename) => {
                      const angle = (modelFiles.indexOf(filename) / modelFiles.length) * Math.PI * 2;
                      const radius = 5; const offsetX = Math.cos(angle) * radius; const offsetZ = Math.sin(angle) * radius;
                      gltfLoader.load(`assets/3d/${filename}`, (gltf) => {
-                         const object = gltf.scene; fixMaterial(object);
-                         let s = 1.0; 
-                         if (filename === '3.glb') s = 0.8; if (filename === '5.glb' || filename === '6.glb') s = 1.9; if (filename === '8.glb') s = 1.4;
-                         // base scale logic from previous versions
-                         const box = new THREE.Box3().setFromObject(object); const size = new THREE.Vector3(); box.getSize(size); const maxDim = Math.max(size.x, size.y, size.z);
+                         const obj = gltf.scene; fixMaterial(obj);
+                         let s = 1.0; if (filename === '3.glb') s = 0.8; if (filename === '5.glb' || filename === '6.glb') s = 1.9; if (filename === '8.glb') s = 1.4;
+                         const box = new THREE.Box3().setFromObject(obj); const size = new THREE.Vector3(); box.getSize(size); const maxDim = Math.max(size.x, size.y, size.z);
                          let targetScale = 1.0; if (maxDim > 5) targetScale = 3.0 / maxDim; else if (maxDim < 0.5) targetScale = 2.0 / maxDim;
-                         object.scale.set(targetScale * 2.3 * s, targetScale * 2.3 * s, targetScale * 2.3 * s); // approx multiplier
-                         object.position.set(roomCenterX + offsetX, 0, roomCenterZ + offsetZ);
-                         if (filename === '4.glb') animatedModels.push(object);
-                         addToRoom(object, roomIndex); collidableObjects.push({ box: new THREE.Box3().setFromObject(object) });
-                         
+                         obj.scale.set(targetScale * 2.3 * s, targetScale * 2.3 * s, targetScale * 2.3 * s); 
+                         obj.position.set(roomCenterX + offsetX, 0, roomCenterZ + offsetZ);
+                         if (filename === '4.glb') animatedModels.push(obj);
+                         scene.add(obj); collidableObjects.push({ box: new THREE.Box3().setFromObject(obj) });
                          if(filename === '6.glb') {
                              const loader9 = new GLTFLoader();
                              loader9.load('assets/3d/9.glb', (gltf9) => {
                                  const obj9 = gltf9.scene; fixMaterial(obj9);
                                  const ss = (((1.9 / 4.0) * 1.4) / 3.0) * 1.5; obj9.scale.set(ss, ss, ss);
-                                 const box6 = new THREE.Box3().setFromObject(object);
-                                 const box9 = new THREE.Box3().setFromObject(obj9);
-                                 obj9.position.set(object.position.x, box6.max.y * 1.45 - box9.min.y, object.position.z);
-                                 addToRoom(obj9, roomIndex); animatedModels.push(obj9);
+                                 const box6 = new THREE.Box3().setFromObject(obj); const box9 = new THREE.Box3().setFromObject(obj9);
+                                 obj9.position.set(obj.position.x, box6.max.y * 1.45 - box9.min.y, obj.position.z);
+                                 scene.add(obj9); animatedModels.push(obj9);
                              });
                          }
                      });
                  });
+            }
+
+            function createHangingModel7(x, z, roomCeiling) {
+                 const gltfLoader = new GLTFLoader(manager);
+                 gltfLoader.load('assets/3d/7.glb', (gltf) => {
+                     const obj = gltf.scene; fixMaterial(obj); obj.scale.set(1.4, 1.4, 1.4); obj.position.set(x, 3.0, z);
+                     scene.add(obj); collidableObjects.push({ box: new THREE.Box3().setFromObject(obj) });
+                 });
+            }
+            
+            for (let i = 0; i < roomsCount; i++) {
+                const zCenter = -(i * roomSize);
+                const isDarkRoom = (i === roomsCount - 1);
+                
+                if (!isDarkRoom) {
+                     const rectLightLeft = new THREE.RectAreaLight(0xffffff, 6.0, roomSize - 2, 0.5); rectLightLeft.position.set(-8, 5.5, zCenter); rectLightLeft.lookAt(-20, 1, zCenter); scene.add(rectLightLeft);
+                     const rectLightRight = new THREE.RectAreaLight(0xffffff, 6.0, roomSize - 2, 0.5); rectLightRight.position.set(8, 5.5, zCenter); rectLightRight.lookAt(20, 1, zCenter); scene.add(rectLightRight);
+                     const fillLight = new THREE.PointLight(0xffffff, 2, 20); fillLight.position.set(0, 5, zCenter); scene.add(fillLight);
+                }
+
+                if (!isDarkRoom) {
+                    if (i === 0) { createHangingTV(0, zCenter, roomHeight, 0); }
+                    else if (i === 1) { loadAllModels(0, zCenter); createHangingModel7(0, zCenter, roomHeight); }
+                    else if (i === 2) { createScaffoldingStructure(0, zCenter); }
+                    else { createHangingTV(0, zCenter, roomHeight, Math.random() * Math.PI); }
+                    
+                    const standardW = 2.6; const standardH = 3.25; 
+                    const postersPerSide = 6; const sideSpacing = 3.0; 
+                    const startZ = zCenter + (postersPerSide * sideSpacing / 2) - (sideSpacing / 2); 
+                    for (let k = 0; k < postersPerSide; k++) {
+                        const zPos = startZ - (k * sideSpacing);
+                        addPoster(-9.7, 2.7, zPos, Math.PI/2, standardW, standardH);
+                        addPoster(9.7, 2.7, zPos, -Math.PI/2, standardW, standardH);
+                    }
+                    const offsetX = 6.0; const offsetZ = 0.3; 
+                    addPoster(-offsetX, 2.7, zCenter - roomSize/2 + offsetZ, 0, standardW, standardH);
+                    addPoster(offsetX, 2.7, zCenter - roomSize/2 + offsetZ, 0, standardW, standardH);
+                    if (i > 0) { 
+                       addPoster(-offsetX, 2.7, zCenter + roomSize/2 - offsetZ, Math.PI, standardW, standardH);
+                       addPoster(offsetX, 2.7, zCenter + roomSize/2 - offsetZ, Math.PI, standardW, standardH);
+                    }
+                } else {
+                    const projW = 9.0; const projH = 5.06;
+                    const wallDist = (roomSize/2) - 0.4;
+                    createProjection(0, 3, zCenter - wallDist, projW, projH, 0, videoTex1);
+                    createProjection(-wallDist, 3, zCenter, projW, projH, Math.PI/2, videoTex1);
+                    createProjection(wallDist, 3, zCenter, projW, projH, -Math.PI/2, videoTex1);
+                }
             }
         } // End Desktop
 
@@ -696,7 +624,7 @@
                 video2.play().catch(e => console.log("Video2 block", e));
                 controls.lock();
             } else {
-                if (isMobile) checkRoomLoad(0);
+                // Mobile checks handled automatically by one-room logic
             }
         }
 
@@ -805,7 +733,7 @@
                 bgMusic.volume = 0.65;
                 if(video1 && !isMobile) video1.muted = true;
             } else {
-                const benchTarget = new THREE.Vector3(0, 0, -((roomsCount - 1) * 20)); // Desktop only
+                const benchTarget = new THREE.Vector3(0, 0, -((roomsCount - 1) * 20));
                 const dist = camera.position.distanceTo(new THREE.Vector3(benchTarget.x, camera.position.y, benchTarget.z));
                 if (dist < 5.0) {
                     isSitting = true; 
@@ -814,7 +742,7 @@
                     camera.lookAt(0, 3, benchTarget.z - 20); 
                     camera.fov = 40; camera.updateProjectionMatrix();
                     bgMusic.volume = 0.1;
-                    if(video1 && !isMobile) { video1.muted = false; video1.volume = 1.0; }
+                    if(video1) { video1.muted = false; video1.volume = 1.0; }
                 }
             }
         }
@@ -840,12 +768,8 @@
             const time = performance.now(); 
             const delta = Math.min((time - prevTime) / 1000, 0.1);
             
-            if (!isMobile) {
-                if (revolvingStage) { revolvingStage.rotation.y += 0.1 * delta; }
-                animatedModels.forEach(model => { model.rotation.y -= 1.0 * delta; });
-            } else {
-                animatedModels.forEach(model => { model.rotation.y -= 1.0 * delta; });
-            }
+            if (!isMobile && revolvingStage) { revolvingStage.rotation.y += 0.1 * delta; }
+            animatedModels.forEach(model => { model.rotation.y -= 1.0 * delta; });
             
             if (follower && isFollowing) {
                 follower.lookAt(camera.position);

@@ -169,7 +169,6 @@
 
         /* --- MOBILE RESPONSIVENESS --- */
         @media (max-width: 768px) {
-            /* Збільшено кегль на 25% (60px -> 75px) */
             .title-font { font-size: 75px; margin-bottom: 10px; }
             .director-font { font-size: 16px; max-width: 90%; }
             #start-btn { font-size: 3rem; padding: 20px 60px; }
@@ -211,7 +210,7 @@
                 Роботи від 70 українських митців та мисткинь, три зали, кінотеатр і скульптури.
             </div>
             <div class="bottom-text">
-                Виставка відбувалась у червні 2025 року у квартирній галереї Катерини Хадико. Куратор: Володимир Хоменко, менеджер: Станіслав Калагарець
+                Зараз заграє композиція Олекія Шмурака. Виставка відбувалась у червні 2025 року у квартирній галереї Катерини Хадико. Куратор: Володимир Хоменко, менеджер: Станіслав Калагарець
             </div>
         </div>
     </div>
@@ -233,7 +232,7 @@
                 Роботи від 70 українських митців та мисткинь, три зали, кінотеатр і скульптури.
             </div>
             <div class="bottom-text">
-                Виставка відбувалась у червні 2025 року у квартирній галереї Катерини Хадико. Куратор: Володимир Хоменко, менеджер: Станіслав Калагарець
+                Зараз заграє композиція Олекія Шмурака. Виставка відбувалась у червні 2025 року у квартирній галереї Катерини Хадико. Куратор: Володимир Хоменко, менеджер: Станіслав Калагарець
             </div>
         </div>
     </div>
@@ -893,27 +892,28 @@
             } else if (isMobile && i === roomsCount - 1) {
                 createBox(0, roomHeight/2, zCenter - roomSize/2, roomSize, roomHeight, 0.5, true, false, null, i);
                 
-                // Back wall
-                addPoster(-6, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i);
+                // Back wall (3 posters, tight spacing)
+                const backSpacing = 2.6;
+                addPoster(-backSpacing, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i);
                 addPoster(0, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i);
-                addPoster(6, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i);
+                addPoster(backSpacing, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i);
                 
-                // Entrance wall flanking
+                // Entrance wall flanking (2 posters)
                 const offsetXLast = 6.0; const offsetZLast = 0.3;
                 addPoster(-offsetXLast - 2.0, 2.7, zCenter + roomSize/2 - offsetZLast, Math.PI, 2.2, 2.8, i);
                 addPoster(offsetXLast + 2.0, 2.7, zCenter + roomSize/2 - offsetZLast, Math.PI, 2.2, 2.8, i);
                 
-                // Side walls - MANUAL POSITIONING FOR LAST ROOM to prevent overlap
-                // We reduce count to 4 per side and spread them out safely
-                const standardW = 2.2; const standardH = 2.8; 
-                const postersSideLast = 4; // REDUCED FROM 6
-                const availableWidthLast = 14; 
-                const stepLast = availableWidthLast / (postersSideLast - 1);
+                // Side walls (Tight spacing, centered group)
+                const sideCount = 5; // fit more here
+                const sideGap = 2.6; // Same as other rooms
+                // Math to center the group on the wall
+                // Group width approx: (5-1) * 2.6 = 10.4. Room is 20. Margins ~4.8 each side.
+                const startZ = zCenter + ((sideCount - 1) * sideGap) / 2;
 
-                for (let k = 0; k < postersSideLast; k++) {
-                    const zPos = (zCenter + availableWidthLast/2) - (k * stepLast);
-                    addPoster(-9.7, 2.7, zPos, Math.PI/2, standardW, standardH, i);
-                    addPoster(9.7, 2.7, zPos, -Math.PI/2, standardW, standardH, i);
+                for (let k = 0; k < sideCount; k++) {
+                    const zPos = startZ - (k * sideGap);
+                    addPoster(-9.7, 2.7, zPos, Math.PI/2, 2.2, 2.8, i);
+                    addPoster(9.7, 2.7, zPos, -Math.PI/2, 2.2, 2.8, i);
                 }
 
                 createHangingTV(0, zCenter, roomHeight, 0, i);

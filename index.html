@@ -169,7 +169,8 @@
 
         /* --- MOBILE RESPONSIVENESS --- */
         @media (max-width: 768px) {
-            .title-font { font-size: 60px; margin-bottom: 10px; }
+            /* Збільшено кегль на 25% (60px -> 75px) */
+            .title-font { font-size: 75px; margin-bottom: 10px; }
             .director-font { font-size: 16px; max-width: 90%; }
             #start-btn { font-size: 3rem; padding: 20px 60px; }
             .bottom-text { font-size: 0.7rem; max-width: 90%; }
@@ -902,10 +903,18 @@
                 addPoster(-offsetXLast - 2.0, 2.7, zCenter + roomSize/2 - offsetZLast, Math.PI, 2.2, 2.8, i);
                 addPoster(offsetXLast + 2.0, 2.7, zCenter + roomSize/2 - offsetZLast, Math.PI, 2.2, 2.8, i);
                 
-                // Side walls
+                // Side walls - MANUAL POSITIONING FOR LAST ROOM to prevent overlap
+                // We reduce count to 4 per side and spread them out safely
                 const standardW = 2.2; const standardH = 2.8; 
-                addPoster(-9.7, 2.7, zCenter, Math.PI/2, standardW, standardH, i);
-                addPoster(9.7, 2.7, zCenter, -Math.PI/2, standardW, standardH, i);
+                const postersSideLast = 4; // REDUCED FROM 6
+                const availableWidthLast = 14; 
+                const stepLast = availableWidthLast / (postersSideLast - 1);
+
+                for (let k = 0; k < postersSideLast; k++) {
+                    const zPos = (zCenter + availableWidthLast/2) - (k * stepLast);
+                    addPoster(-9.7, 2.7, zPos, Math.PI/2, standardW, standardH, i);
+                    addPoster(9.7, 2.7, zPos, -Math.PI/2, standardW, standardH, i);
+                }
 
                 createHangingTV(0, zCenter, roomHeight, 0, i);
 
@@ -938,17 +947,20 @@
                     createHangingTV(0, zCenter, roomHeight, rotation, i); 
                 }
                 
-                const standardW = isMobile ? 2.2 : 2.6; 
-                const standardH = isMobile ? 2.8 : 3.25; 
-                
-                const postersPerSide = isMobile ? 6 : 6; 
-                const availableWidth = 14; 
-                const step = availableWidth / (postersPerSide - 1);
-                
-                for (let k = 0; k < postersPerSide; k++) {
-                    const zPos = (zCenter + availableWidth/2) - (k * step);
-                    addPoster(-9.7, 2.7, zPos, Math.PI/2, standardW, standardH, i);
-                    addPoster(9.7, 2.7, zPos, -Math.PI/2, standardW, standardH, i);
+                // STANDARD SIDE WALL LOGIC (Skip for last room on mobile as it's handled above)
+                if (!(isMobile && i === roomsCount - 1)) {
+                    const standardW = isMobile ? 2.2 : 2.6; 
+                    const standardH = isMobile ? 2.8 : 3.25; 
+                    
+                    const postersPerSide = isMobile ? 6 : 6; 
+                    const availableWidth = 14; 
+                    const step = availableWidth / (postersPerSide - 1);
+                    
+                    for (let k = 0; k < postersPerSide; k++) {
+                        const zPos = (zCenter + availableWidth/2) - (k * step);
+                        addPoster(-9.7, 2.7, zPos, Math.PI/2, standardW, standardH, i);
+                        addPoster(9.7, 2.7, zPos, -Math.PI/2, standardW, standardH, i);
+                    }
                 }
             } else {
                 const projW = 9.0; const projH = 5.06;

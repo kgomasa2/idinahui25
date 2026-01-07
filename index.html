@@ -4,10 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Іді Нахуй</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
-
-        /* ПІДКЛЮЧЕННЯ ШРИФТІВ - Переконайтесь, що файли лежать в папці assets */
+        /* ПІДКЛЮЧЕННЯ ШРИФТІВ */
         @font-face {
             font-family: 'KTFCompact';
             src: url('assets/KTFCompactTrial-Black.otf') format('opentype');
@@ -26,7 +25,7 @@
         /* ЗАГАЛЬНІ СТИЛІ ДЛЯ ЕКРАНІВ */
         .ui-screen {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: #E6E6E6; /* Світло-сірий фон як на макеті */
+            background: #E6E6E6; 
             z-index: 100;
             display: flex; flex-direction: column; align-items: center; justify-content: space-between;
             color: #000;
@@ -39,87 +38,75 @@
         .title-font {
             font-family: 'KTFCompact', sans-serif;
             text-transform: uppercase;
-            font-size: 4rem; /* Великий заголовок */
-            line-height: 1;
-            margin-bottom: 20px;
+            font-size: 169px; /* Десктоп розмір */
+            line-height: 0.8;
+            margin-bottom: 0px; /* Прибрано відступ */
+            position: relative;
+            z-index: 10;
         }
 
         .director-font {
             font-family: 'DirectorUA', monospace;
-            font-size: 1.2rem;
-            line-height: 1.4;
-            max-width: 800px;
+            font-size: 30px; /* Десктоп розмір */
+            line-height: 1.1;
+            max-width: 900px;
             margin: 0 auto;
+            position: relative;
+            z-index: 10;
         }
 
-        .helvetica-font {
+        .bottom-text {
             font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
             font-size: 0.9rem;
-            line-height: 1.07; /* 107% */
-            letter-spacing: -0.03em; /* -3% */
-            color: #333;
-            max-width: 700px;
+            line-height: 1.07;
+            letter-spacing: -0.03em;
+            color: #888; /* Сірий колір */
+            text-transform: uppercase; /* Капсом */
+            max-width: 800px;
             margin: 0 auto;
+            position: relative;
+            z-index: 10;
         }
 
-        /* --- LOADING SCREEN SPECIFIC --- */
+        /* --- LOADING SCREEN --- */
         #loading-screen { z-index: 100; transition: opacity 0.8s ease-out; }
         
         .loader-center {
-            width: 100%;
-            max-width: 600px;
-            position: relative;
-            padding: 40px 0;
+            width: 100%; max-width: 600px; position: relative; padding: 40px 0; z-index: 10;
         }
-
-        #progress-line-bg {
-            width: 100%;
-            height: 4px;
-            background: #ccc;
-            position: relative;
-            margin-top: 20px;
-        }
-
-        #progress-line-fill {
-            position: absolute;
-            top: 0; left: 0;
-            height: 100%;
-            width: 0%;
-            background: #000;
-            transition: width 0.1s linear;
-        }
-
+        #progress-line-bg { width: 100%; height: 4px; background: #ccc; position: relative; margin-top: 20px; }
+        #progress-line-fill { position: absolute; top: 0; left: 0; height: 100%; width: 0%; background: #000; transition: width 0.1s linear; }
         #angel-loader {
-            position: absolute;
-            top: -50px; /* Підняти ангела над лінією */
-            left: 0%;
-            width: 50px; /* Розмір ангела, підлаштуйте під реальний png */
-            height: auto;
-            transform: translateX(-50%);
-            transition: left 0.1s linear;
+            position: absolute; top: -50px; left: 0%; width: 50px; height: auto;
+            transform: translateX(-50%); transition: left 0.1s linear;
         }
 
-        /* --- START SCREEN SPECIFIC --- */
-        #start-screen { z-index: 50; display: none; }
+        /* --- START SCREEN --- */
+        #start-screen { z-index: 50; display: none; overflow: hidden; }
         
+        /* Канвас фізики буде фоном */
+        #physics-canvas {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 1; pointer-events: auto; /* Щоб ховер працював */
+        }
+
         #start-btn {
-            background: #fff;
-            color: #000;
-            border: none;
+            background: #fff; color: #000; border: none;
             padding: 30px 100px;
             font-family: 'KTFCompact', sans-serif;
             font-size: 5rem;
-            border-radius: 100px; /* Округла кнопка */
+            border-radius: 100px;
             cursor: pointer;
             text-transform: uppercase;
             box-shadow: 0 10px 30px rgba(0,0,0,0.1);
             transition: transform 0.2s, box-shadow 0.2s;
-            margin: 40px 0;
+            margin: 20px 0;
+            position: relative; z-index: 10;
         }
         #start-btn:hover { transform: scale(1.05); }
         #start-btn:active { transform: scale(0.95); }
 
-        /* ІНШІ ЕЛЕМЕНТИ */
+        /* --- IN-GAME UI --- */
         #cursor {
             position: absolute; top: 50%; left: 50%; width: 8px; height: 8px; background: white;
             border-radius: 50%; transform: translate(-50%, -50%); opacity: 0.8; pointer-events: none; mix-blend-mode: difference;
@@ -133,7 +120,7 @@
             border-radius: 20px; font-size: 0.9rem; display: none; pointer-events: none; z-index: 20;
         }
         
-        /* Mobile UI Elements */
+        /* Mobile Elements */
         .joystick-zone {
             position: absolute; width: 100px; height: 100px; 
             background: rgba(255, 255, 255, 0.1); border-radius: 50%;
@@ -145,17 +132,14 @@
             background: rgba(255, 255, 255, 0.5); border-radius: 50%;
             transform: translate(-50%, -50%); pointer-events: none;
         }
-        
         #mobile-sit-btn {
             position: absolute; right: 20px; bottom: 40px;
             width: 70px; height: 70px; border-radius: 50%;
             background: rgba(0, 0, 0, 0.6); border: 2px solid white;
             color: white; font-weight: bold; display: none; z-index: 45;
             align-items: center; justify-content: center; cursor: pointer;
-            backdrop-filter: blur(5px);
-            box-shadow: 0 0 10px rgba(255,255,255,0.2);
+            backdrop-filter: blur(5px); box-shadow: 0 0 10px rgba(255,255,255,0.2);
         }
-
         #view-btn {
             position: absolute; bottom: 130px; left: 50%; transform: translateX(-50%);
             padding: 10px 25px; border-radius: 25px;
@@ -176,20 +160,23 @@
         #modal-img { max-height: 70vh; max-width: 95%; box-shadow: 0 10px 30px rgba(0,0,0,0.5); margin-bottom: 20px; object-fit: contain; }
         #modal-info { max-width: 600px; padding: 0 20px; }
         #modal-title { font-weight: 800; font-size: 1.5rem; margin: 0 0 5px 0; text-transform: uppercase; }
-        
         #modal-close-btn {
-            position: absolute; top: 30px; right: 30px;
-            width: 40px; height: 40px; border-radius: 50%;
+            position: absolute; top: 30px; right: 30px; width: 40px; height: 40px; border-radius: 50%;
             background: rgba(255, 255, 255, 0.2); border: 1px solid white;
             display: flex; align-items: center; justify-content: center;
             font-size: 1.2rem; cursor: pointer; pointer-events: auto;
         }
 
-        /* Responsive text sizes for mobile */
+        /* --- MOBILE RESPONSIVENESS --- */
         @media (max-width: 768px) {
-            .title-font { font-size: 2.5rem; }
-            .director-font { font-size: 1rem; }
+            .title-font { font-size: 60px; margin-bottom: 10px; }
+            .director-font { font-size: 16px; max-width: 90%; }
             #start-btn { font-size: 3rem; padding: 20px 60px; }
+            .bottom-text { font-size: 0.7rem; max-width: 90%; }
+            
+            /* Канвас фізики на мобільному можна приховати або спростити, 
+               але користувач просив "тільки на десктоп", тому приховаємо */
+            #physics-canvas { display: none; }
         }
     </style>
     
@@ -225,13 +212,15 @@
             <div class="director-font" style="margin-bottom: 20px;">
                 Роботи від 70 українських митців та мисткинь, три зали, кінотеатр і скульптури.
             </div>
-            <div class="helvetica-font">
+            <div class="bottom-text">
                 Виставка відбувалась у червні 2025 року у квартирній галереї Катерини Хадико. Куратор: Володимир Хоменко, менеджер: Станіслав Калагарець
             </div>
         </div>
     </div>
 
     <div id="start-screen" class="ui-screen">
+        <div id="physics-canvas"></div>
+
         <div class="top-content">
             <div class="title-font">“ІДІ НАХУЙ”</div>
             <div class="director-font">
@@ -245,7 +234,7 @@
             <div class="director-font" style="margin-bottom: 20px;">
                 Роботи від 70 українських митців та мисткинь, три зали, кінотеатр і скульптури.
             </div>
-            <div class="helvetica-font">
+            <div class="bottom-text">
                 Виставка відбувалась у червні 2025 року у квартирній галереї Катерини Хадико. Куратор: Володимир Хоменко, менеджер: Станіслав Калагарець
             </div>
         </div>
@@ -287,14 +276,104 @@
             THREE.Cache.enabled = false;
         }
 
+        // --- PHYSICS BACKGROUND (Desktop Only) ---
+        function initGravityBackground() {
+            if (isMobile) return;
+            
+            const Engine = Matter.Engine,
+                  Render = Matter.Render,
+                  Runner = Matter.Runner,
+                  Bodies = Matter.Bodies,
+                  Composite = Matter.Composite,
+                  Mouse = Matter.Mouse,
+                  MouseConstraint = Matter.MouseConstraint,
+                  Events = Matter.Events;
+
+            const engine = Engine.create();
+            const world = engine.world;
+            
+            const container = document.getElementById('physics-canvas');
+            const width = window.innerWidth;
+            const height = window.innerHeight;
+
+            const render = Render.create({
+                element: container,
+                engine: engine,
+                options: {
+                    width: width,
+                    height: height,
+                    background: 'transparent',
+                    wireframes: false
+                }
+            });
+
+            // Walls (invisible)
+            const ground = Bodies.rectangle(width / 2, height + 50, width, 100, { isStatic: true, render: { visible: false } });
+            const leftWall = Bodies.rectangle(-50, height / 2, 100, height, { isStatic: true, render: { visible: false } });
+            const rightWall = Bodies.rectangle(width + 50, height / 2, 100, height, { isStatic: true, render: { visible: false } });
+
+            Composite.add(world, [ground, leftWall, rightWall]);
+
+            // Falling Objects (fon1 - fon6)
+            const items = [];
+            for (let i = 1; i <= 6; i++) {
+                const x = Math.random() * (width - 200) + 100;
+                const y = -Math.random() * 500 - 100; // Start above screen
+                // Масштабуємо елементи, бо вони можуть бути великими
+                const scale = 0.6; 
+                const item = Bodies.rectangle(x, y, 150 * scale, 150 * scale, {
+                    restitution: 0.8, // Bounciness
+                    render: {
+                        sprite: {
+                            texture: `assets/fon${i}.png`,
+                            xScale: scale,
+                            yScale: scale
+                        }
+                    }
+                });
+                items.push(item);
+            }
+            Composite.add(world, items);
+
+            // Mouse Interaction
+            const mouse = Mouse.create(render.canvas);
+            
+            // Hover effect logic
+            Events.on(engine, 'beforeUpdate', function() {
+                const mousePos = mouse.position;
+                items.forEach(body => {
+                    const dx = body.position.x - mousePos.x;
+                    const dy = body.position.y - mousePos.y;
+                    const dist = Math.sqrt(dx*dx + dy*dy);
+                    
+                    if (dist < 100) { // Interaction radius
+                        const forceMagnitude = 0.02;
+                        Matter.Body.applyForce(body, body.position, {
+                            x: (dx / dist) * forceMagnitude,
+                            y: (dy / dist) * forceMagnitude
+                        });
+                    }
+                });
+            });
+
+            // Start simulation
+            Render.run(render);
+            const runner = Runner.create();
+            Runner.run(runner, engine);
+
+            // Stop physics when game starts to save resources
+            document.getElementById('start-btn').addEventListener('click', () => {
+                Render.stop(render);
+                Runner.stop(runner);
+                container.innerHTML = ''; // Clear canvas
+            });
+        }
+
         // --- LOADING SYSTEM ---
         const loadStartTime = Date.now();
         const minLoadTime = 4000; 
-        
-        // UI Elements for loader
         const progressFill = document.getElementById('progress-line-fill');
         const angelLoader = document.getElementById('angel-loader');
-
         const manager = new THREE.LoadingManager();
         
         function updateLoaderUI(percent) {
@@ -305,12 +384,14 @@
         function finishLoading() {
             updateLoaderUI(100);
             
+            // Initialize gravity only when loading finishes and start screen appears
             setTimeout(() => {
                 const loader = document.getElementById('loading-screen');
                 loader.style.opacity = 0;
                 setTimeout(() => {
                     loader.style.display = 'none';
                     document.getElementById('start-screen').style.display = 'flex';
+                    initGravityBackground(); // Start Physics
                     if (isMobile) checkRoomLoad(0);
                 }, 800); 
             }, 500);
@@ -342,6 +423,7 @@
             };
         }
 
+        // --- THREE JS INIT ---
         const scene = new THREE.Scene();
         scene.background = new THREE.Color(0xffffff); 
         scene.fog = new THREE.Fog(0xffffff, 5, 50); 
@@ -366,7 +448,6 @@
             renderer.shadowMap.enabled = true;
             renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         }
-        
         document.body.appendChild(renderer.domElement);
 
         const bgMusic = document.getElementById('bgMusic');
@@ -395,12 +476,11 @@
         let videoTex1, videoTex2;
 
         if (isMobile) {
-            const cvs = document.createElement('canvas');
-            cvs.width = 2; cvs.height = 2;
-            const ctx = cvs.getContext('2d');
-            ctx.fillStyle = '#050510'; ctx.fillRect(0,0,2,2);
-            videoTex1 = new THREE.CanvasTexture(cvs);
-            videoTex2 = new THREE.CanvasTexture(cvs);
+            // Static texture for mobile TV
+            const tvStaticTex = textureLoader.load('assets/for tv.jpg');
+            tvStaticTex.colorSpace = THREE.SRGBColorSpace;
+            videoTex1 = tvStaticTex;
+            videoTex2 = tvStaticTex;
         } else {
             videoTex1 = new THREE.VideoTexture(video1);
             videoTex2 = new THREE.VideoTexture(video2);
@@ -444,7 +524,6 @@
             const geo = new THREE.PlaneGeometry(w, h);
             
             let mat;
-            
             if (isMobile) {
                 mat = placeholderMat.clone();
                 if (!roomPosters[roomIndex]) roomPosters[roomIndex] = [];
@@ -480,7 +559,9 @@
 
         function checkRoomLoad(currentRoom) {
             if (!isMobile) return;
-            const keepLoaded = [currentRoom, currentRoom + 1];
+            // More aggressive loading: Previous, Current, Next, and Next+1
+            const keepLoaded = [currentRoom - 1, currentRoom, currentRoom + 1, currentRoom + 2];
+            
             for (let idx = 0; idx < 5; idx++) {
                 if (!keepLoaded.includes(idx) && roomStatus[idx] === 'loaded') {
                     unloadRoomTextures(idx);
@@ -548,10 +629,9 @@
         }
 
         function createHangingTV(x, z, ceilingHeight, rotationY = 0, roomIndex) {
-            if (isMobile) return;
-
             const tvW = 1.78; const tvH = 3.16; const tvD = 0.1;
             const tvGeo = new THREE.BoxGeometry(tvW, tvH, tvD);
+            // Use videoTex2 which is static on mobile, video on desktop
             const screenMat = new THREE.MeshBasicMaterial({ map: videoTex2 });
             const materials = [tvFrameMat, tvFrameMat, tvFrameMat, tvFrameMat, screenMat, tvFrameMat];
             const tv = new THREE.Mesh(tvGeo, materials);
@@ -566,9 +646,12 @@
             const c1 = new THREE.Mesh(cableGeo, cableMat); c1.position.set(-tvW*0.3, tvH/2, 0); tv.add(c1);
             const c2 = new THREE.Mesh(cableGeo, cableMat); c2.position.set(tvW*0.3, tvH/2, 0); tv.add(c2);
             
-            const screenLight = new THREE.PointLight(0xffffff, 2.0, 4.0); 
-            screenLight.position.set(0, 0, 1.0); 
-            tv.add(screenLight); 
+            // Add light only on desktop to save mobile performance
+            if(!isMobile) {
+                const screenLight = new THREE.PointLight(0xffffff, 2.0, 4.0); 
+                screenLight.position.set(0, 0, 1.0); 
+                tv.add(screenLight); 
+            }
             
             tv.userData.isObstacle = true; 
             collidableObjects.push({ customType: 'cylinder', mesh: tv, radius: 0.1, position: tv.position });
@@ -593,10 +676,9 @@
             revolvingStage = new THREE.Group();
             revolvingStage.position.set(x, 0, z);
             
-            if (isMobile) {
-               // Empty on Mobile
-            } else {
-                const platform = new THREE.Mesh(new THREE.CylinderGeometry(3.5, 3.5, 0.2, 32), new THREE.MeshStandardMaterial({ color: 0x333333, roughness: 0.8, metalness: 0.5 }));
+            if (!isMobile) {
+                // ... (Existing Desktop Scaffolding Logic - Unchanged) ...
+                 const platform = new THREE.Mesh(new THREE.CylinderGeometry(3.5, 3.5, 0.2, 32), new THREE.MeshStandardMaterial({ color: 0x333333, roughness: 0.8, metalness: 0.5 }));
                 platform.position.y = 0.1; platform.receiveShadow = !isMobile; revolvingStage.add(platform);
                 collidableObjects.push({ box: new THREE.Box3().setFromObject(platform) }); 
 
@@ -753,14 +835,12 @@
 
         // --- 5. WORLD GENERATION ---
         const roomsCount = isMobile ? 4 : 5;
-        
         const roomSize = 20; const roomHeight = 6; 
         const whiteFloorL = roomSize * (roomsCount - (isMobile ? 0 : 1)); 
         const floor1 = new THREE.Mesh(new THREE.PlaneGeometry(roomSize, whiteFloorL), floorMat);
         floor1.rotation.x = -Math.PI / 2; floor1.position.z = -whiteFloorL / 2 + roomSize / 2; floor1.receiveShadow = !isMobile; scene.add(floor1);
         
         const zLastRoom = -((roomsCount - 1) * roomSize);
-        // FIX: Sit in LAST room only. Init far away so Room 0 doesn't trigger it.
         let benchPosition = new THREE.Vector3(0, -9999, 0); 
         
         if (!isMobile) {
@@ -772,6 +852,7 @@
             const zCenter = -(i * roomSize);
             const isDarkRoom = (!isMobile && i === roomsCount - 1);
             
+            // Light setup
             if (!isDarkRoom) {
                 if (isMobile) {
                     const roomLight = new THREE.PointLight(0xffffff, 1.5, 25);
@@ -786,6 +867,7 @@
                 }
             }
 
+            // Walls
             createBox(-roomSize/2, roomHeight/2, zCenter, 0.5, roomHeight, roomSize, true, isDarkRoom, null, i); 
             createBox(roomSize/2, roomHeight/2, zCenter, 0.5, roomHeight, roomSize, true, isDarkRoom, null, i); 
             
@@ -795,77 +877,101 @@
             }
             
             if (i === 0) {
+                // First Room
                 createBox(0, roomHeight/2, zCenter + roomSize/2, roomSize, roomHeight, 0.5, true, isDarkRoom, null, i);
                 createDoorWall(zCenter - roomSize/2, roomSize, roomHeight, isDarkRoom, i);
                 
                 if (isMobile) {
-                    addPoster( -4.5, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i); 
-                    addPoster( 4.5, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i);  
+                    // Posters flanking door in Room 0 (Increased spacing to fix overlap)
+                    addPoster( -6.0, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i); 
+                    addPoster( 6.0, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i);  
                 }
 
             } else if (isDarkRoom) {
+                // Desktop Dark Room (Bench logic included)
                 createBox(0, roomHeight/2, zCenter - roomSize/2, roomSize, roomHeight, 0.5, true, isDarkRoom, null, i);
                 const darkCeiling = new THREE.Mesh(new THREE.PlaneGeometry(roomSize, roomSize), darkWallMat);
                 darkCeiling.rotation.x = Math.PI / 2; darkCeiling.position.set(0, roomHeight, zCenter); addToRoom(darkCeiling, i);
                 benchPosition.set(0, 0.4, zCenter);
                 createBox(0, 0.4, zCenter, 3.5, 0.8, 1.5, true, false, benchMat, i);
             } else if (isMobile && i === roomsCount - 1) {
+                // Mobile Last Room (No Bench, Evenly distributed posters)
                 createBox(0, roomHeight/2, zCenter - roomSize/2, roomSize, roomHeight, 0.5, true, false, null, i);
-                // Create bench for mobile in last room -- REMOVED AS REQUESTED
-                // benchPosition.set(0, 0.4, zCenter);
-                // createBox(0, 0.4, zCenter, 3.5, 0.8, 1.5, true, false, benchMat, i);
                 
+                // Back wall (3 posters evenly spaced)
                 addPoster(-6, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i);
                 addPoster(0, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i);
                 addPoster(6, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i);
                 
+                // Entrance wall flanking (Increased spacing to fix overlap)
                 const offsetXLast = 6.0; const offsetZLast = 0.3;
-                addPoster(-offsetXLast - 3.0, 2.7, zCenter + roomSize/2 - offsetZLast, Math.PI, 2.2, 2.8, i);
-                addPoster(offsetXLast + 3.0, 2.7, zCenter + roomSize/2 - offsetZLast, Math.PI, 2.2, 2.8, i);
+                addPoster(-offsetXLast - 2.0, 2.7, zCenter + roomSize/2 - offsetZLast, Math.PI, 2.2, 2.8, i);
+                addPoster(offsetXLast + 2.0, 2.7, zCenter + roomSize/2 - offsetZLast, Math.PI, 2.2, 2.8, i);
+                
+                // Side walls for last room on mobile
+                const standardW = 2.2; const standardH = 2.8; 
+                addPoster(-9.7, 2.7, zCenter, Math.PI/2, standardW, standardH, i);
+                addPoster(9.7, 2.7, zCenter, -Math.PI/2, standardW, standardH, i);
+
+                // Add TV in last room for mobile too
+                createHangingTV(0, zCenter, roomHeight, 0, i);
 
             } else {
+                // Middle Rooms
                 createDoorWall(zCenter - roomSize/2, roomSize, roomHeight, false, i);
                 
                 if (isMobile) {
-                    addPoster( -4.5, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i); 
-                    addPoster( 4.5, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i);  
+                    // Flanking posters for middle rooms (Increased gap)
+                    addPoster( -6.0, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i); 
+                    addPoster( 6.0, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i);  
                     
-                    addPoster( -4.5, 2.7, zCenter + roomSize/2 - 0.3, Math.PI, 2.2, 2.8, i); 
-                    addPoster( 4.5, 2.7, zCenter + roomSize/2 - 0.3, Math.PI, 2.2, 2.8, i); 
+                    addPoster( -6.0, 2.7, zCenter + roomSize/2 - 0.3, Math.PI, 2.2, 2.8, i); 
+                    addPoster( 6.0, 2.7, zCenter + roomSize/2 - 0.3, Math.PI, 2.2, 2.8, i); 
                 }
             }
             
             if (!isDarkRoom) {
-                if (i === 0) { createHangingTV(0, zCenter, roomHeight, 0, i); } 
-                else if (i === 1) { loadAllModels(0, zCenter, i); createHangingModel7(0, zCenter, roomHeight, i); } 
-                else if (i === 2) { createScaffoldingStructure(0, zCenter, i); } 
+                // Content for rooms
+                if (i === 0) { 
+                    // Room 0: TV on back wall, no models
+                    createHangingTV(0, zCenter, roomHeight, 0, i); 
+                } 
+                else if (i === 1) { 
+                    // Room 1: 3D Models, NO TV
+                    loadAllModels(0, zCenter, i); 
+                    createHangingModel7(0, zCenter, roomHeight, i); 
+                } 
+                else if (i === 2) { 
+                    createScaffoldingStructure(0, zCenter, i); 
+                    // Add TV to scaffolding room on mobile
+                    if (isMobile) createHangingTV(0, zCenter, roomHeight, Math.PI, i);
+                } 
                 else { 
+                    // Other rooms get TVs
                     let rotation = (i === 3) ? 0 : Math.random() * Math.PI;
                     createHangingTV(0, zCenter, roomHeight, rotation, i); 
                 }
                 
+                // Side Wall Posters
+                // Math to ensure even distribution and no overlap
                 const standardW = isMobile ? 2.2 : 2.6; 
                 const standardH = isMobile ? 2.8 : 3.25; 
-                const postersPerSide = isMobile ? 7 : 6; 
-                // CHANGE: Increased mobile sideSpacing to fix overlap (2.2 -> 2.6)
-                const sideSpacing = isMobile ? 2.6 : 3.0; 
                 
-                const startZ = zCenter + (postersPerSide * sideSpacing / 2) - (sideSpacing / 2); 
+                // On mobile, reduce count to fit better with gaps
+                const postersPerSide = isMobile ? 6 : 6; 
+                
+                // Calculate total available width for posters: Room 20 - (2 * 2 corner gap) = 16
+                // Spacing logic
+                const availableWidth = 14; 
+                const step = availableWidth / (postersPerSide - 1);
+                
                 for (let k = 0; k < postersPerSide; k++) {
-                    const zPos = startZ - (k * sideSpacing);
+                    const zPos = (zCenter + availableWidth/2) - (k * step);
                     addPoster(-9.7, 2.7, zPos, Math.PI/2, standardW, standardH, i);
                     addPoster(9.7, 2.7, zPos, -Math.PI/2, standardW, standardH, i);
                 }
-                
-                if (i > 0 && !(isMobile && i === roomsCount - 1)) {
-                    const offsetX = 6.0; const offsetZ = 0.3; 
-                    addPoster(-offsetX, 2.7, zCenter - roomSize/2 + offsetZ, 0, standardW, standardH, i);
-                    addPoster(offsetX, 2.7, zCenter - roomSize/2 + offsetZ, 0, standardW, standardH, i);
-                    
-                    addPoster(-offsetX, 2.7, zCenter + roomSize/2 - offsetZ, Math.PI, standardW, standardH, i);
-                    addPoster(offsetX, 2.7, zCenter + roomSize/2 - offsetZ, Math.PI, standardW, standardH, i);
-                }
             } else {
+                // Desktop Dark Room Video Projection
                 const projW = 9.0; const projH = 5.06;
                 const wallDist = (roomSize/2) - 0.4;
                 createProjection(0, 3, zCenter - wallDist, projW, projH, 0, videoTex1, i);
@@ -1037,6 +1143,7 @@
             document.addEventListener('touchmove', handleTouchMove, {passive: false});
             document.addEventListener('touchend', handleTouchEnd);
             document.addEventListener('click', () => { if (isModalOpen) closeModal(); });
+            // Sit button removed for mobile in last room, keeping code just in case needed elsewhere but hidden
             mobileSitBtn.addEventListener('touchstart', (e) => { e.stopPropagation(); toggleSit(); });
             viewBtn.addEventListener('touchstart', (e) => { 
                 e.preventDefault(); e.stopPropagation(); 
@@ -1169,15 +1276,13 @@
 
             if (!isSitting) {
                 const distToBench = camera.position.distanceTo(new THREE.Vector3(benchPosition.x, camera.position.y, benchPosition.z));
-                // FIX: Added STRICT room check for mobile sit button
-                // It only shows if you are close AND in the last room (room index 3 on mobile)
-                // UPDATE: isMobile removed because bench is removed
-                if (distToBench < 5.0 && (!isMobile)) { 
+                // Only show hint on desktop since bench removed on mobile
+                if (!isMobile && distToBench < 5.0) { 
                      sitHint.style.display = 'block'; 
                 } 
                 else { 
                     sitHint.style.display = 'none'; 
-                    if (isMobile && !isSitting) mobileSitBtn.style.display = 'none'; 
+                    if (isMobile) mobileSitBtn.style.display = 'none'; 
                 }
                 
                 velocity.x -= velocity.x * 10.0 * delta; velocity.z -= velocity.z * 10.0 * delta; velocity.y -= 30.0 * delta; 
@@ -1228,12 +1333,12 @@
                 
                 if (isMobile) {
                     const currentRoom = Math.max(0, Math.round(-camera.position.z / 20));
+                    // Always check room load to ensure gray boxes don't appear
                     if (currentRoom !== lastRoomIndex) {
                         lastRoomIndex = currentRoom;
                         checkRoomLoad(currentRoom);
                     }
                     
-                    // Throttle raycaster
                     frameCount++;
                     if (frameCount % 5 === 0 && !isModalOpen) checkIntersectionAndClick();
                 }

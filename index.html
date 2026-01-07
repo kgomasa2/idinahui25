@@ -892,22 +892,20 @@
             } else if (isMobile && i === roomsCount - 1) {
                 createBox(0, roomHeight/2, zCenter - roomSize/2, roomSize, roomHeight, 0.5, true, false, null, i);
                 
-                // Back wall (3 posters, tight spacing)
-                const backSpacing = 2.6;
-                addPoster(-backSpacing, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i);
-                addPoster(0, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i);
-                addPoster(backSpacing, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i);
+                // Back wall (5 posters total now: 3 original + 2 moved from entrance)
+                // Spacing: 2.6 (standard)
+                const backGap = 2.6;
+                addPoster(-backGap * 2, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i); 
+                addPoster(-backGap, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i); 
+                addPoster(0, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i); 
+                addPoster(backGap, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i); 
+                addPoster(backGap * 2, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i); 
                 
-                // Entrance wall flanking (2 posters)
-                const offsetXLast = 6.0; const offsetZLast = 0.3;
-                addPoster(-offsetXLast - 2.0, 2.7, zCenter + roomSize/2 - offsetZLast, Math.PI, 2.2, 2.8, i);
-                addPoster(offsetXLast + 2.0, 2.7, zCenter + roomSize/2 - offsetZLast, Math.PI, 2.2, 2.8, i);
+                // Entrance wall flanking - CLEARED (Moved to back)
                 
-                // Side walls (Tight spacing, centered group)
-                const sideCount = 5; // fit more here
-                const sideGap = 2.6; // Same as other rooms
-                // Math to center the group on the wall
-                // Group width approx: (5-1) * 2.6 = 10.4. Room is 20. Margins ~4.8 each side.
+                // Side walls (5 posters per side, centered group, standard spacing 2.6)
+                const sideCount = 5; 
+                const sideGap = 2.6; 
                 const startZ = zCenter + ((sideCount - 1) * sideGap) / 2;
 
                 for (let k = 0; k < sideCount; k++) {
@@ -940,7 +938,7 @@
                 } 
                 else if (i === 2) { 
                     createScaffoldingStructure(0, zCenter, i); 
-                    if (isMobile) createHangingTV(0, zCenter, roomHeight, Math.PI, i);
+                    if (isMobile) createHangingTV(0, zCenter, roomHeight, 0, i); // Rotated to 0 to face viewer
                 } 
                 else { 
                     let rotation = (i === 3) ? 0 : Math.random() * Math.PI;

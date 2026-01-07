@@ -7,45 +7,119 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
 
-        body { margin: 0; overflow: hidden; background-color: #000; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; touch-action: none; user-select: none; -webkit-user-select: none; }
-        
-        /* LOADING SCREEN */
-        #loading-screen {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: #050505; z-index: 100;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            color: #fff; font-family: 'Share Tech Mono', monospace;
-            transition: opacity 0.8s ease-out;
+        /* ПІДКЛЮЧЕННЯ ШРИФТІВ - Переконайтесь, що файли лежать в папці assets */
+        @font-face {
+            font-family: 'KTFCompact';
+            src: url('assets/KTFCompactTrial-Black.otf') format('opentype');
         }
-        
-        #loader-content { width: 80%; max-width: 400px; text-align: center; }
-        #loader-title { font-size: 1.2rem; letter-spacing: 4px; margin-bottom: 30px; border-bottom: 1px solid #333; padding-bottom: 10px; display: inline-block; }
-        #progress-container { width: 100%; height: 4px; background: #111; position: relative; overflow: hidden; margin-bottom: 15px; box-shadow: 0 0 10px rgba(0,0,0,0.5); }
-        #progress-fill { width: 0%; height: 100%; background: #fff; box-shadow: 0 0 15px rgba(255, 255, 255, 0.8); transition: width 0.1s linear; }
-        #loader-percent { font-size: 3rem; font-weight: bold; margin-bottom: 10px; text-shadow: 0 0 10px rgba(255, 255, 255, 0.3); }
-        #loader-status { font-size: 0.8rem; color: #888; text-transform: uppercase; letter-spacing: 1px; height: 20px; }
+        @font-face {
+            font-family: 'DirectorUA';
+            src: url('assets/DirectorUAVariableVF.ttf') format('truetype');
+        }
 
-        #start-screen {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.9); z-index: 50;
-            display: none;
-            flex-direction: column; align-items: center; justify-content: center;
-            color: white; text-align: center; backdrop-filter: blur(5px);
-            padding: 20px; box-sizing: border-box;
+        body { 
+            margin: 0; overflow: hidden; background-color: #000; 
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; 
+            touch-action: none; user-select: none; -webkit-user-select: none; 
         }
-        #start-screen h1 { font-size: 1.8rem; max-width: 100%; line-height: 1.4; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 2rem; }
+        
+        /* ЗАГАЛЬНІ СТИЛІ ДЛЯ ЕКРАНІВ */
+        .ui-screen {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: #E6E6E6; /* Світло-сірий фон як на макеті */
+            z-index: 100;
+            display: flex; flex-direction: column; align-items: center; justify-content: space-between;
+            color: #000;
+            padding: 40px 20px;
+            box-sizing: border-box;
+            text-align: center;
+        }
+
+        /* ТИПОГРАФІЯ */
+        .title-font {
+            font-family: 'KTFCompact', sans-serif;
+            text-transform: uppercase;
+            font-size: 4rem; /* Великий заголовок */
+            line-height: 1;
+            margin-bottom: 20px;
+        }
+
+        .director-font {
+            font-family: 'DirectorUA', monospace;
+            font-size: 1.2rem;
+            line-height: 1.4;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .helvetica-font {
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            font-size: 0.9rem;
+            line-height: 1.07; /* 107% */
+            letter-spacing: -0.03em; /* -3% */
+            color: #333;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        /* --- LOADING SCREEN SPECIFIC --- */
+        #loading-screen { z-index: 100; transition: opacity 0.8s ease-out; }
+        
+        .loader-center {
+            width: 100%;
+            max-width: 600px;
+            position: relative;
+            padding: 40px 0;
+        }
+
+        #progress-line-bg {
+            width: 100%;
+            height: 4px;
+            background: #ccc;
+            position: relative;
+            margin-top: 20px;
+        }
+
+        #progress-line-fill {
+            position: absolute;
+            top: 0; left: 0;
+            height: 100%;
+            width: 0%;
+            background: #000;
+            transition: width 0.1s linear;
+        }
+
+        #angel-loader {
+            position: absolute;
+            top: -50px; /* Підняти ангела над лінією */
+            left: 0%;
+            width: 50px; /* Розмір ангела, підлаштуйте під реальний png */
+            height: auto;
+            transform: translateX(-50%);
+            transition: left 0.1s linear;
+        }
+
+        /* --- START SCREEN SPECIFIC --- */
+        #start-screen { z-index: 50; display: none; }
         
         #start-btn {
-            margin-top: 30px; padding: 20px 60px; font-size: 1.2rem; font-weight: bold;
-            color: black; background: white; border: none; border-radius: 50px;
-            cursor: pointer; text-transform: uppercase; letter-spacing: 2px;
-            transition: transform 0.2s; z-index: 51; box-shadow: 0 0 20px rgba(255,255,255,0.5);
+            background: #fff;
+            color: #000;
+            border: none;
+            padding: 30px 100px;
+            font-family: 'KTFCompact', sans-serif;
+            font-size: 5rem;
+            border-radius: 100px; /* Округла кнопка */
+            cursor: pointer;
+            text-transform: uppercase;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin: 40px 0;
         }
-        #start-btn:active { transform: scale(0.95); background: #ffff00; }
+        #start-btn:hover { transform: scale(1.05); }
+        #start-btn:active { transform: scale(0.95); }
 
-        #instructions { margin-top: 20px; color: #aaa; font-size: 0.9rem; line-height: 1.6; max-width: 90%; }
-        .key { display: inline-block; border: 1px solid #777; padding: 2px 6px; border-radius: 3px; font-size: 0.8em; color: #fff; }
-
+        /* ІНШІ ЕЛЕМЕНТИ */
         #cursor {
             position: absolute; top: 50%; left: 50%; width: 8px; height: 8px; background: white;
             border-radius: 50%; transform: translate(-50%, -50%); opacity: 0.8; pointer-events: none; mix-blend-mode: difference;
@@ -110,6 +184,13 @@
             display: flex; align-items: center; justify-content: center;
             font-size: 1.2rem; cursor: pointer; pointer-events: auto;
         }
+
+        /* Responsive text sizes for mobile */
+        @media (max-width: 768px) {
+            .title-font { font-size: 2.5rem; }
+            .director-font { font-size: 1rem; }
+            #start-btn { font-size: 3rem; padding: 20px 60px; }
+        }
     </style>
     
     <script type="importmap">
@@ -125,22 +206,49 @@
     <div id="cursor"></div>
     <div id="sit-hint">Натисни <span class="key">C</span> щоб сісти</div>
     
-    <div id="loading-screen">
-        <div id="loader-content">
-            <div id="loader-title">SYSTEM INITIALIZATION</div>
-            <div id="loader-percent">0%</div>
-            <div id="progress-container"><div id="progress-fill"></div></div>
-            <div id="loader-status">CONNECTING...</div>
+    <div id="loading-screen" class="ui-screen">
+        <div class="top-content">
+            <div class="title-font">ПРИВІТ</div>
+            <div class="director-font">
+                Ти в черзі на віртуальну квартирну виставку артпроєкту “Іді Нахуй”. Зараз всі текстури прогрузить і ахуєєш!
+            </div>
+        </div>
+
+        <div class="loader-center">
+            <div id="progress-line-bg">
+                <div id="progress-line-fill"></div>
+                <img id="angel-loader" src="assets/loader.png" alt="loading...">
+            </div>
+        </div>
+
+        <div class="bottom-content">
+            <div class="director-font" style="margin-bottom: 20px;">
+                Роботи від 70 українських митців та мисткинь, три зали, кінотеатр і скульптури.
+            </div>
+            <div class="helvetica-font">
+                Виставка відбувалась у червні 2025 року у квартирній галереї Катерини Хадико. Куратор: Володимир Хоменко, менеджер: Станіслав Калагарець
+            </div>
         </div>
     </div>
 
-    <div id="start-screen">
-        <h1>Квартирна виставка артпроєкту "Іді Нахуй"</h1>
-        <div id="instructions">
-            <p>ПК: <span class="key">WASD</span> рух &nbsp; <span class="key">C</span> сісти</p>
-            <p>Мобільний: Лівoруч - Рух, Праворуч - Огляд</p>
+    <div id="start-screen" class="ui-screen">
+        <div class="top-content">
+            <div class="title-font">“ІДІ НАХУЙ”</div>
+            <div class="director-font">
+                Керування стрілками, можна стрибати, на Shift прискорення. Для перегляду роботи клацни по ній.
+            </div>
         </div>
+
         <button id="start-btn" type="button">УВІЙТИ</button>
+
+        <div class="bottom-content">
+            <div class="director-font" style="margin-bottom: 20px;">
+                Роботи від 70 українських митців та мисткинь, три зали, кінотеатр і скульптури.
+            </div>
+            <div class="helvetica-font">
+                Виставка відбувалась у червні 2025 року у квартирній галереї Катерини Хадико. Куратор: Володимир Хоменко, менеджер: Станіслав Калагарець
+            </div>
+        </div>
     </div>
 
     <div id="stick-container" class="joystick-zone"><div class="stick-knob"></div></div>
@@ -175,8 +283,6 @@
 
         const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
-        // --- ANTI-CRASH MEASURE: DISABLE CACHE ON MOBILE ---
-        // This forces Three.js to release memory immediately when dispose is called
         if (isMobile) {
             THREE.Cache.enabled = false;
         }
@@ -184,29 +290,21 @@
         // --- LOADING SYSTEM ---
         const loadStartTime = Date.now();
         const minLoadTime = 4000; 
-        const loadingStatus = document.getElementById('loader-status');
-        const loadingPercent = document.getElementById('loader-percent');
-        const loadingFill = document.getElementById('progress-fill');
         
-        const statusMessages = [
-            "CACHING TEXTURES...", "COMPILING SHADERS...", "INITIALIZING PHYSICS...", 
-            "BUILDING GEOMETRY...", "PREPARING ASSETS...", "READY"
-        ];
-        
-        setInterval(() => {
-            if(document.getElementById('loading-screen').style.display !== 'none') {
-                const txt = statusMessages[Math.floor(Math.random() * (statusMessages.length - 1))];
-                loadingStatus.innerText = txt;
-            }
-        }, 600);
+        // UI Elements for loader
+        const progressFill = document.getElementById('progress-line-fill');
+        const angelLoader = document.getElementById('angel-loader');
 
         const manager = new THREE.LoadingManager();
         
-        function finishLoading() {
-            loadingPercent.innerText = "100%";
-            loadingFill.style.width = "100%";
-            loadingStatus.innerText = "SYSTEM READY";
+        function updateLoaderUI(percent) {
+            progressFill.style.width = percent + '%';
+            angelLoader.style.left = percent + '%';
+        }
 
+        function finishLoading() {
+            updateLoaderUI(100);
+            
             setTimeout(() => {
                 const loader = document.getElementById('loading-screen');
                 loader.style.opacity = 0;
@@ -223,8 +321,7 @@
             const simInterval = setInterval(() => {
                 simPercent += 3;
                 if (simPercent > 100) simPercent = 100;
-                loadingPercent.innerText = simPercent + '%';
-                loadingFill.style.width = simPercent + '%';
+                updateLoaderUI(simPercent);
                 if (simPercent >= 100) {
                     clearInterval(simInterval);
                     finishLoading();
@@ -234,8 +331,7 @@
             manager.onProgress = function (item, loaded, total) {
                 const rawPercent = (loaded / total) * 100;
                 if(!isNaN(rawPercent)) {
-                    loadingPercent.innerText = Math.round(rawPercent) + '%';
-                    loadingFill.style.width = rawPercent + '%';
+                    updateLoaderUI(Math.round(rawPercent));
                 }
             };
             manager.onLoad = function () {
@@ -262,11 +358,9 @@
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.outputColorSpace = THREE.SRGBColorSpace; 
         renderer.toneMapping = THREE.NoToneMapping; 
-        // FIX: Lower pixel ratio for mobile to prevent memory spike
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobile ? 0.85 : 1.5));
 
         if (isMobile) {
-            // FIX: Disable shadows completely on mobile for maximum stability
             renderer.shadowMap.enabled = false; 
         } else {
             renderer.shadowMap.enabled = true;
@@ -325,7 +419,6 @@
         const interactiveObjects = []; 
 
         let currentImageId = 1;
-        // CHANGE: Increased total images to include 68-79
         const totalImages = 79; 
 
         function getNextImage() {
@@ -387,20 +480,12 @@
 
         function checkRoomLoad(currentRoom) {
             if (!isMobile) return;
-            
-            // FIX: KEEP MEMORY CLEAN - Only 2 rooms loaded
-            // [Current, Next] is safe. [Current, Previous] is handled if moving back.
-            // Loading too many ahead causes the crash.
             const keepLoaded = [currentRoom, currentRoom + 1];
-            
-            // Unload distant rooms first (Aggressive GC)
             for (let idx = 0; idx < 5; idx++) {
                 if (!keepLoaded.includes(idx) && roomStatus[idx] === 'loaded') {
                     unloadRoomTextures(idx);
                 }
             }
-
-            // Then load what is needed
             keepLoaded.forEach(idx => {
                 if (idx >= 0 && idx < 5 && roomStatus[idx] !== 'loaded') {
                     loadRoomTextures(idx);
@@ -410,7 +495,6 @@
 
         function loadRoomTextures(roomIdx) {
             if (!roomPosters[roomIdx]) return;
-            // console.log("Loading Room", roomIdx);
             roomStatus[roomIdx] = 'loaded';
             roomPosters[roomIdx].forEach(item => {
                 lazyLoader.load(item.url, (tex) => {
@@ -432,11 +516,10 @@
 
         function unloadRoomTextures(roomIdx) {
             if (!roomPosters[roomIdx]) return;
-            // console.log("Unloading Room", roomIdx);
             roomStatus[roomIdx] = 'unloaded';
             roomPosters[roomIdx].forEach(item => {
                 if (item.material.map) {
-                    item.material.map.dispose(); // Explicit dispose
+                    item.material.map.dispose(); 
                     item.material.map = null;
                 }
                 item.material.color.setHex(0x888888); 
@@ -716,8 +799,6 @@
                 createDoorWall(zCenter - roomSize/2, roomSize, roomHeight, isDarkRoom, i);
                 
                 if (isMobile) {
-                    // CHANGE: Moved posters from back wall to front wall flanking the door
-                    // Increased spacing so they are not too close to the "hole"
                     addPoster( -4.5, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i); 
                     addPoster( 4.5, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i);  
                 }
@@ -730,16 +811,14 @@
                 createBox(0, 0.4, zCenter, 3.5, 0.8, 1.5, true, false, benchMat, i);
             } else if (isMobile && i === roomsCount - 1) {
                 createBox(0, roomHeight/2, zCenter - roomSize/2, roomSize, roomHeight, 0.5, true, false, null, i);
-                // Create bench for mobile in last room
-                benchPosition.set(0, 0.4, zCenter);
-                createBox(0, 0.4, zCenter, 3.5, 0.8, 1.5, true, false, benchMat, i);
+                // Create bench for mobile in last room -- REMOVED AS REQUESTED
+                // benchPosition.set(0, 0.4, zCenter);
+                // createBox(0, 0.4, zCenter, 3.5, 0.8, 1.5, true, false, benchMat, i);
                 
-                // CHANGE: Add extra posters on the BACK WALL of the last room to fit new images (68-79)
                 addPoster(-6, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i);
                 addPoster(0, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i);
                 addPoster(6, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i);
                 
-                // CHANGE: Add extra posters flanking the entrance to the last room
                 const offsetXLast = 6.0; const offsetZLast = 0.3;
                 addPoster(-offsetXLast - 3.0, 2.7, zCenter + roomSize/2 - offsetZLast, Math.PI, 2.2, 2.8, i);
                 addPoster(offsetXLast + 3.0, 2.7, zCenter + roomSize/2 - offsetZLast, Math.PI, 2.2, 2.8, i);
@@ -767,10 +846,9 @@
                 
                 const standardW = isMobile ? 2.2 : 2.6; 
                 const standardH = isMobile ? 2.8 : 3.25; 
-                // CHANGE: Reduced posters count per side on mobile (8 -> 7) to increase gap near doors
                 const postersPerSide = isMobile ? 7 : 6; 
-                // CHANGE: Adjusted spacing slightly for mobile
-                const sideSpacing = isMobile ? 2.2 : 3.0; 
+                // CHANGE: Increased mobile sideSpacing to fix overlap (2.2 -> 2.6)
+                const sideSpacing = isMobile ? 2.6 : 3.0; 
                 
                 const startZ = zCenter + (postersPerSide * sideSpacing / 2) - (sideSpacing / 2); 
                 for (let k = 0; k < postersPerSide; k++) {
@@ -779,7 +857,6 @@
                     addPoster(9.7, 2.7, zPos, -Math.PI/2, standardW, standardH, i);
                 }
                 
-                // Only for rooms that are NOT the last one on mobile (handled separately) and not Room 0 (handled separately)
                 if (i > 0 && !(isMobile && i === roomsCount - 1)) {
                     const offsetX = 6.0; const offsetZ = 0.3; 
                     addPoster(-offsetX, 2.7, zCenter - roomSize/2 + offsetZ, 0, standardW, standardH, i);
@@ -1043,21 +1120,23 @@
         let canJump = false;
 
         document.addEventListener('keydown', (e) => {
-            if(e.code === 'KeyW') move.f = true;
-            if(e.code === 'KeyS') move.b = true;
-            if(e.code === 'KeyA') move.l = true;
-            if(e.code === 'KeyD') move.r = true;
-            if(e.code === 'ShiftLeft') move.shift = true;
-            if(e.code === 'Space' && canJump && !isSitting) { velocity.y += 12; canJump = false; }
-            if(e.code === 'KeyC') toggleSit();
+            const code = e.code;
+            if(code === 'KeyW' || code === 'ArrowUp') move.f = true;
+            if(code === 'KeyS' || code === 'ArrowDown') move.b = true;
+            if(code === 'KeyA' || code === 'ArrowLeft') move.l = true;
+            if(code === 'KeyD' || code === 'ArrowRight') move.r = true;
+            if(code === 'ShiftLeft') move.shift = true;
+            if(code === 'Space' && canJump && !isSitting) { velocity.y += 12; canJump = false; }
+            if(code === 'KeyC') toggleSit();
         });
 
         document.addEventListener('keyup', (e) => {
-            if(e.code === 'KeyW') move.f = false;
-            if(e.code === 'KeyS') move.b = false;
-            if(e.code === 'KeyA') move.l = false;
-            if(e.code === 'KeyD') move.r = false;
-            if(e.code === 'ShiftLeft') move.shift = false;
+            const code = e.code;
+            if(code === 'KeyW' || code === 'ArrowUp') move.f = false;
+            if(code === 'KeyS' || code === 'ArrowDown') move.b = false;
+            if(code === 'KeyA' || code === 'ArrowLeft') move.l = false;
+            if(code === 'KeyD' || code === 'ArrowRight') move.r = false;
+            if(code === 'ShiftLeft') move.shift = false;
         });
 
         let prevTime = performance.now();
@@ -1092,8 +1171,9 @@
                 const distToBench = camera.position.distanceTo(new THREE.Vector3(benchPosition.x, camera.position.y, benchPosition.z));
                 // FIX: Added STRICT room check for mobile sit button
                 // It only shows if you are close AND in the last room (room index 3 on mobile)
-                if (distToBench < 5.0 && (!isMobile || (isMobile && lastRoomIndex === roomsCount - 1))) { 
-                    if (isMobile) { mobileSitBtn.style.display = 'flex'; mobileSitBtn.innerText = "SIT"; } else { sitHint.style.display = 'block'; } 
+                // UPDATE: isMobile removed because bench is removed
+                if (distToBench < 5.0 && (!isMobile)) { 
+                     sitHint.style.display = 'block'; 
                 } 
                 else { 
                     sitHint.style.display = 'none'; 

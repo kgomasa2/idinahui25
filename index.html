@@ -40,7 +40,6 @@
     
     <style>
         /* ПІДКЛЮЧЕННЯ ШРИФТІВ */
-        /* UPDATED FONT */
         @font-face {
             font-family: 'EquateurUA';
             src: url('assets/EquateurUA-Regular.otf') format('opentype');
@@ -74,10 +73,11 @@
             text-transform: uppercase;
             font-size: 169px; 
             line-height: 0.8;
-            letter-spacing: -0.15em; /* -15% spacing */
-            margin-bottom: 0px; 
+            letter-spacing: -0.15em; 
+            /* Negative margin to overlap text below */
+            margin-bottom: -30px; 
             position: relative;
-            z-index: 10;
+            z-index: 20; /* Ensure title is on top */
         }
 
         .director-font {
@@ -127,10 +127,11 @@
 
         #start-btn {
             background: #fff; color: #000; border: none;
-            padding: 30px 100px;
-            font-family: 'EquateurUA', sans-serif; /* Updated font */
+            /* Optical center adjustment */
+            padding: 35px 100px 30px 100px;
+            font-family: 'EquateurUA', sans-serif; 
             font-size: 5rem;
-            letter-spacing: -0.15em; /* -15% spacing */
+            letter-spacing: -0.15em; 
             border-radius: 100px;
             cursor: pointer;
             text-transform: uppercase;
@@ -156,18 +157,29 @@
             border-radius: 20px; font-size: 0.9rem; display: none; pointer-events: none; z-index: 20;
         }
 
-        /* Info Button */
+        /* Info Button - Updated styling */
         #info-btn {
             position: absolute; top: 30px; left: 30px; width: 40px; height: 40px; border-radius: 50%;
-            background: rgba(255, 255, 255, 0.2); border: 1px solid white; color: white;
-            display: none; /* Hidden on load, shown start game */
+            background: #fff; color: #000; border: none; /* White bg, black text, no border */
+            display: none; 
             align-items: center; justify-content: center;
             font-family: 'DirectorUA', monospace; font-weight: bold; font-size: 1.4rem;
             cursor: pointer; pointer-events: auto; z-index: 48;
-            backdrop-filter: blur(5px); transition: transform 0.2s;
+            padding-top: 3px; /* Optical center */
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2); /* Small shadow */
+            transition: transform 0.2s;
         }
-        #info-btn:hover { transform: scale(1.1); background: rgba(255, 255, 255, 0.4); }
+        #info-btn:hover { transform: scale(1.1); background: #eee; }
         
+        /* Controls Hint */
+        #controls-hint {
+            position: absolute; bottom: 20px; right: 20px;
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            font-size: 14px; color: rgba(255, 255, 255, 0.5); /* Semi-transparent white */
+            z-index: 48; display: none; /* Hidden by default */
+            pointer-events: none; text-transform: uppercase;
+        }
+
         /* Mobile Elements */
         .joystick-zone {
             position: absolute; width: 100px; height: 100px; 
@@ -187,10 +199,12 @@
             color: white; font-weight: bold; display: none; z-index: 45;
             align-items: center; justify-content: center; cursor: pointer;
             backdrop-filter: blur(5px); box-shadow: 0 0 10px rgba(255,255,255,0.2);
+            padding-top: 4px; /* Optical center */
         }
         #view-btn {
             position: absolute; bottom: 130px; left: 50%; transform: translateX(-50%);
-            padding: 10px 25px; border-radius: 25px;
+            padding: 12px 25px 8px 25px; /* Optical center */
+            border-radius: 25px;
             background: rgba(255, 255, 255, 0.95); color: black;
             font-weight: bold; font-size: 0.9rem; letter-spacing: 1px; white-space: nowrap;
             display: none; z-index: 46; cursor: pointer;
@@ -214,35 +228,45 @@
             background: rgba(255, 255, 255, 0.2); border: 1px solid white;
             display: flex; align-items: center; justify-content: center;
             font-size: 1.2rem; cursor: pointer; pointer-events: auto;
+            padding-top: 2px; /* Optical center */
         }
 
         /* --- INFO POPUP --- */
         #info-modal {
             display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: #E6E6E6; /* Gray background */
+            background: #E6E6E6; 
             z-index: 70;
             flex-direction: column; align-items: center; justify-content: center;
             text-align: center; color: #000;
             padding: 40px 20px; box-sizing: border-box;
-            overflow-y: auto; /* Allow scrolling on small screens if needed */
+            overflow-y: auto; 
         }
         .info-content { max-width: 900px; margin: auto; position: relative; top: -20px;}
         .info-title {
             font-family: 'EquateurUA', sans-serif; text-transform: uppercase;
-            font-size: 80px; line-height: 0.9; letter-spacing: -0.15em; margin-bottom: 0;
+            font-size: 160px; /* 2x bigger */
+            line-height: 0.9; letter-spacing: -0.15em; 
+            margin-bottom: -45px; /* Strong negative margin */
+            position: relative; z-index: 20;
         }
         .info-body-director {
             font-family: 'DirectorUA', monospace; font-size: 19px; line-height: 1.13; margin: 0 0 20px 0;
+            position: relative; z-index: 10;
         }
         .info-body-helvetica {
             font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-weight: bold;
-            font-size: 14px; text-transform: uppercase; color: #888; letter-spacing: -0.05em; line-height: 1.0; margin: 0 0 30px 0;
+            font-size: 14px; text-transform: uppercase; color: #888; letter-spacing: -0.05em; line-height: 1.0; 
+            margin: 0 0 -15px 0; /* Negative margin to touch button */
+            position: relative; z-index: 10;
         }
         .insta-btn {
-            display: inline-block; padding: 15px 40px; 
+            display: inline-block; 
+            /* Optical center adjustment */
+            padding: 18px 40px 12px 40px;
             background: #000; color: #fff; text-decoration: none;
             font-family: 'EquateurUA', sans-serif; font-size: 24px; letter-spacing: -0.1em;
             border-radius: 50px; transition: transform 0.2s;
+            position: relative; z-index: 20;
         }
         .insta-btn:hover { transform: scale(1.05); }
         #info-close-btn {
@@ -250,18 +274,20 @@
             border: 1px solid #000; color: #000;
             display: flex; align-items: center; justify-content: center;
             font-size: 1.2rem; cursor: pointer; pointer-events: auto;
+            padding-top: 2px; /* Optical center */
         }
 
 
         /* --- MOBILE RESPONSIVENESS --- */
         @media (max-width: 768px) {
-            .title-font { font-size: 75px; margin-bottom: 10px; }
+            .title-font { font-size: 75px; margin-bottom: -15px; }
             .director-font { font-size: 16px; max-width: 90%; }
-            #start-btn { font-size: 3rem; padding: 20px 60px; }
+            #start-btn { font-size: 3rem; padding: 22px 60px 18px 60px; }
             .bottom-text { font-size: 0.7rem; max-width: 90%; }
             #physics-canvas { display: none; }
-            .info-title { font-size: 50px; }
+            .info-title { font-size: 80px; margin-bottom: -25px; }
             .info-body-director { font-size: 16px; }
+            #controls-hint { display: none !important; }
         }
     </style>
     
@@ -292,6 +318,7 @@
     <div id="cursor"></div>
     <div id="sit-hint">Натисни <span class="key">C</span> щоб сісти</div>
     <div id="info-btn">i</div>
+    <div id="controls-hint">Esc — курсор, I — інфо</div>
     
     <div id="loading-screen" class="ui-screen">
         <div class="top-content">
@@ -1209,6 +1236,7 @@
         const infoBtn = document.getElementById('info-btn');
         const infoModal = document.getElementById('info-modal');
         const infoCloseBtn = document.getElementById('info-close-btn');
+        const controlsHint = document.getElementById('controls-hint');
 
         const raycaster = new THREE.Raycaster();
         const center = new THREE.Vector2(0, 0);
@@ -1227,6 +1255,7 @@
             startScreen.style.display = 'none';
             isGameActive = true;
             infoBtn.style.display = 'flex'; // Show info button
+            if(!isMobile) controlsHint.style.display = 'block'; // Show controls hint on desktop
             bgMusic.play().catch(e => console.log("Audio block", e));
             if(!isMobile && !isLowEnd) {
                 video1.play().catch(e => console.log("Video1 block", e));
@@ -1445,6 +1474,10 @@
             if(code === 'ShiftLeft') move.shift = true;
             if(code === 'Space' && canJump && !isSitting) { velocity.y += 12; canJump = false; }
             if(code === 'KeyC') toggleSit();
+            
+            // Info Modal Shortcut
+            if(code === 'KeyI' && !isMobile && isGameActive && !isModalOpen) openInfoModal();
+            if(code === 'KeyI' && !isMobile && isGameActive && isModalOpen && infoModal.style.display === 'flex') closeInfoModal();
         });
 
         document.addEventListener('keyup', (e) => {

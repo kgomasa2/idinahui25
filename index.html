@@ -1,10 +1,35 @@
 <!DOCTYPE html>
 <html lang="uk">
 <head>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-8RKB3ZJ59V"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-8RKB3ZJ59V');
+    </script>
+
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Іді Нахуй</title>
+
+    <meta name="description" content="Віртуальна квартирна виставка артпроєкту «Іді Нахуй». Роботи від 70 українських митців та мисткинь, три зали, кінотеатр і скульптури.">
+    
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://idinahui.art/">
+    <meta property="og:title" content="Віртуальна квартирна виставка артпроєкту «Іді Нахуй»">
+    <meta property="og:description" content="Роботи від 70 українських митців, три зали, кінотеатр і скульптури. Куратор: Володимир Хоменко.">
+    <meta property="og:image" content="https://idinahui.art/assets/share.jpg">
+
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://idinahui.art/">
+    <meta property="twitter:title" content="Віртуальна квартирна виставка артпроєкту «Іді Нахуй»">
+    <meta property="twitter:description" content="Роботи від 70 українських митців, три зали, кінотеатр і скульптури.">
+    <meta property="twitter:image" content="https://idinahui.art/assets/share.jpg">
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
+    
     <style>
         /* ПІДКЛЮЧЕННЯ ШРИФТІВ */
         @font-face {
@@ -22,6 +47,7 @@
             touch-action: none; user-select: none; -webkit-user-select: none; 
         }
         
+        /* ЗАГАЛЬНІ СТИЛІ ДЛЯ ЕКРАНІВ */
         .ui-screen {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: #E6E6E6; 
@@ -33,13 +59,15 @@
             text-align: center;
         }
 
+        /* ТИПОГРАФІЯ */
         .title-font {
             font-family: 'KTFCompact', sans-serif;
             text-transform: uppercase;
             font-size: 169px; 
             line-height: 0.8;
             margin-bottom: 0px; 
-            position: relative; z-index: 10;
+            position: relative;
+            z-index: 10;
         }
 
         .director-font {
@@ -48,7 +76,8 @@
             line-height: 1.1;
             max-width: 900px;
             margin: 0 auto;
-            position: relative; z-index: 10;
+            position: relative;
+            z-index: 10;
         }
 
         .bottom-text {
@@ -60,12 +89,16 @@
             text-transform: uppercase; 
             max-width: 800px;
             margin: 0 auto;
-            position: relative; z-index: 10;
+            position: relative;
+            z-index: 10;
         }
 
+        /* --- LOADING SCREEN --- */
         #loading-screen { z-index: 100; transition: opacity 0.8s ease-out; }
         
-        .loader-center { width: 100%; max-width: 600px; position: relative; padding: 40px 0; z-index: 10; }
+        .loader-center {
+            width: 100%; max-width: 600px; position: relative; padding: 40px 0; z-index: 10;
+        }
         #progress-line-bg { width: 100%; height: 4px; background: #ccc; position: relative; margin-top: 20px; }
         #progress-line-fill { position: absolute; top: 0; left: 0; height: 100%; width: 0%; background: #000; transition: width 0.1s linear; }
         #angel-loader {
@@ -73,8 +106,10 @@
             transform: translateX(-50%); transition: left 0.1s linear;
         }
 
+        /* --- START SCREEN --- */
         #start-screen { z-index: 50; display: none; overflow: hidden; }
         
+        /* Канвас фізики буде фоном */
         #physics-canvas {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             z-index: 1; pointer-events: auto; 
@@ -96,6 +131,7 @@
         #start-btn:hover { transform: scale(1.05); }
         #start-btn:active { transform: scale(0.95); }
 
+        /* --- IN-GAME UI --- */
         #cursor {
             position: absolute; top: 50%; left: 50%; width: 8px; height: 8px; background: white;
             border-radius: 50%; transform: translate(-50%, -50%); opacity: 0.8; pointer-events: none; mix-blend-mode: difference;
@@ -109,6 +145,7 @@
             border-radius: 20px; font-size: 0.9rem; display: none; pointer-events: none; z-index: 20;
         }
         
+        /* Mobile Elements */
         .joystick-zone {
             position: absolute; width: 100px; height: 100px; 
             background: rgba(255, 255, 255, 0.1); border-radius: 50%;
@@ -155,6 +192,7 @@
             font-size: 1.2rem; cursor: pointer; pointer-events: auto;
         }
 
+        /* --- MOBILE RESPONSIVENESS --- */
         @media (max-width: 768px) {
             .title-font { font-size: 75px; margin-bottom: 10px; }
             .director-font { font-size: 16px; max-width: 90%; }

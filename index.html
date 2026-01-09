@@ -55,6 +55,17 @@
             touch-action: none; user-select: none; -webkit-user-select: none; 
         }
         
+        /* СТИЛІ ДЛЯ ПОСИЛАНЬ */
+        .text-link {
+            color: inherit;
+            text-decoration: none;
+            transition: opacity 0.2s;
+        }
+        .text-link:hover {
+            text-decoration: underline;
+            opacity: 0.8;
+        }
+        
         /* ЗАГАЛЬНІ СТИЛІ ДЛЯ ЕКРАНІВ */
         .ui-screen {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
@@ -101,6 +112,11 @@
             position: relative;
             z-index: 10;
         }
+        
+        /* Reduced spacing on start/loading screens */
+        .bottom-content .director-font {
+            margin-bottom: 15px !important;
+        }
 
         /* --- LOADING SCREEN --- */
         #loading-screen { z-index: 100; transition: opacity 0.8s ease-out; }
@@ -126,7 +142,6 @@
 
         #start-btn {
             background: #fff; color: #000; border: none;
-            /* Further adjusted optical center */
             padding: 40px 100px 25px 100px;
             font-family: 'EquateurUA', sans-serif; 
             font-size: 5rem;
@@ -248,14 +263,17 @@
             margin-bottom: -20px; 
             position: relative; z-index: 20;
         }
+        /* Reduced spacing in popup */
         .info-body-director {
-            font-family: 'DirectorUA', monospace; font-size: 19px; line-height: 1.13; margin: 0 0 20px 0;
+            font-family: 'DirectorUA', monospace; font-size: 19px; line-height: 1.13; 
+            margin: 0 0 15px 0; 
             position: relative; z-index: 10;
         }
+        /* Reduced spacing in popup */
         .info-body-helvetica {
             font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-weight: bold;
             font-size: 14px; text-transform: uppercase; color: #888; letter-spacing: -0.05em; line-height: 1.0; 
-            margin: 0 0 10px 0; 
+            margin: 0 0 5px 0; 
             position: relative; z-index: 10;
         }
         .insta-btn {
@@ -280,7 +298,7 @@
         @media (max-width: 768px) {
             .title-font { font-size: 75px; margin-bottom: -15px; }
             .director-font { font-size: 16px; max-width: 90%; }
-            #start-btn { font-size: 3rem; padding: 25px 60px 15px 60px; } /* Adjusted for mobile */
+            #start-btn { font-size: 3rem; padding: 25px 60px 15px 60px; } 
             .bottom-text { font-size: 0.7rem; max-width: 90%; }
             #physics-canvas { display: none; }
             .info-title { font-size: 80px; margin-bottom: -15px; }
@@ -334,11 +352,11 @@
         </div>
 
         <div class="bottom-content">
-            <div class="director-font" style="margin-bottom: 20px;">
+            <div class="director-font">
                 Роботи від 70 українських митців та мисткинь, три зали, кінотеатр і скульптури.
             </div>
             <div class="bottom-text">
-                Зараз заграє композиція Олекія Шмурака. Виставка відбувалась у червні 2025 року у квартирній галереї Катерини Хадико. Куратор: Володимир Хоменко, менеджер: Станіслав Калагарець
+                Зараз заграє композиція <a href="https://www.instagram.com/alexeyshmurak/" target="_blank" class="text-link">Олексія Шмурака</a>. Виставка відбувалась у червні 2025 року у квартирній галереї <a href="https://www.instagram.com/hadykins/" target="_blank" class="text-link">Катерини Хадико</a>. Куратор: <a href="https://www.instagram.com/adult.xoma/" target="_blank" class="text-link">Володимир Хоменко</a>, менеджер: <a href="https://www.instagram.com/stanislaawww/" target="_blank" class="text-link">Станіслав Калагарець</a>
             </div>
         </div>
     </div>
@@ -356,11 +374,11 @@
         <button id="start-btn" type="button">УВІЙТИ</button>
 
         <div class="bottom-content">
-            <div class="director-font" style="margin-bottom: 20px;">
+            <div class="director-font">
                 Роботи від 70 українських митців та мисткинь, три зали, кінотеатр і скульптури.
             </div>
             <div class="bottom-text">
-                Зараз заграє композиція Олекія Шмурака. Виставка відбувалась у червні 2025 року у квартирній галереї Катерини Хадико. Куратор: Володимир Хоменко, менеджер: Станіслав Калагарець
+                Зараз заграє композиція <a href="https://www.instagram.com/alexeyshmurak/" target="_blank" class="text-link">Олексія Шмурака</a>. Виставка відбувалась у червні 2025 року у квартирній галереї <a href="https://www.instagram.com/hadykins/" target="_blank" class="text-link">Катерини Хадико</a>. Куратор: <a href="https://www.instagram.com/adult.xoma/" target="_blank" class="text-link">Володимир Хоменко</a>, менеджер: <a href="https://www.instagram.com/stanislaawww/" target="_blank" class="text-link">Станіслав Калагарець</a>
             </div>
         </div>
     </div>
@@ -398,9 +416,9 @@
                 Віртуальна виставка функціонує в режимі «живого архіву» — простору, що не тільки консервує минуле, а продовжує виробляти смисли тут і зараз. Замість застиглого монумента ми пропонуємо погляд на знак як на відкрите поле конфлікту, де він втрачає автора, стає «бідним образом» у соцмережах та інструментом суспільного діалогу. Це проєкт про те, як реальність війни входить у культуру, і як ми використовуємо ці нестабільні, амбівалентні форми як спосіб колективного виживання та ствердження суб’єктності.
             </div>
             <div class="info-body-helvetica">
-                Виставка відбувалась у червні 2025 року у квартирній галереї Катерини Хадико.<br>
-                Куратор: Володимир Хоменко, менеджер: Станіслав Калагарець. Шрифти: Levtype.<br>
-                Зараз грає композиція Олексія Шмурака
+                Виставка відбувалась у червні 2025 року у квартирній галереї <a href="https://www.instagram.com/hadykins/" target="_blank" class="text-link">Катерини Хадико</a>.<br>
+                Куратор: <a href="https://www.instagram.com/adult.xoma/" target="_blank" class="text-link">Володимир Хоменко</a>, менеджер: <a href="https://www.instagram.com/stanislaawww/" target="_blank" class="text-link">Станіслав Калагарець</a>. Шрифти: <a href="https://www.instagram.com/levtype/" target="_blank" class="text-link">LevType</a>.<br>
+                Зараз грає композиція <a href="https://www.instagram.com/alexeyshmurak/" target="_blank" class="text-link">Олексія Шмурака</a>
             </div>
             <a href="https://www.instagram.com/idinahui.art/" target="_blank" class="insta-btn">ІНСТАГРАМ</a>
         </div>
@@ -833,44 +851,59 @@
             if (isMobile || isLowEnd) return; 
 
             const curtainGroup = new THREE.Group();
-            // RAISED POSITION to attach to door header (height 3.5)
-            curtainGroup.position.set(x, 3.5, z);
+            // Position at the top of the door header (height 3.5)
+            const headerHeight = 3.5;
+            curtainGroup.position.set(x, headerHeight, z);
 
             const doorWidth = 4;
             const strands = 9;
             const spacing = doorWidth / strands;
 
+            // Geometry for the top ring connecting to the header
+            const topRingGeo = new THREE.TorusGeometry(0.04, 0.008, 8, 16);
+            // Rotate to hang vertically from the header
+            topRingGeo.rotateX(Math.PI / 2);
+
             for(let i = 0; i < strands; i++) {
-                 const xPos = (i * spacing) - (doorWidth/2) + (spacing/2);
-                 const strandGroup = new THREE.Group();
-                 strandGroup.position.x = xPos;
+                    const xPos = (i * spacing) - (doorWidth/2) + (spacing/2);
+                    const strandGroup = new THREE.Group();
+                    strandGroup.position.x = xPos;
 
-                 const length = 3.0; // Hang down 3 meters
-                 const items = 8;
-                 const step = length / items;
+                    // 1. Create the top ring attached to the header
+                    const topRing = new THREE.Mesh(topRingGeo, chainMat);
+                    topRing.position.y = 0; // At the very top of the strand
+                    strandGroup.add(topRing);
 
-                 for(let j = 0; j < items; j++) {
-                     const yPos = -(j * step);
+                    const length = 3.0; // Total length of the strand
+                    const items = 8; // Number of discs
+                    // Calculate step size based on number of disc+ring pairs
+                    const step = length / items;
 
-                     // Disc
-                     const disc = new THREE.Mesh(discGeo, curtainDiscMat);
-                     disc.position.y = yPos;
-                     // Random initial rotation
-                     disc.rotation.y = Math.random() * Math.PI;
-                     strandGroup.add(disc);
-                     
-                     // Make it rotate in animation loop
-                     animatedModels.push(disc);
+                    for(let j = 0; j < items; j++) {
+                        // Position for the disc, below the top ring and subsequent rings
+                        // Start a bit lower to clear the top ring
+                        const yPos = -((j + 1) * step) + (step / 2);
 
-                     // Chain/Ring connecting
-                     if (j < items - 1) {
-                         const ring = new THREE.Mesh(ringGeo, chainMat);
-                         ring.position.y = yPos - (step/2);
-                         ring.rotation.y = Math.PI / 2;
-                         strandGroup.add(ring);
-                     }
-                 }
-                 curtainGroup.add(strandGroup);
+                        // Disc
+                        const disc = new THREE.Mesh(discGeo, curtainDiscMat);
+                        disc.position.y = yPos;
+                        // Random initial rotation
+                        disc.rotation.y = Math.random() * Math.PI;
+                        strandGroup.add(disc);
+                        
+                        // Make it rotate in animation loop
+                        animatedModels.push(disc);
+
+                        // Chain/Ring connecting to the *next* disc (if not the last one)
+                        if (j < items - 1) {
+                            const ring = new THREE.Mesh(ringGeo, chainMat);
+                            // Position ring halfway between this disc and the next
+                            ring.position.y = yPos - (step/2);
+                            ring.rotation.y = Math.PI / 2; // Orient correctly
+                            strandGroup.add(ring);
+                        }
+                    }
+                    curtainGroup.add(strandGroup);
             }
             addToRoom(curtainGroup, roomIndex);
         }

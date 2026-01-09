@@ -126,7 +126,8 @@
 
         #start-btn {
             background: #fff; color: #000; border: none;
-            padding: 35px 100px 30px 100px;
+            /* Further adjusted optical center */
+            padding: 40px 100px 25px 100px;
             font-family: 'EquateurUA', sans-serif; 
             font-size: 5rem;
             letter-spacing: -0.15em; 
@@ -244,7 +245,7 @@
             font-family: 'EquateurUA', sans-serif; text-transform: uppercase;
             font-size: 160px; 
             line-height: 0.9; letter-spacing: -0.15em; 
-            margin-bottom: -20px; /* Reduced negative margin */
+            margin-bottom: -20px; 
             position: relative; z-index: 20;
         }
         .info-body-director {
@@ -254,7 +255,7 @@
         .info-body-helvetica {
             font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-weight: bold;
             font-size: 14px; text-transform: uppercase; color: #888; letter-spacing: -0.05em; line-height: 1.0; 
-            margin: 0 0 10px 0; /* Slight positive margin to touch button */
+            margin: 0 0 10px 0; 
             position: relative; z-index: 10;
         }
         .insta-btn {
@@ -279,7 +280,7 @@
         @media (max-width: 768px) {
             .title-font { font-size: 75px; margin-bottom: -15px; }
             .director-font { font-size: 16px; max-width: 90%; }
-            #start-btn { font-size: 3rem; padding: 22px 60px 18px 60px; }
+            #start-btn { font-size: 3rem; padding: 25px 60px 15px 60px; } /* Adjusted for mobile */
             .bottom-text { font-size: 0.7rem; max-width: 90%; }
             #physics-canvas { display: none; }
             .info-title { font-size: 80px; margin-bottom: -15px; }
@@ -832,8 +833,8 @@
             if (isMobile || isLowEnd) return; 
 
             const curtainGroup = new THREE.Group();
-            // LOWERED POSITION to show rings first
-            curtainGroup.position.set(x, 3.1, z);
+            // RAISED POSITION to attach to door header (height 3.5)
+            curtainGroup.position.set(x, 3.5, z);
 
             const doorWidth = 4;
             const strands = 9;

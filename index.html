@@ -999,7 +999,7 @@
         let follower = null;
         
         if (!isMobile) {
-            const followerTex = textureLoader.load('assets/gerb.png', undefined, undefined, (err) => console.error("Missing gerb.png"));
+            const followerTex = textureLoader.load('assets/gerb.jpeg', undefined, undefined, (err) => console.error("Missing gerb.png"));
             followerTex.colorSpace = THREE.SRGBColorSpace;
             const followerGeo = new THREE.PlaneGeometry(3, 3);
             const followerMat = new THREE.MeshBasicMaterial({ map: followerTex, side: THREE.DoubleSide, transparent: true });

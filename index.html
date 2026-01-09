@@ -506,6 +506,10 @@
         concreteTex.wrapS = concreteTex.wrapT = THREE.RepeatWrapping;
         concreteTex.repeat.set(10, 40); concreteTex.colorSpace = THREE.SRGBColorSpace;
 
+        // NEW: Drozd texture for curtain
+        const drozdTex = textureLoader.load('assets/drozd.svg');
+        drozdTex.colorSpace = THREE.SRGBColorSpace;
+
         const wallMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.5 });
         const floorMat = new THREE.MeshStandardMaterial({ map: concreteTex, roughness: 0.8, color: 0xaaaaaa });
         const darkWallMat = new THREE.MeshStandardMaterial({ color: 0x050505, roughness: 0.9 });
@@ -515,6 +519,26 @@
         const benchMat = new THREE.MeshStandardMaterial({ color: 0xdddddd, roughness: 0.3 });
         const mobilePosterMat = new THREE.MeshStandardMaterial({ color: 0xcccccc, roughness: 0.6, metalness: 0.1 });
         const placeholderMat = new THREE.MeshStandardMaterial({ color: 0x888888, roughness: 0.8 });
+
+        // NEW: Curtain Materials
+        const curtainDiscMat = new THREE.MeshStandardMaterial({ 
+            map: drozdTex, 
+            color: 0x0033ff, 
+            roughness: 0.4, 
+            metalness: 0.1, 
+            side: THREE.DoubleSide,
+            transparent: true,
+            alphaTest: 0.5 
+        });
+        const chainMat = new THREE.MeshStandardMaterial({ 
+            color: 0x888888, 
+            metalness: 0.9, 
+            roughness: 0.2 
+        });
+        const discGeo = new THREE.CylinderGeometry(0.15, 0.15, 0.02, 32); 
+        discGeo.rotateX(Math.PI / 2);
+        const ringGeo = new THREE.TorusGeometry(0.04, 0.008, 8, 16);
+
 
         const video1 = document.getElementById('video1');
         const video2 = document.getElementById('video2');
@@ -700,6 +724,52 @@
                 light.position.set(x + Math.sin(rotationY), y, z + Math.cos(rotationY)); 
                 addToRoom(light, roomIndex); 
             }
+        }
+        
+        // NEW FUNCTION: CREATE CURTAIN
+        function createCurtain(x, z, roomIndex) {
+            if (isMobile || isLowEnd) return; 
+
+            const curtainGroup = new THREE.Group();
+            curtainGroup.position.set(x, 3.5, z); // Hang from top of door frame
+
+            const doorWidth = 4;
+            const strands = 9;
+            const spacing = doorWidth / strands;
+
+            for(let i = 0; i < strands; i++) {
+                 const xPos = (i * spacing) - (doorWidth/2) + (spacing/2);
+                 const strandGroup = new THREE.Group();
+                 strandGroup.position.x = xPos;
+
+                 const length = 3.0; // Hang down 3 meters
+                 const items = 8;
+                 const step = length / items;
+
+                 for(let j = 0; j < items; j++) {
+                     const yPos = -(j * step);
+
+                     // Disc
+                     const disc = new THREE.Mesh(discGeo, curtainDiscMat);
+                     disc.position.y = yPos;
+                     // Random initial rotation
+                     disc.rotation.y = Math.random() * Math.PI;
+                     strandGroup.add(disc);
+                     
+                     // Make it rotate in animation loop
+                     animatedModels.push(disc);
+
+                     // Chain/Ring connecting
+                     if (j < items - 1) {
+                         const ring = new THREE.Mesh(ringGeo, chainMat);
+                         ring.position.y = yPos - (step/2);
+                         ring.rotation.y = Math.PI / 2;
+                         strandGroup.add(ring);
+                     }
+                 }
+                 curtainGroup.add(strandGroup);
+            }
+            addToRoom(curtainGroup, roomIndex);
         }
 
         const cachedPipeGeo = new THREE.CylinderGeometry(0.05, 0.05, 1, 12); 
@@ -976,6 +1046,14 @@
                 else { 
                     let rotation = (i === 3) ? 0 : Math.random() * Math.PI;
                     createHangingTV(0, zCenter, roomHeight, rotation, i); 
+
+                    // --- CURTAIN PLACEMENT START ---
+                    // Between room 3 and 4 (at the back of room 3)
+                    if (i === 3) {
+                         // zCenter is -60. Room size 20. Back wall is at -70.
+                         createCurtain(0, zCenter - roomSize/2, i);
+                    }
+                    // --- CURTAIN PLACEMENT END ---
                 }
                 
                 if (!(isMobile && i === roomsCount - 1)) {
@@ -1298,7 +1376,7 @@
                 const distToBench = camera.position.distanceTo(new THREE.Vector3(benchPosition.x, camera.position.y, benchPosition.z));
                 // Only show hint on desktop since bench removed on mobile
                 if (!isMobile && distToBench < 5.0) { 
-                     sitHint.style.display = 'block'; 
+                      sitHint.style.display = 'block'; 
                 } 
                 else { 
                     sitHint.style.display = 'none'; 

@@ -506,8 +506,8 @@
         concreteTex.wrapS = concreteTex.wrapT = THREE.RepeatWrapping;
         concreteTex.repeat.set(10, 40); concreteTex.colorSpace = THREE.SRGBColorSpace;
 
-        // NEW: Drozd texture for curtain
-        const drozdTex = textureLoader.load('assets/drozd.svg');
+        // NEW: Drozd texture for curtain (PNG)
+        const drozdTex = textureLoader.load('assets/drozd.jpg');
         drozdTex.colorSpace = THREE.SRGBColorSpace;
 
         const wallMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.5 });
@@ -520,10 +520,10 @@
         const mobilePosterMat = new THREE.MeshStandardMaterial({ color: 0xcccccc, roughness: 0.6, metalness: 0.1 });
         const placeholderMat = new THREE.MeshStandardMaterial({ color: 0x888888, roughness: 0.8 });
 
-        // NEW: Curtain Materials
+        // NEW: Curtain Materials (updated for PNG)
         const curtainDiscMat = new THREE.MeshStandardMaterial({ 
             map: drozdTex, 
-            color: 0x0033ff, 
+            color: 0xffffff, // White to show texture colors correctly
             roughness: 0.4, 
             metalness: 0.1, 
             side: THREE.DoubleSide,
@@ -710,8 +710,9 @@
                 tv.add(screenLight); 
             }
             
-            tv.userData.isObstacle = true; 
-            collidableObjects.push({ customType: 'cylinder', mesh: tv, radius: 0.1, position: tv.position });
+            // REMOVED COLLISION FOR TVs
+            // tv.userData.isObstacle = true; 
+            // collidableObjects.push({ customType: 'cylinder', mesh: tv, radius: 0.1, position: tv.position });
         }
 
         function createProjection(x, y, z, w, h, rotationY, texture, roomIndex) {

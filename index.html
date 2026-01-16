@@ -55,26 +55,27 @@
             touch-action: none; user-select: none; -webkit-user-select: none; 
         }
         
-        /* СТИЛІ ДЛЯ ПОСИЛАНЬ */
+        /* --- ЛІНКИ --- */
+        /* Базовий стиль для лінків (Start Screen / Loading) - СІРИЙ (inherit від батька) */
         .text-link {
-            color: #ffffff !important; /* Білий колір */
-            text-decoration: underline !important; /* Підкреслення */
-            border-bottom: none !important; /* Прибираємо лінію */
+            color: inherit; 
+            text-decoration: underline;
+            border-bottom: none;
             transition: opacity 0.2s;
         }
         .text-link:hover {
             opacity: 0.8;
-            text-decoration: none !important;
+            text-decoration: none;
         }
-        
-        /* ЗАГАЛЬНІ СТИЛІ ДЛЯ ЕКРАНІВ */
+
+        /* --- ЗАГАЛЬНІ СТИЛІ --- */
         .ui-screen {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: #E6E6E6; 
             z-index: 100;
-            display: flex; flex-direction: column; align-items: center; justify-content: space-between;
+            display: flex; flex-direction: column; align-items: center; justify-content: center; /* Changed to center to pack elements */
             color: #000;
-            padding: 40px 20px;
+            padding: 20px;
             box-sizing: border-box;
             text-align: center;
         }
@@ -86,7 +87,7 @@
             font-size: 169px; 
             line-height: 0.8;
             letter-spacing: -0.15em; 
-            margin-bottom: -30px; 
+            margin-bottom: -60px; /* Дуже сильний від'ємний відступ для накладання */
             position: relative;
             z-index: 20; 
         }
@@ -94,7 +95,7 @@
         .director-font {
             font-family: 'DirectorUA', monospace;
             font-size: 30px; 
-            line-height: 1.1;
+            line-height: 1.0;
             max-width: 900px;
             margin: 0 auto;
             position: relative;
@@ -104,7 +105,7 @@
         .bottom-text {
             font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
             font-size: 0.9rem;
-            line-height: 1.07;
+            line-height: 1.05;
             letter-spacing: -0.03em;
             color: #888; 
             text-transform: uppercase; 
@@ -112,14 +113,23 @@
             margin: 0 auto;
             position: relative;
             z-index: 10;
+            margin-top: -15px; /* Підтягуємо текст ще вище */
         }
         
+        .top-content {
+            margin-bottom: 20px; /* Трохи простору перед кнопкою */
+        }
+        
+        .bottom-content {
+            margin-top: -30px; /* Підтягуємо нижній блок до кнопки */
+        }
+
         .bottom-content .director-font {
-            margin-bottom: 10px !important;
+            margin-bottom: 5px !important;
         }
 
         /* --- LOADING SCREEN --- */
-        #loading-screen { z-index: 100; transition: opacity 0.8s ease-out; }
+        #loading-screen { z-index: 100; transition: opacity 0.8s ease-out; justify-content: space-between; padding: 40px 20px;}
         
         .loader-center {
             width: 100%; max-width: 600px; position: relative; padding: 40px 0; z-index: 10;
@@ -134,9 +144,8 @@
         }
 
         /* --- START SCREEN --- */
-        #start-screen { z-index: 50; display: none; overflow: hidden; }
+        #start-screen { z-index: 50; display: none; overflow: hidden; justify-content: center; }
         
-        /* Канвас фізики буде фоном */
         #physics-canvas {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             z-index: 1; pointer-events: auto; 
@@ -144,7 +153,7 @@
 
         #start-btn {
             background: #fff; color: #000; border: none;
-            padding: 40px 100px 25px 100px;
+            padding: 35px 90px 20px 90px;
             font-family: 'EquateurUA', sans-serif; 
             font-size: 5rem;
             letter-spacing: -0.15em; 
@@ -153,7 +162,7 @@
             text-transform: uppercase;
             box-shadow: 0 10px 30px rgba(0,0,0,0.1);
             transition: transform 0.2s, box-shadow 0.2s;
-            margin: 20px 0;
+            margin: 10px 0; /* Зменшено марджин */
             position: relative; z-index: 10;
         }
         #start-btn:hover { transform: scale(1.05); }
@@ -173,7 +182,6 @@
             border-radius: 20px; font-size: 0.9rem; display: none; pointer-events: none; z-index: 20;
         }
 
-        /* Info Button */
         #info-btn {
             position: absolute; top: 30px; right: 30px; width: 40px; height: 40px; border-radius: 50%;
             background: #fff; color: #000; border: none; 
@@ -187,7 +195,6 @@
         }
         #info-btn:hover { transform: scale(1.1); background: #eee; }
         
-        /* Controls Hint */
         #controls-hint {
             position: absolute; bottom: 20px; right: 20px;
             font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
@@ -232,13 +239,14 @@
         /* Artwork Modal */
         #artwork-modal {
             display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(10, 10, 10, 0.98); z-index: 60;
+            /* ЗАТЕМНЕННЯ ФОНУ - Більш прозоре (0.8 замість 0.98) */
+            background: rgba(10, 10, 10, 0.8); 
+            z-index: 60;
             flex-direction: column; align-items: center; justify-content: center;
             text-align: center; color: white;
         }
         #modal-img { max-height: 70vh; max-width: 95%; box-shadow: 0 10px 30px rgba(0,0,0,0.5); margin-bottom: 20px; object-fit: contain; }
         
-        /* Helper class to hide image for sculptures/video */
         .no-image { display: none !important; }
 
         #modal-info { max-width: 600px; padding: 0 20px; }
@@ -248,15 +256,17 @@
             font-size: 1.5rem; 
             margin: 0 0 5px 0; 
             text-transform: uppercase; 
-            line-height: 1.2;
+            line-height: 1.1; /* Інтерліньяж для довгих назв */
         }
-        #modal-title a { 
+        
+        /* СТИЛІ ДЛЯ ЛІНКІВ В МОДАЛЦІ (Білі) */
+        #modal-title a, #modal-desc a { 
             color: white !important; 
             text-decoration: underline !important; 
-            border-bottom: none !important; 
+            border: none !important; /* Прибираємо білу лінію */
             transition: opacity 0.2s; 
         }
-        #modal-title a:hover { opacity: 0.7; }
+        #modal-title a:hover, #modal-desc a:hover { opacity: 0.7; text-decoration: none !important; }
         
         #modal-desc { 
             font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; 
@@ -322,10 +332,10 @@
 
         /* --- MOBILE RESPONSIVENESS --- */
         @media (max-width: 768px) {
-            .title-font { font-size: 75px; margin-bottom: -15px; }
+            .title-font { font-size: 75px; margin-bottom: -20px; }
             .director-font { font-size: 16px; max-width: 90%; }
-            #start-btn { font-size: 3rem; padding: 25px 60px 15px 60px; } 
-            .bottom-text { font-size: 0.7rem; max-width: 90%; }
+            #start-btn { font-size: 3rem; padding: 25px 60px 15px 60px; margin: 5px 0; } 
+            .bottom-text { font-size: 0.7rem; max-width: 90%; margin-top: -10px; }
             #physics-canvas { display: none; }
             .info-title { font-size: 80px; margin-bottom: -15px; }
             .info-body-director { font-size: 16px; }
@@ -543,7 +553,8 @@
 
         const MODEL_DB = {
             '1.glb': { title: "Multidisciplinary independent artist", artist: "Volodymyr Khomenko", handle: "adult.xoma" },
-            '2.glb': { title: "Післясмак розпачу провини ненависті...", artist: "Ганна", handle: "gannaganya" },
+            // UPDATED FULL TITLE WITH BREAKS
+            '2.glb': { title: "Післясмак розпачу провини ненависті після висловлення фрази іді нахуй", artist: "Ганна", handle: "gannaganya" },
             '3.glb': { artist: "Гоша Тоскно", handle: "toskno.wav" },
             '4.glb': { artist: "Olla Kuzovkina", handle: "olla.kuzovkina" },
             '5.glb': { artist: "Владислав Краснощок", handle: "vkrasnmuseum" },
@@ -717,7 +728,7 @@
                 artist: data.meta.artist,
                 handle: data.meta.handle,
                 extraLink: data.meta.extraLink,
-                customHTML: data.meta.customHTML // For custom formatted entries
+                customHTML: data.meta.customHTML
             };
             
             addToRoom(mesh, roomIndex);
@@ -873,7 +884,7 @@
                     fixMaterial(object);
                     
                     object.userData = { 
-                        type: 'sculpture', // type sculpture hides image
+                        type: 'sculpture', 
                         title: meta.title || "", 
                         artist: meta.artist,
                         handle: meta.handle
@@ -1049,7 +1060,6 @@
                 document.getElementById('modal-desc').innerHTML = data.desc;
             } 
             else if (data.customHTML) {
-                // SPECIAL CASES (32, 35)
                 titleEl.innerHTML = data.customHTML;
                 document.getElementById('modal-desc').innerText = "";
             }

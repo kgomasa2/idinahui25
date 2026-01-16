@@ -239,7 +239,9 @@
         #modal-img { max-height: 70vh; max-width: 95%; box-shadow: 0 10px 30px rgba(0,0,0,0.5); margin-bottom: 20px; object-fit: contain; }
         #modal-info { max-width: 600px; padding: 0 20px; }
         #modal-title { font-weight: 800; font-size: 1.5rem; margin: 0 0 5px 0; text-transform: uppercase; }
-        #modal-title a { color: white; text-decoration: none; border-bottom: 1px solid rgba(255,255,255,0.5); }
+        #modal-title a { color: white; text-decoration: none; border-bottom: 1px solid rgba(255,255,255,0.5); transition: opacity 0.2s; }
+        #modal-title a:hover { opacity: 0.7; }
+        #modal-desc { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 1rem; color: #ccc; line-height: 1.4; }
         #modal-close-btn {
             position: absolute; top: 30px; right: 30px; width: 40px; height: 40px; border-radius: 50%;
             background: rgba(255, 255, 255, 0.2); border: 1px solid white;
@@ -307,13 +309,20 @@
             #controls-hint { display: none !important; }
             
             /* Fix Info Popup on Mobile */
+            #info-modal {
+                justify-content: flex-start;
+                padding-top: 80px;
+            }
             #info-close-btn {
-                background: white; /* Make sure it covers text */
+                position: fixed;
+                background: white; 
                 z-index: 100;
                 top: 20px; right: 20px;
+                width: 50px; height: 50px;
+                font-size: 1.5rem;
             }
             .info-content {
-                padding-top: 40px; /* Space for the button */
+                padding-top: 0px; 
             }
         }
     </style>
@@ -414,7 +423,7 @@
         <img id="modal-img" src="" alt="Artwork">
         <div id="modal-info">
             <div id="modal-title">TITLE</div>
-            <p id="modal-desc">Description</p>
+            <div id="modal-desc">Description</div>
         </div>
     </div>
 
@@ -442,19 +451,100 @@
         import { RectAreaLightUniformsLib } from 'three/addons/lights/RectAreaLightUniformsLib.js';
         import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
+        // --- DATABASE OF ARTWORKS ---
+        const ARTWORK_DB = {
+            1: { artist: "Mashka Tyapa", handle: "mariia_tikhonova1" },
+            2: { artist: "Марія Чудна", handle: "_mariiachudna_art" },
+            3: { artist: "Valeriia", handle: "whilerie" },
+            4: { artist: "Каріна Синиця", handle: "sinica_karina_a" },
+            5: { artist: "Olha Lebedieva", handle: "loveandmess" },
+            6: { artist: "квітланка", handle: "konoplyovycvit", title: "Козацька капличка «Іді Наxуй»" },
+            7: { artist: "Volodymyr Khomenko", handle: "adult.xoma" },
+            8: { artist: "Valeriia", handle: "whilerie" },
+            9: { artist: "akinapakina", handle: "akinapakina" },
+            10: { artist: "Hristina Novykova", handle: "hristinazhopa2" },
+            11: { artist: "Sofiia Markova", handle: "sofiia_markova_" },
+            12: { artist: "Олесь Дерега", handle: "derega" },
+            13: { artist: "Oleksandra Liadetska", handle: "liadetskaa" },
+            14: { artist: "Dmytro Drobotenko", handle: "dmytroner" },
+            15: { artist: "Mariia Charuta", handle: "mariyacharuta" },
+            16: { artist: "соломійка", handle: "solomi.ya" },
+            17: { artist: "Даня", handle: "danyash.a" },
+            18: { artist: "Volodymyr Khomenko", handle: "adult.xoma" },
+            19: { artist: "Dasha Podoltseva", handle: "dashapodoltseva" },
+            20: { artist: "Nataliia Oliferovych", handle: "nataliia_olif" },
+            21: { artist: "Snizhana", handle: "snig.gggg.tattoo" },
+            22: { artist: "Marta Leshak", handle: "martaleshak" },
+            23: { artist: "xeniя", handle: "xeniahav" },
+            24: { artist: "Вова Януш", handle: "jan.gog" },
+            25: { artist: "Nadia Zim", handle: "nadia.zim" },
+            26: { artist: "мілка", handle: "shikarichan" },
+            27: { artist: "Кирило Орел", handle: "ciriearn" },
+            28: { artist: "NBA HOB", handle: "nba_hob" },
+            29: { artist: "Oleksii Salnykov", handle: "a.salio" },
+            30: { artist: "Maksim Nikiškin", handle: "gamernia" },
+            31: { artist: "Olia Hordiienko", handle: "coca.colia" },
+            32: { artist: "Артдирекція: Таїсія Юрків, Виконання: Євгенія Уштан", handle: "tajaju", extraLink: "janeushtan" },
+            33: { artist: "Serhii Hrychaniuk", handle: "serhiihrychaniuk" },
+            34: { artist: "Denys Honcheruk", handle: "xillitu" },
+            35: { artist: "Оля Коваль і Поліна Лаптій", handle: "oliakoval.ua", extraLink: "dikayasuka", title: "Нюрнберзький процес" },
+            36: { artist: "Іра Джа", handle: "ira.dja" },
+            37: { artist: "Anton AB044", handle: "anton_abo" },
+            38: { artist: "Maria Vasylenko", handle: "ma_vko" },
+            39: { artist: "Vira Sh", handle: "vira.shmoilova" },
+            40: { artist: "Yan Imbrik", handle: "imbrikyan" },
+            41: { artist: "Dasha Podoltseva", handle: "dashapodoltseva" },
+            42: { artist: "Федір Хорьков", handle: "fedirkhorkov" },
+            43: { artist: "Даша Коломієць", handle: "blindestlover" },
+            44: { artist: "Maksym Mazigula", handle: "maks1m4ek" },
+            45: { artist: "Leonora Yanko", handle: "leonoragallery", title: "Sk(q)trkt" },
+            46: { artist: "Дмитро Онопрійко", handle: "khrrr5320" },
+            47: { artist: "Олексій", handle: "oleksa_bober" },
+            48: { artist: "Ihor", handle: "itmshchk" },
+            49: { artist: "Макс Михайлов", handle: "_youngbook._" },
+            50: { artist: "y3sy3sy00", handle: "y3sy3sy00" },
+            51: { artist: "Саша Китаєва (Кругла)", handle: "dorobok" },
+            52: { artist: "Ільчук Діма", handle: "xfriscobluesx" },
+            53: { artist: "Kateryna Khadyko", handle: "hadykins" },
+            54: { artist: "Нікіта", handle: "firefoh" },
+            55: { artist: "Zєба", handle: "zeba_art32" },
+            56: { artist: "Дмитро Онопрійко", handle: "khrrr5320" },
+            57: { artist: "Sofiia Markova", handle: "sofiia_markova_", title: "Tri4ko" },
+            58: { artist: "Volodymyr Khomenko", handle: "adult.xoma" },
+            59: { artist: "Ksenia Lysenko", handle: "solnechnayazhenshchina" },
+            60: { artist: "Edik Balula", handle: "balula.e" },
+            61: { artist: "Volodymyr Khomenko", handle: "adult.xoma", title: "Деформований алюмінієвий сплав..." },
+            62: { artist: "Павло Круппот", handle: "pavlo_kruppot" },
+            63: { artist: "KESER1", handle: "keser.one" },
+            64: { artist: "Станіслав Калагарець", handle: "stanislaawww" },
+            65: { artist: "tanchik", handle: "demishkan.t" },
+            80: { artist: "Станіслав Калагарець", handle: "stanislaawww" }
+        };
+
+        const MODEL_DB = {
+            '1.glb': { title: "Multidisciplinary independent artist", artist: "Volodymyr Khomenko", handle: "adult.xoma" },
+            '2.glb': { title: "Післясмак розпачу провини ненависті", artist: "Ганна", handle: "gannaganya" },
+            '3.glb': { title: "Sculpture", artist: "Гоша Тоскно", handle: "toskno.wav" },
+            '4.glb': { title: "Sculpture", artist: "Olla Kuzovkina", handle: "olla.kuzovkina" },
+            '5.glb': { title: "Sculpture", artist: "Владислав Краснощок", handle: "vkrasnmuseum" },
+            '6.glb': { title: "Sculpture", artist: "Veronika", handle: "vavavurvur" },
+            '7.glb': { title: "Sculpture", artist: "Максим Неживий", handle: "nejuwuimaxim" },
+            '8.glb': { title: "Encapsulant", artist: "Kateryna Khadyko", handle: "hadykins" }
+        };
+
+        const CURTAIN_DATA = { artist: "Катя Дрозд", handle: "kkkaaattteee_ddd", title: "Installation" };
+
         const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
         const isLowEnd = window.isLowEnd;
 
         // --- MOBILE START SCREEN ADJUSTMENTS ---
         if(isMobile) {
-            // Fix Title Spacing for "visual centering"
             const titles = document.querySelectorAll('.title-font');
             titles.forEach(t => {
                 if(t.innerHTML.includes('ІДІ')) {
-                    t.innerHTML = '“ІДІ&nbsp; НАХУЙ”'; // Added non-breaking space
+                    t.innerHTML = '“ІДІ&nbsp; НАХУЙ”';
                 }
             });
-            // Update Subtitle
             document.getElementById('start-subtitle').innerText = "Для кращого досвіду радимо переглядати з комп’ютера";
         }
 
@@ -464,7 +554,7 @@
 
         // --- PHYSICS BACKGROUND (Desktop Only & High End Only) ---
         function initGravityBackground() {
-            if (isMobile || isLowEnd) return; // OPTIMIZATION: Disable physics on low end
+            if (isMobile || isLowEnd) return; 
             
             const Engine = Matter.Engine,
                   Render = Matter.Render,
@@ -616,19 +706,18 @@
         camera.rotation.order = 'YXZ'; 
 
         const renderer = new THREE.WebGLRenderer({ 
-            antialias: !isMobile && !isLowEnd, // OPTIMIZATION: No AA on low end
+            antialias: !isMobile && !isLowEnd, 
             powerPreference: "high-performance" 
         });
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.outputColorSpace = THREE.SRGBColorSpace; 
         renderer.toneMapping = THREE.NoToneMapping; 
         
-        // OPTIMIZATION: Lower pixel ratio for low end devices
         const pixelRatio = isLowEnd ? 0.75 : Math.min(window.devicePixelRatio, 1.5);
         renderer.setPixelRatio(pixelRatio);
 
         if (isMobile || isLowEnd) {
-            renderer.shadowMap.enabled = false; // OPTIMIZATION: No shadows
+            renderer.shadowMap.enabled = false;
         } else {
             renderer.shadowMap.enabled = true;
             renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -642,12 +731,10 @@
         const textureLoader = isMobile ? new THREE.TextureLoader() : new THREE.TextureLoader(manager);
         const lazyLoader = new THREE.TextureLoader();
 
-        // External texture stays as is (Polyhaven usually is jpg)
         const concreteTex = textureLoader.load('https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/plaster_grey_04/plaster_grey_04_diff_1k.jpg');
         concreteTex.wrapS = concreteTex.wrapT = THREE.RepeatWrapping;
         concreteTex.repeat.set(10, 40); concreteTex.colorSpace = THREE.SRGBColorSpace;
 
-        // NEW: Drozd texture for curtain (PNG)
         const drozdTex = textureLoader.load('assets/drozd.jpg');
         drozdTex.colorSpace = THREE.SRGBColorSpace;
 
@@ -661,10 +748,9 @@
         const mobilePosterMat = new THREE.MeshStandardMaterial({ color: 0xcccccc, roughness: 0.6, metalness: 0.1 });
         const placeholderMat = new THREE.MeshStandardMaterial({ color: 0x888888, roughness: 0.8 });
 
-        // NEW: Curtain Materials (updated for PNG)
         const curtainDiscMat = new THREE.MeshStandardMaterial({ 
             map: drozdTex, 
-            color: 0xffffff, // White to show texture colors correctly
+            color: 0xffffff, 
             roughness: 0.4, 
             metalness: 0.1, 
             side: THREE.DoubleSide,
@@ -677,7 +763,6 @@
             roughness: 0.2 
         });
         const discGeo = new THREE.CylinderGeometry(0.15, 0.15, 0.02, 32); 
-        // FIXED ROTATION: Rotate Z first to orient texture up, then X to lay flat
         discGeo.rotateZ(Math.PI / 2);
         discGeo.rotateX(Math.PI / 2);
         const ringGeo = new THREE.TorusGeometry(0.04, 0.008, 8, 16);
@@ -688,7 +773,6 @@
         let videoTex1, videoTex2;
 
         if (isMobile || isLowEnd) {
-            // UPDATED: .jpeg for TV static texture
             const tvStaticTex = textureLoader.load('assets/for tv.jpeg');
             tvStaticTex.colorSpace = THREE.SRGBColorSpace;
             videoTex1 = tvStaticTex;
@@ -701,8 +785,8 @@
         }
 
         const collidableObjects = []; 
-        const clickableObjects = []; // Unified array for interactive items
-        const postersArray = []; // Keep tracking for loading logic
+        const clickableObjects = []; 
+        const postersArray = []; 
         const roomPosters = {}; 
         const roomStatus = {}; 
         const roomGroups = {};
@@ -717,16 +801,19 @@
         function getNextImage() {
             const id = currentImageId;
             let wallUrl;
-            // UPDATED: .jpeg for all images (small and full)
             if (isMobile) { 
                 wallUrl = `assets/small_mobile/image${id}.jpeg`; 
             } else { 
                 wallUrl = `assets/small/image${id}.jpeg`; 
             }
             const fullUrl = `assets/image${id}.jpeg`; 
-            const title = `Artwork #${id}`;
+            
+            // Get data from DB
+            const meta = ARTWORK_DB[id] || { artist: "Unknown Artist", handle: "" };
+            const title = meta.title ? meta.title : `Artwork #${id}`;
+
             currentImageId++; if (currentImageId > totalImages) currentImageId = 1; 
-            return { wallUrl, fullUrl, title, id };
+            return { wallUrl, fullUrl, title, id, meta };
         }
 
         function addToRoom(object, roomIndex) {
@@ -759,7 +846,17 @@
             
             const mesh = new THREE.Mesh(geo, mat);
             mesh.position.set(x, y, z); mesh.rotation.y = ry;
-            mesh.userData = { type: 'poster', url: data.fullUrl, title: data.title, year: "2025", desc: "Collection" };
+            
+            // Populate User Data from DB
+            mesh.userData = { 
+                type: 'poster', 
+                url: data.fullUrl, 
+                title: data.title, 
+                year: "2025", 
+                artist: data.meta.artist,
+                handle: data.meta.handle,
+                extraLink: data.meta.extraLink // for double artists
+            };
             
             addToRoom(mesh, roomIndex);
             postersArray.push(mesh);
@@ -841,13 +938,14 @@
             const tvY = 3.8; 
             tv.position.set(x, tvY, z); tv.rotation.y = rotationY; 
             
-            // Add click data
+            // Add click data for Video 2 (Shreky)
             tv.userData = { 
-                type: 'tv-link', 
-                title: 'Відео', 
-                author: 'SHREKY', 
-                link: 'https://www.instagram.com/shrekycore/',
-                desc: 'Digital Art'
+                type: 'poster', 
+                title: 'Digital Art', 
+                artist: 'SHREKY', 
+                handle: 'shrekycore',
+                year: '2025',
+                url: 'assets/share.jpg' // Fallback image if needed
             };
             
             addToRoom(tv, roomIndex);
@@ -865,20 +963,29 @@
                 screenLight.position.set(0, 0, 1.0); 
                 tv.add(screenLight); 
             }
-            
-            // REMOVED COLLISION FOR TVs - No obstacle
         }
 
         function createProjection(x, y, z, w, h, rotationY, texture, roomIndex) {
             const mesh = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshBasicMaterial({ map: texture, side: THREE.DoubleSide }));
             mesh.position.set(x, y, z); mesh.rotation.y = rotationY; 
             
-            // Add click data
+            // Add click data for Video 1 (Multiple Artists)
             mesh.userData = { 
                 type: 'poster', 
                 title: 'Video Installation', 
                 year: '2025', 
-                desc: 'Video Artist' 
+                // Using 'desc' to pass full HTML for multiple artists
+                isMultiArtist: true,
+                desc: `
+                    Музика: <a href="https://www.instagram.com/imj.ytt/" target="_blank">Варя</a><br>
+                    Відео: <a href="https://www.instagram.com/sht_design/" target="_blank">Max Shtayn</a><br>
+                    <a href="https://www.instagram.com/xdout228/" target="_blank">Богдан</a><br>
+                    <a href="https://www.instagram.com/zhucccci/" target="_blank">Denys Zhuk</a><br>
+                    <a href="https://www.instagram.com/tortil_ya/" target="_blank">Авіталь Коючкова</a><br>
+                    <a href="https://www.instagram.com/worse404/" target="_blank">Максим</a><br>
+                    <a href="https://www.instagram.com/beahudson20/" target="_blank">Beahudson20</a>
+                `,
+                url: 'assets/share.jpg'
             };
             
             addToRoom(mesh, roomIndex);
@@ -891,12 +998,10 @@
             }
         }
         
-        // NEW FUNCTION: CREATE CURTAIN (FIXED LOGIC)
         function createCurtain(x, z, roomIndex) {
             if (isMobile || isLowEnd) return; 
 
             const curtainGroup = new THREE.Group();
-            // Position at the top of the door header (height 3.5)
             const headerHeight = 3.5;
             curtainGroup.position.set(x, headerHeight, z);
 
@@ -904,36 +1009,44 @@
             const strands = 9;
             const spacing = doorWidth / strands;
 
-            // Geometry for the top ring connecting to the header
             const topRingGeo = new THREE.TorusGeometry(0.04, 0.008, 8, 16);
-            topRingGeo.rotateX(Math.PI / 2); // Flat ring loop
+            topRingGeo.rotateX(Math.PI / 2); 
 
             for(let i = 0; i < strands; i++) {
                     const xPos = (i * spacing) - (doorWidth/2) + (spacing/2);
                     const strandGroup = new THREE.Group();
                     strandGroup.position.x = xPos;
 
-                    // 1. Create the top ring attached to the header
                     const topRing = new THREE.Mesh(topRingGeo, chainMat);
                     topRing.position.y = 0; 
                     strandGroup.add(topRing);
 
-                    const length = 3.0; // Total length of the strand
-                    const items = 8; // Number of discs
+                    const length = 3.0; 
+                    const items = 8; 
                     const step = length / items;
 
                     for(let j = 0; j < items; j++) {
-                        // Position for the disc, start lower so it hangs FROM the ring
                         const yPos = -((j + 1) * step) + (step / 2);
 
-                        // Disc
                         const disc = new THREE.Mesh(discGeo, curtainDiscMat);
                         disc.position.y = yPos;
                         disc.rotation.y = Math.random() * Math.PI;
+                        
+                        // Make curtain interactive
+                        disc.userData = {
+                            type: 'poster',
+                            artist: CURTAIN_DATA.artist,
+                            handle: CURTAIN_DATA.handle,
+                            title: CURTAIN_DATA.title,
+                            year: '2025',
+                            url: 'assets/drozd.jpg'
+                        };
+                        
                         strandGroup.add(disc);
                         animatedModels.push(disc);
+                        // IMPORTANT: Add to clickable list so raycaster finds it
+                        clickableObjects.push(disc);
 
-                        // Chain/Ring connecting to the *next* disc
                         if (j < items - 1) {
                             const ring = new THREE.Mesh(ringGeo, chainMat);
                             ring.position.y = yPos - (step/2);
@@ -984,7 +1097,11 @@
                 function mountPoster(px, py, pz, ry, width, height, pipeYLevel, specificUrl = null) {
                     let data;
                     if (specificUrl) {
-                        data = { wallUrl: specificUrl, fullUrl: specificUrl, title: "Special", id: 80 };
+                        // Image 80 logic
+                        data = { 
+                            wallUrl: specificUrl, fullUrl: specificUrl, title: "Artwork #80", 
+                            meta: ARTWORK_DB[80] 
+                        };
                     } else {
                         data = getNextImage();
                     }
@@ -1001,9 +1118,16 @@
                     const pointsR = [new THREE.Vector3(1 - 0.15, topOfPosterY, 0), new THREE.Vector3(1 - 0.15, topOfPosterY + distToPipe, 0)];
                     mesh.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pointsL), stringMat)); mesh.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pointsR), stringMat));
 
-                    mesh.userData = { type: 'poster', url: data.fullUrl, title: data.title, year: "2025", desc: "Mounted Installation" };
+                    mesh.userData = { 
+                        type: 'poster', 
+                        url: data.fullUrl, 
+                        title: data.title || data.meta.title, 
+                        year: "2025", 
+                        artist: data.meta.artist,
+                        handle: data.meta.handle
+                    };
                     revolvingStage.add(mesh); postersArray.push(mesh);
-                    clickableObjects.push(mesh); // Add to interactive
+                    clickableObjects.push(mesh); 
                 }
                 const topPipeLevel = 3.3; const posterCenterY = 3.5 / 2;
                 const d2 = 4; const w2 = 4;
@@ -1011,7 +1135,6 @@
                 mountPoster(0, posterCenterY, d2/2, 0, 2, 2.5, topPipeLevel); 
                 mountPoster(-w2/2, posterCenterY, 0, Math.PI/2, 2, 2.5, topPipeLevel); 
                 mountPoster(0, posterCenterY, -d2/2, Math.PI, 2.5, 1.8, topPipeLevel); 
-                // UPDATED: assets/image80.jpeg
                 mountPoster(w2/2, posterCenterY, 0, -Math.PI/2, 2, 2.5, topPipeLevel, 'assets/image80.jpeg');
 
                 revolvingStage.add(structureGroup);
@@ -1042,17 +1165,20 @@
                 const offsetX = Math.cos(angle) * radius; const offsetZ = Math.sin(angle) * radius;
                 const fullPath = `assets/3d/${filename}`;
                 
+                const meta = MODEL_DB[filename];
+
                 gltfLoader.load(fullPath, (gltf) => {
                     const object = gltf.scene;
                     fixMaterial(object);
                     
-                    // Add click data for 3D model
+                    // Add click data for 3D model from DB
                     object.userData = { 
                         type: 'poster', 
-                        title: 'Sculpture ' + (index + 1), 
+                        title: meta.title, 
                         year: '2025', 
-                        desc: '3D Artist Name',
-                        url: 'assets/share.jpg' // Fallback image for modal
+                        artist: meta.artist,
+                        handle: meta.handle,
+                        url: 'assets/share.jpg' 
                     };
                     
                     object.scale.set(1, 1, 1); 
@@ -1074,14 +1200,14 @@
                     object.position.set(roomCenterX + offsetX, -newBox.min.y, roomCenterZ + offsetZ);
                     addToRoom(object, roomIndex);
                     collidableObjects.push({ box: new THREE.Box3().setFromObject(object) });
-                    clickableObjects.push(object); // Add to interactive
+                    clickableObjects.push(object); 
                     
                     if (filename === '6.glb') {
                         const loader9 = new GLTFLoader();
                         loader9.load('assets/3d/9.glb', (gltf9) => {
                             const obj9 = gltf9.scene;
                             fixMaterial(obj9);
-                            obj9.userData = object.userData; // Same data
+                            obj9.userData = object.userData; // Same author
                             const smallScale = (((1.9 / 4.0) * 1.4) / 3.0) * 1.5;
                             obj9.scale.set(smallScale, smallScale, smallScale); 
                             obj9.rotation.set(0, 0, 0);
@@ -1102,6 +1228,8 @@
 
         function createHangingModel7(x, z, roomCeiling, roomIndex) {
             const gltfLoader = new GLTFLoader(manager);
+            const meta = MODEL_DB['7.glb'];
+
             gltfLoader.load('assets/3d/7.glb', (gltf) => {
                 const object = gltf.scene;
                 fixMaterial(object);
@@ -1113,9 +1241,10 @@
                 // Add click data
                 object.userData = { 
                     type: 'poster', 
-                    title: 'Hanging Sculpture', 
+                    title: meta.title, 
                     year: '2025', 
-                    desc: 'Artist Name',
+                    artist: meta.artist,
+                    handle: meta.handle,
                     url: 'assets/share.jpg'
                 };
                 
@@ -1487,6 +1616,8 @@
             if (intersects.length > 0 && intersects[0].distance < 8) {
                 // Find the parent object that has userData
                 let obj = intersects[0].object;
+                
+                // Traverse up to find userData if not on the exact mesh (for GLB or groups)
                 while(!obj.userData.type && obj.parent) {
                     obj = obj.parent;
                 }
@@ -1499,15 +1630,6 @@
                         openModal(obj.userData);
                     }
                 } 
-                else if (obj.userData.type === 'tv-link') {
-                     // For TVs with links
-                     if(isMobile) {
-                        currentTarget = obj;
-                        viewBtn.style.display = 'block';
-                     } else {
-                        openModal(obj.userData);
-                     }
-                }
                 else if (obj.userData.type === 'follower') {
                     isFollowing = !isFollowing;
                 }
@@ -1530,15 +1652,32 @@
 
             // Handle Title and Links
             const titleEl = document.getElementById('modal-title');
-            if (data.link) {
-                // If it's a TV link style
-                titleEl.innerHTML = `${data.title}: <a href="${data.link}" target="_blank">${data.author}</a>`;
-            } else {
-                // Standard Poster
+            
+            // Generate content
+            if (data.isMultiArtist) {
+                // Special case for Video 1 projection
                 titleEl.innerText = data.title;
+                document.getElementById('modal-desc').innerHTML = data.desc;
+            } 
+            else if (data.artist) {
+                // Standard single artist work
+                const instagramUrl = `https://www.instagram.com/${data.handle}/`;
+                let artistHTML = `<a href="${instagramUrl}" target="_blank">${data.artist}</a>`;
+                
+                if (data.extraLink) {
+                    // Double artists like #32 and #35
+                    artistHTML += `, <a href="https://www.instagram.com/${data.extraLink}/" target="_blank">@${data.extraLink}</a>`;
+                }
+                
+                titleEl.innerHTML = `${data.title}<br>${artistHTML}`;
+                document.getElementById('modal-desc').innerText = `${data.year || ''}`;
+            } 
+            else {
+                // Fallback
+                titleEl.innerText = data.title;
+                document.getElementById('modal-desc').innerText = data.desc || "";
             }
 
-            document.getElementById('modal-desc').innerText = `${data.year || ''} • ${data.desc}`;
             modal.style.display = 'flex';
             viewBtn.style.display = 'none';
             infoBtn.style.display = 'none';

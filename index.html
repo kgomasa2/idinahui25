@@ -226,14 +226,13 @@
             text-align: center; color: white;
         }
         
-        /* FIX FOR WHITE LINE AND ALIGNMENT */
+        /* FIX FOR WHITE LINE */
         #img-container {
             display: block;
             width: auto;
             max-width: 95%;
             max-height: 70vh;
             margin: 0 auto 20px auto;
-            /* Removes inline spacing */
             font-size: 0;
             line-height: 0;
         }
@@ -245,7 +244,7 @@
             max-width: 100%; 
             object-fit: contain;
             display: block; 
-            vertical-align: bottom; /* Crucial for removing bottom spacing */
+            vertical-align: bottom;
             border: none;
             outline: none;
             box-shadow: 0 10px 30px rgba(0,0,0,0.5);
@@ -414,7 +413,7 @@
 
         <div class="top-content">
             <div class="title-font">“ІДІ НАХУЙ”</div>
-            <div class="director-font">
+            <div class="director-font" id="start-subtitle">
                 Керування стрілками, можна стрибати, на Shift прискорення. Для перегляду роботи клацни по ній.
             </div>
         </div>
@@ -548,11 +547,6 @@
             63: { artist: "KESER1", handle: "keser.one" },
             64: { artist: "Станіслав Калагарець", handle: "stanislaawww" },
             65: { artist: "tanchik", handle: "demishkan.t" },
-            // ADDED MISSING POSTERS TO PREVENT UNKNOWN
-            66: { title: "Artwork #66" }, 67: { title: "Artwork #67" }, 68: { title: "Artwork #68" }, 69: { title: "Artwork #69" },
-            70: { title: "Artwork #70" }, 71: { title: "Artwork #71" }, 72: { title: "Artwork #72" }, 73: { title: "Artwork #73" },
-            74: { title: "Artwork #74" }, 75: { title: "Artwork #75" }, 76: { title: "Artwork #76" }, 77: { title: "Artwork #77" },
-            78: { title: "Artwork #78" }, 79: { title: "Artwork #79" },
             80: { artist: "Станіслав Калагарець", handle: "stanislaawww" }
         };
 
@@ -688,7 +682,7 @@
             let wallUrl;
             let fullUrl;
             
-            // UPDATED URL LOGIC WITH FALLBACK
+            // UPDATED URL LOGIC
             if (isMobile) { 
                 wallUrl = `assets/small_mobile/image${id}.jpeg`; 
                 fullUrl = `assets/small/image${id}.jpeg`; 
@@ -697,9 +691,7 @@
                 fullUrl = `assets/image${id}.jpeg`; 
             }
             
-            // SKIP LOGIC FOR 66/67 REMOVED AS USER HAS FILES FOR THEM NOW
-            // Only keeping skip if user insists, but they said "fix grey preview", implying files exist now
-            // IF you still want to skip 66/67, uncomment:
+            // STRICT SKIP for 66 and 67
             if (currentImageId === 66) currentImageId = 68;
 
             const meta = ARTWORK_DB[id] || { artist: "Unknown" };
@@ -750,27 +742,17 @@
 
         function checkRoomLoad(currentRoom) { if (!isMobile) return; const keepLoaded = [currentRoom, currentRoom + 1]; for (let idx = 0; idx < 5; idx++) { if (!keepLoaded.includes(idx) && roomStatus[idx] === 'loaded') { unloadRoomTextures(idx); } } keepLoaded.forEach(idx => { if (idx >= 0 && idx < 5 && roomStatus[idx] !== 'loaded') { loadRoomTextures(idx); } }); }
         
-        // UPDATED: Added Error Handling for 'small_mobile'
+        // REVERTED TO SIMPLE LOADER TO FIX MOBILE FREEZE
         function loadRoomTextures(roomIdx) { 
             if (!roomPosters[roomIdx]) return; 
             roomStatus[roomIdx] = 'loaded'; 
             roomPosters[roomIdx].forEach(item => { 
-                const onLoad = (tex) => { 
+                lazyLoader.load(item.url, (tex) => { 
                     tex.colorSpace = THREE.SRGBColorSpace; 
                     item.material.map = tex; 
                     item.material.color.setHex(0xffffff); 
                     item.material.needsUpdate = true; 
-                };
-                
-                // If small_mobile fails, fallback to 'small'
-                const onError = () => {
-                    if (item.url.includes('small_mobile')) {
-                        const fallbackUrl = item.url.replace('small_mobile', 'small');
-                        lazyLoader.load(fallbackUrl, onLoad);
-                    }
-                };
-
-                lazyLoader.load(item.url, onLoad, undefined, onError); 
+                });
             }); 
         }
         

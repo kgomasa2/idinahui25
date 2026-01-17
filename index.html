@@ -226,6 +226,7 @@
             text-align: center; color: white;
         }
         
+        /* FIX FOR WHITE LINE */
         #img-container {
             display: block;
             width: auto;
@@ -546,11 +547,10 @@
             63: { artist: "KESER1", handle: "keser.one" },
             64: { artist: "Станіслав Калагарець", handle: "stanislaawww" },
             65: { artist: "tanchik", handle: "demishkan.t" },
-            // ADDED MISSING POSTERS TO PREVENT UNKNOWN
             66: { title: "Artwork #66" }, 67: { title: "Artwork #67" }, 68: { title: "Artwork #68" }, 69: { title: "Artwork #69" },
             70: { title: "Artwork #70" }, 71: { title: "Artwork #71" }, 72: { title: "Artwork #72" }, 73: { title: "Artwork #73" },
             74: { title: "Artwork #74" }, 75: { title: "Artwork #75" }, 76: { title: "Artwork #76" }, 77: { title: "Artwork #77" },
-            78: { title: "Artwork #78" }, 79: { title: "Artwork #79" },
+            78: { title: "Artwork #78" }, 
             80: { artist: "Станіслав Калагарець", handle: "stanislaawww" }
         };
 
@@ -580,7 +580,8 @@
             document.getElementById('start-subtitle').innerText = "Для кращого досвіду радимо переглядати з комп’ютера";
         }
 
-        // REMOVED THREE.Cache.enabled = false TO FIX GREY TEXTURES
+        // ENABLED CACHE TO PREVENT GREY TEXTURES
+        THREE.Cache.enabled = true;
 
         function initGravityBackground() {
             if (isMobile || isLowEnd) return; 
@@ -679,14 +680,16 @@
         let revolvingStage = null; const animatedModels = []; const interactiveObjects = []; 
 
         let currentImageId = 1;
-        const totalImages = 79; 
+        const totalImages = 78; 
 
         function getNextImage() {
             const id = currentImageId;
             let wallUrl;
             let fullUrl;
             
-            // UPDATED URL LOGIC
+            // LOGIC FOR MOBILE:
+            // Wall uses 'small_mobile'
+            // Click uses 'small' (as full size on mobile)
             if (isMobile) { 
                 wallUrl = `assets/small_mobile/image${id}.jpeg`; 
                 fullUrl = `assets/small/image${id}.jpeg`; 
@@ -695,9 +698,6 @@
                 fullUrl = `assets/image${id}.jpeg`; 
             }
             
-            // STRICT SKIP for 66 and 67
-            if (currentImageId === 66) currentImageId = 68;
-
             const meta = ARTWORK_DB[id] || { artist: "Unknown" };
             const title = meta.title ? meta.title : ""; 
 
@@ -746,17 +746,27 @@
 
         function checkRoomLoad(currentRoom) { if (!isMobile) return; const keepLoaded = [currentRoom, currentRoom + 1]; for (let idx = 0; idx < 5; idx++) { if (!keepLoaded.includes(idx) && roomStatus[idx] === 'loaded') { unloadRoomTextures(idx); } } keepLoaded.forEach(idx => { if (idx >= 0 && idx < 5 && roomStatus[idx] !== 'loaded') { loadRoomTextures(idx); } }); }
         
-        // REVERTED TO SIMPLE LOADER TO FIX MOBILE FREEZE
+        // UPDATED LOADER WITH FALLBACK
         function loadRoomTextures(roomIdx) { 
             if (!roomPosters[roomIdx]) return; 
             roomStatus[roomIdx] = 'loaded'; 
             roomPosters[roomIdx].forEach(item => { 
-                lazyLoader.load(item.url, (tex) => { 
+                const onLoad = (tex) => { 
                     tex.colorSpace = THREE.SRGBColorSpace; 
                     item.material.map = tex; 
                     item.material.color.setHex(0xffffff); 
                     item.material.needsUpdate = true; 
-                });
+                };
+                
+                // Fallback to 'small' if 'small_mobile' fails
+                const onError = () => {
+                    if (item.url.includes('small_mobile')) {
+                        const fallbackUrl = item.url.replace('small_mobile', 'small');
+                        lazyLoader.load(fallbackUrl, onLoad);
+                    }
+                };
+
+                lazyLoader.load(item.url, onLoad, undefined, onError); 
             }); 
         }
         
@@ -956,201 +966,4 @@
         }
 
         // --- WORLD GENERATION ---
-        const roomsCount = isMobile ? 4 : 5; const roomSize = 20; const roomHeight = 6; const whiteFloorL = roomSize * (roomsCount - (isMobile ? 0 : 1)); 
-        const floor1 = new THREE.Mesh(new THREE.PlaneGeometry(roomSize, whiteFloorL), floorMat); floor1.rotation.x = -Math.PI / 2; floor1.position.z = -whiteFloorL / 2 + roomSize / 2; floor1.receiveShadow = !isMobile && !isLowEnd; scene.add(floor1);
-        const zLastRoom = -((roomsCount - 1) * roomSize); let benchPosition = new THREE.Vector3(0, -9999, 0); 
-        if (!isMobile) { const floor2 = new THREE.Mesh(new THREE.PlaneGeometry(roomSize, roomSize), darkFloorMat); floor2.rotation.x = -Math.PI / 2; floor2.position.z = zLastRoom; scene.add(floor2); }
-
-        for (let i = 0; i < roomsCount; i++) {
-            const zCenter = -(i * roomSize); const isDarkRoom = (!isMobile && i === roomsCount - 1);
-            if (!isDarkRoom) {
-                if (isMobile || isLowEnd) { const roomLight = new THREE.PointLight(0xffffff, 1.5, 25); roomLight.position.set(0, 5, zCenter); addToRoom(roomLight, i); } 
-                else { const rectLightLeft = new THREE.RectAreaLight(0xffffff, 6.0, roomSize - 2, 0.5); rectLightLeft.position.set(-8, 5.5, zCenter); rectLightLeft.lookAt(-20, 1, zCenter); addToRoom(rectLightLeft, i); const rectLightRight = new THREE.RectAreaLight(0xffffff, 6.0, roomSize - 2, 0.5); rectLightRight.position.set(8, 5.5, zCenter); rectLightRight.lookAt(20, 1, zCenter); addToRoom(rectLightRight, i); const fillLight = new THREE.PointLight(0xffffff, 2, 20); fillLight.position.set(0, 5, zCenter); addToRoom(fillLight, i); }
-            }
-            createBox(-roomSize/2, roomHeight/2, zCenter, 0.5, roomHeight, roomSize, true, isDarkRoom, null, i); createBox(roomSize/2, roomHeight/2, zCenter, 0.5, roomHeight, roomSize, true, isDarkRoom, null, i); 
-            if (!isDarkRoom) { const ceiling = new THREE.Mesh(new THREE.PlaneGeometry(roomSize, roomSize), wallMat); ceiling.rotation.x = Math.PI / 2; ceiling.position.set(0, roomHeight, zCenter); addToRoom(ceiling, i); }
-            
-            if (i === 0) {
-                createBox(0, roomHeight/2, zCenter + roomSize/2, roomSize, roomHeight, 0.5, true, isDarkRoom, null, i); createDoorWall(zCenter - roomSize/2, roomSize, roomHeight, isDarkRoom, i);
-                if (isMobile) { addPoster( -6.0, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i); addPoster( 6.0, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i); }
-            } else if (isDarkRoom) {
-                createBox(0, roomHeight/2, zCenter - roomSize/2, roomSize, roomHeight, 0.5, true, isDarkRoom, null, i); const darkCeiling = new THREE.Mesh(new THREE.PlaneGeometry(roomSize, roomSize), darkWallMat); darkCeiling.rotation.x = Math.PI / 2; darkCeiling.position.set(0, roomHeight, zCenter); addToRoom(darkCeiling, i); benchPosition.set(0, 0.4, zCenter); createBox(0, 0.4, zCenter, 3.5, 0.8, 1.5, true, false, benchMat, i);
-            } else if (isMobile && i === roomsCount - 1) {
-                createBox(0, roomHeight/2, zCenter - roomSize/2, roomSize, roomHeight, 0.5, true, false, null, i);
-                const backGap = 2.6; addPoster(-backGap * 2, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i); addPoster(-backGap, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i); addPoster(0, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i); addPoster(backGap, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i); addPoster(backGap * 2, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i); 
-                const sideCount = 5; const sideGap = 2.6; const startZ = zCenter + ((sideCount - 1) * sideGap) / 2;
-                for (let k = 0; k < sideCount; k++) { const zPos = startZ - (k * sideGap); addPoster(-9.7, 2.7, zPos, Math.PI/2, 2.2, 2.8, i); addPoster(9.7, 2.7, zPos, -Math.PI/2, 2.2, 2.8, i); }
-                createHangingTV(0, zCenter, roomHeight, 0, i);
-            } else {
-                createDoorWall(zCenter - roomSize/2, roomSize, roomHeight, false, i);
-                if (isMobile) { addPoster( -6.0, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i); addPoster( 6.0, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i); addPoster( -6.0, 2.7, zCenter + roomSize/2 - 0.3, Math.PI, 2.2, 2.8, i); addPoster( 6.0, 2.7, zCenter + roomSize/2 - 0.3, Math.PI, 2.2, 2.8, i); }
-            }
-            if (!isDarkRoom) {
-                if (i === 0) { createHangingTV(0, zCenter, roomHeight, 0, i); } 
-                else if (i === 1) { if (!isLowEnd) { loadAllModels(0, zCenter, i); createHangingModel7(0, zCenter, roomHeight, i); } } 
-                else if (i === 2) { createScaffoldingStructure(0, zCenter, i); if (isMobile) createHangingTV(0, zCenter, roomHeight, 0, i); } 
-                else { 
-                    let rotation = (i === 3) ? 0 : Math.random() * Math.PI; createHangingTV(0, zCenter, roomHeight, rotation, i); 
-                    if (i === 3) { createCurtain(0, zCenter - roomSize/2, i); }
-                }
-                if (!(isMobile && i === roomsCount - 1)) {
-                    // SIDE WALLS
-                    const standardW = isMobile ? 2.2 : 2.6; const standardH = isMobile ? 2.8 : 3.25; const postersPerSide = isMobile ? 6 : 6; const availableWidth = 14; const step = availableWidth / (postersPerSide - 1);
-                    for (let k = 0; k < postersPerSide; k++) { const zPos = (zCenter + availableWidth/2) - (k * step); addPoster(-9.7, 2.7, zPos, Math.PI/2, standardW, standardH, i); addPoster(9.7, 2.7, zPos, -Math.PI/2, standardW, standardH, i); }
-                    
-                    // NEW: DOOR WALL POSTERS (To reach 65 total count)
-                    // 1. Far wall (facing viewer) - present in all light rooms
-                    addPoster(-6.0, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i);
-                    addPoster( 6.0, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i);
-
-                    // 2. Near wall (facing back) - present in rooms 1, 2, 3
-                    if (i > 0) {
-                        addPoster(-6.0, 2.7, zCenter + roomSize/2 - 0.3, Math.PI, 2.2, 2.8, i);
-                        addPoster( 6.0, 2.7, zCenter + roomSize/2 - 0.3, Math.PI, 2.2, 2.8, i);
-                    }
-                }
-            } else {
-                const projW = 9.0; const projH = 5.06; const wallDist = (roomSize/2) - 0.4;
-                createProjection(0, 3, zCenter - wallDist, projW, projH, 0, videoTex1, i);
-                if (!isMobile) { createProjection(-wallDist, 3, zCenter, projW, projH, Math.PI/2, videoTex1, i); createProjection(wallDist, 3, zCenter, projW, projH, -Math.PI/2, videoTex1, i); }
-            }
-        }
-
-        // --- FOLLOWER & LIGHTS ---
-        let isFollowing = true; let follower = null;
-        if (!isMobile) {
-            const followerTex = textureLoader.load('assets/gerb.jpeg', undefined, undefined, (err) => console.error("Missing gerb.png")); followerTex.colorSpace = THREE.SRGBColorSpace;
-            const followerGeo = new THREE.PlaneGeometry(3, 3); const followerMat = new THREE.MeshBasicMaterial({ map: followerTex, side: THREE.DoubleSide, transparent: true });
-            follower = new THREE.Mesh(followerGeo, followerMat); follower.position.set(0, 2.5, 12); follower.userData = { type: 'follower', title: "Watcher", desc: "Click to toggle following" };
-            scene.add(follower); interactiveObjects.push(follower); clickableObjects.push(follower);
-        }
-        const ambientLight = new THREE.AmbientLight(0xffffff, isMobile || isLowEnd ? 1.6 : 0.6); scene.add(ambientLight);
-        if (!isMobile && !isLowEnd) { const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 1.2); hemiLight.position.set(0, 20, 0); scene.add(hemiLight); const dirLight = new THREE.DirectionalLight(0xffffff, 1.0); dirLight.position.set(5, 10, 7); dirLight.castShadow = true; dirLight.shadow.mapSize.width = 512; dirLight.shadow.mapSize.height = 512; scene.add(dirLight); } 
-        else { const dirLightMobile = new THREE.DirectionalLight(0xffffff, 0.8); dirLightMobile.position.set(5, 10, 7); scene.add(dirLightMobile); }
-
-        // --- CONTROLS & UI ---
-        const controls = new PointerLockControls(camera, document.body);
-        const startScreen = document.getElementById('start-screen'); const startBtn = document.getElementById('start-btn'); const sitHint = document.getElementById('sit-hint'); const mobileSitBtn = document.getElementById('mobile-sit-btn'); const viewBtn = document.getElementById('view-btn');
-        const modal = document.getElementById('artwork-modal'); const modalClose = document.getElementById('modal-close-btn'); const infoBtn = document.getElementById('info-btn'); const infoModal = document.getElementById('info-modal'); const infoCloseBtn = document.getElementById('info-close-btn'); const controlsHint = document.getElementById('controls-hint');
-        const raycaster = new THREE.Raycaster(); const center = new THREE.Vector2(0, 0); const cursor = document.getElementById('cursor');
-        let isModalOpen = false; let isSitting = false; let isGameActive = false; let currentTarget = null; let frameCount = 0;
-
-        function startGame(e) { e.preventDefault(); e.stopPropagation(); startScreen.style.display = 'none'; isGameActive = true; infoBtn.style.display = 'flex'; if(!isMobile) controlsHint.style.display = 'block'; bgMusic.play().catch(e => console.log("Audio block", e)); if(!isMobile && !isLowEnd) { video1.play().catch(e => console.log("Video1 block", e)); video2.play().catch(e => console.log("Video2 block", e)); } if (!isMobile) { controls.lock(); } else { checkRoomLoad(0); } }
-        startBtn.addEventListener('click', startGame); startBtn.addEventListener('touchstart', startGame);
-        modalClose.addEventListener('click', closeModal); modalClose.addEventListener('touchstart', (e) => { e.stopPropagation(); closeModal(); });
-        infoBtn.addEventListener('click', openInfoModal); infoBtn.addEventListener('touchstart', (e) => { e.stopPropagation(); openInfoModal(); });
-        infoCloseBtn.addEventListener('click', closeInfoModal); infoCloseBtn.addEventListener('touchstart', (e) => { e.stopPropagation(); closeInfoModal(); });
-
-        const stickContainer = document.getElementById('stick-container'); const stickKnob = stickContainer.querySelector('.stick-knob');
-        let moveTouchId = null; let lookTouchId = null; let lookStartX = 0; let lookStartY = 0; let moveVector = { x: 0, y: 0 }; let stickCenter = { x: 0, y: 0 };
-        if(isMobile) {
-             function handleTouchStart(e) { if (!isGameActive) return; for (let i = 0; i < e.changedTouches.length; i++) { const t = e.changedTouches[i]; const halfWidth = window.innerWidth / 2; if(isModalOpen) continue; if (moveTouchId === null && t.clientX < halfWidth) { moveTouchId = t.identifier; stickContainer.style.display = 'block'; stickContainer.style.left = (t.clientX - 50) + 'px'; stickContainer.style.top = (t.clientY - 50) + 'px'; stickCenter = { x: t.clientX, y: t.clientY }; stickKnob.style.transform = `translate(-50%, -50%)`; } else if (lookTouchId === null && t.clientX > halfWidth) { if (e.target.id === 'mobile-sit-btn' || e.target.id === 'view-btn' || e.target.id === 'modal-close-btn' || e.target.id === 'info-btn' || e.target.id === 'info-close-btn' || e.target.closest('#artwork-modal') || e.target.closest('#info-modal')) continue; lookTouchId = t.identifier; lookStartX = t.clientX; lookStartY = t.clientY; } } }
-             function handleTouchMove(e) { if (!isGameActive || isModalOpen) return; e.preventDefault(); for (let i = 0; i < e.changedTouches.length; i++) { const t = e.changedTouches[i]; if (t.identifier === moveTouchId) { const maxDist = 50; let dx = t.clientX - stickCenter.x; let dy = t.clientY - stickCenter.y; const dist = Math.sqrt(dx*dx + dy*dy); if (dist > maxDist) { const ratio = maxDist / dist; dx *= ratio; dy *= ratio; } stickKnob.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`; moveVector.x = dx / maxDist; moveVector.y = dy / maxDist; } else if (t.identifier === lookTouchId) { const deltaX = (t.clientX - lookStartX) * 0.3; camera.rotation.y -= deltaX * 0.015; lookStartX = t.clientX; lookStartY = t.clientY; } } }
-             function handleTouchEnd(e) { for (let i = 0; i < e.changedTouches.length; i++) { const t = e.changedTouches[i]; if (t.identifier === moveTouchId) { moveTouchId = null; moveVector = { x: 0, y: 0 }; stickContainer.style.display = 'none'; } if (t.identifier === lookTouchId) { lookTouchId = null; } } }
-             document.addEventListener('touchstart', handleTouchStart, {passive: false}); document.addEventListener('touchmove', handleTouchMove, {passive: false}); document.addEventListener('touchend', handleTouchEnd);
-             document.addEventListener('click', () => { if (isModalOpen && modal.style.display === 'flex') closeModal(); });
-             mobileSitBtn.addEventListener('touchstart', (e) => { e.stopPropagation(); toggleSit(); });
-             viewBtn.addEventListener('touchstart', (e) => { e.preventDefault(); e.stopPropagation(); if (currentTarget) openModal(currentTarget.userData); });
-        } else {
-             document.addEventListener('click', (e) => { if (isGameActive) { if (isModalOpen) { if (modal.style.display === 'flex' && !e.target.closest('#modal-info') && e.target.id !== 'modal-img') closeModal(); } else { if (controls.isLocked) checkIntersectionAndClick(); else controls.lock(); } } });
-        }
-
-        function checkIntersectionAndClick() {
-            raycaster.setFromCamera(center, camera); const objectsToCheck = clickableObjects; const intersects = raycaster.intersectObjects(objectsToCheck);
-            if (intersects.length > 0 && intersects[0].distance < 8) {
-                let obj = intersects[0].object; while(!obj.userData.type && obj.parent) { obj = obj.parent; }
-                if (obj.userData.type === 'poster' || obj.userData.type === 'tv-link' || obj.userData.type === 'sculpture' || obj.userData.type === 'projection') {
-                    if(isMobile) { currentTarget = obj; viewBtn.style.display = 'block'; } else { openModal(obj.userData); }
-                } else if (obj.userData.type === 'follower') { isFollowing = !isFollowing; }
-            } else { if(isMobile) { viewBtn.style.display = 'none'; currentTarget = null; } }
-        }
-
-        function openModal(data) {
-            isModalOpen = true; 
-            if (!isMobile) controls.unlock();
-            const imgEl = document.getElementById('modal-img');
-            
-            // 1. IMAGE LOGIC
-            if (data.type === 'sculpture' || data.type === 'tv-link' || data.type === 'projection') {
-                imgEl.classList.add('no-image');
-            } else {
-                imgEl.classList.remove('no-image');
-                // IMAGE 4 SWAP
-                if (data.id === 4) {
-                    imgEl.src = 'assets/image4 3.jpeg';
-                } else if (data.url) {
-                    imgEl.src = data.url;
-                } else {
-                    imgEl.src = 'assets/share.jpg';
-                }
-            }
-
-            const titleEl = document.getElementById('modal-title');
-            
-            // 2. TEXT LOGIC
-            if (data.isMultiArtist) {
-                titleEl.innerText = ""; 
-                document.getElementById('modal-desc').innerHTML = data.desc;
-            } 
-            else if (data.customHTML) {
-                titleEl.innerHTML = data.customHTML;
-                document.getElementById('modal-desc').innerText = "";
-            }
-            else if (data.artist) {
-                const instagramUrl = `https://www.instagram.com/${data.handle}/`;
-                let artistHTML = `<a href="${instagramUrl}" target="_blank">${data.artist}</a>`;
-                
-                if (data.extraLink) {
-                    artistHTML += `, <a href="https://www.instagram.com/${data.extraLink}/" target="_blank">@${data.extraLink}</a>`;
-                }
-                
-                if (data.title) {
-                    titleEl.innerHTML = `“${data.title}”<br>${artistHTML}`;
-                } else {
-                    titleEl.innerHTML = `${artistHTML}`;
-                }
-                document.getElementById('modal-desc').innerText = ""; 
-            } 
-            else {
-                titleEl.innerText = data.title;
-                document.getElementById('modal-desc').innerText = ""; 
-            }
-
-            modal.style.display = 'flex';
-            viewBtn.style.display = 'none';
-            infoBtn.style.display = 'none';
-        }
-
-        function closeModal() { isModalOpen = false; modal.style.display = 'none'; if (!isMobile) controls.lock(); infoBtn.style.display = 'flex'; }
-        function openInfoModal() { isModalOpen = true; if (!isMobile) controls.unlock(); infoModal.style.display = 'flex'; infoBtn.style.display = 'none'; viewBtn.style.display = 'none'; }
-        function closeInfoModal() { isModalOpen = false; infoModal.style.display = 'none'; if (!isMobile) controls.lock(); infoBtn.style.display = 'flex'; }
-        function toggleSit() { if (isSitting) { isSitting = false; camera.position.y = 1.7; camera.fov = (isMobile && aspect < 1) ? 95 : 70; camera.updateProjectionMatrix(); bgMusic.volume = 0.65; if(video1 && !isMobile) video1.muted = true; if(isMobile) mobileSitBtn.style.display = 'none'; } else { const dist = camera.position.distanceTo(new THREE.Vector3(benchPosition.x, camera.position.y, benchPosition.z)); if (dist < 5.0) { isSitting = true; camera.position.set(benchPosition.x, benchPosition.y + 1.2, benchPosition.z); velocity.set(0, 0, 0); camera.lookAt(0, 3, benchPosition.z - 20); camera.fov = (isMobile && aspect < 1) ? 60 : 40; camera.updateProjectionMatrix(); bgMusic.volume = 0.1; if(video1 && !isMobile) { video1.muted = false; video1.volume = 1.0; } if(isMobile) { mobileSitBtn.style.display = 'flex'; mobileSitBtn.innerText = "UP"; } } } }
-
-        const move = { f: false, b: false, l: false, r: false, shift: false }; const velocity = new THREE.Vector3(); let canJump = false;
-        document.addEventListener('keydown', (e) => { const code = e.code; if(code === 'KeyW' || code === 'ArrowUp') move.f = true; if(code === 'KeyS' || code === 'ArrowDown') move.b = true; if(code === 'KeyA' || code === 'ArrowLeft') move.l = true; if(code === 'KeyD' || code === 'ArrowRight') move.r = true; if(code === 'ShiftLeft') move.shift = true; if(code === 'Space' && canJump && !isSitting) { velocity.y += 12; canJump = false; } if(code === 'KeyC') toggleSit(); if (code === 'KeyI') { if (!isMobile) { if (isModalOpen && infoModal.style.display === 'flex') { closeInfoModal(); } else if (!isModalOpen) { openInfoModal(); } else if (isModalOpen && modal.style.display === 'flex') { closeModal(); openInfoModal(); } } } });
-        document.addEventListener('keyup', (e) => { const code = e.code; if(code === 'KeyW' || code === 'ArrowUp') move.f = false; if(code === 'KeyS' || code === 'ArrowDown') move.b = false; if(code === 'KeyA' || code === 'ArrowLeft') move.l = false; if(code === 'KeyD' || code === 'ArrowRight') move.r = false; if(code === 'ShiftLeft') move.shift = false; });
-
-        let prevTime = performance.now(); let lastRoomIndex = -1;
-        function animate() {
-            requestAnimationFrame(animate); if (!isGameActive) return; const time = performance.now(); const delta = Math.min((time - prevTime) / 1000, 0.1);
-            if (!isMobile) { if (revolvingStage) { revolvingStage.rotation.y += 0.1 * delta; } animatedModels.forEach(model => { model.rotation.y -= 1.0 * delta; }); } else { animatedModels.forEach(model => { model.rotation.y -= 1.0 * delta; }); }
-            if (follower && isFollowing) { follower.lookAt(camera.position); const dist = follower.position.distanceTo(camera.position); if (dist > 3.0) { const direction = new THREE.Vector3().subVectors(camera.position, follower.position).normalize(); follower.position.add(direction.multiplyScalar(3.5 * delta)); follower.position.y = 2.5 + Math.sin(time * 0.002) * 0.2; } } else if (follower && !isFollowing) { follower.position.y = 2.5 + Math.sin(time * 0.002) * 0.2; }
-            if (!isSitting) {
-                const distToBench = camera.position.distanceTo(new THREE.Vector3(benchPosition.x, camera.position.y, benchPosition.z));
-                if (!isMobile && distToBench < 5.0) { sitHint.style.display = 'block'; } else { sitHint.style.display = 'none'; if (isMobile) mobileSitBtn.style.display = 'none'; }
-                velocity.x -= velocity.x * 10.0 * delta; velocity.z -= velocity.z * 10.0 * delta; velocity.y -= 30.0 * delta; const speed = (move.shift ? 150 : 72); const direction = new THREE.Vector3();
-                if (isMobile) { const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion); forward.y = 0; forward.normalize(); const right = new THREE.Vector3(1, 0, 0).applyQuaternion(camera.quaternion); right.y = 0; right.normalize(); if (moveVector.x !== 0 || moveVector.y !== 0) { velocity.x += (right.x * moveVector.x + forward.x * moveVector.y) * speed * delta; velocity.z += (right.z * moveVector.x + forward.z * moveVector.y) * speed * delta; } } else { direction.z = Number(move.f) - Number(move.b); direction.x = Number(move.r) - Number(move.l); direction.normalize(); if (move.f || move.b) velocity.z -= direction.z * speed * delta; if (move.l || move.r) velocity.x -= direction.x * speed * delta; controls.moveRight(-velocity.x * delta); controls.moveForward(-velocity.z * delta); }
-                if(isMobile) { camera.position.add(new THREE.Vector3(velocity.x * delta, 0, velocity.z * delta)); } camera.position.y += velocity.y * delta; if (camera.position.y < 1.7) { velocity.y = 0; camera.position.y = 1.7; canJump = true; } if (camera.position.y < -10) { camera.position.set(0, 1.7, 8); velocity.set(0, 0, 0); }
-                const pPos = camera.position; const pBox = new THREE.Box3(new THREE.Vector3(pPos.x-0.4, pPos.y-1, pPos.z-0.4), new THREE.Vector3(pPos.x+0.4, pPos.y+1, pPos.z+0.4)); let hit = false;
-                for(let obj of collidableObjects) { if (obj.box && pBox.intersectsBox(obj.box)) hit = true; if (obj.customType === 'cylinder') { const dist = Math.sqrt(Math.pow(pPos.x - obj.position.x, 2) + Math.pow(pPos.z - obj.position.z, 2)); if (dist < obj.radius && Math.abs(pPos.y - obj.position.y) < 2.0) hit = true; } }
-                if(hit) { if(isMobile) { camera.position.sub(new THREE.Vector3(velocity.x * delta, 0, velocity.z * delta)); } else { controls.moveForward(velocity.z * delta); controls.moveRight(velocity.x * delta); } }
-                if (isMobile) { const currentRoom = Math.max(0, Math.round(-camera.position.z / 20)); if (currentRoom !== lastRoomIndex) { lastRoomIndex = currentRoom; checkRoomLoad(currentRoom); } frameCount++; if (frameCount % 5 === 0 && !isModalOpen) checkIntersectionAndClick(); }
-            } else { sitHint.style.display = 'none'; velocity.set(0,0,0); }
-            if (!isMobile) { raycaster.setFromCamera(center, camera); const objectsToCheck = clickableObjects; const intersects = raycaster.intersectObjects(objectsToCheck); if (intersects.length > 0 && intersects[0].distance < 8) cursor.classList.add('hover-active'); else cursor.classList.remove('hover-active'); }
-            prevTime = time; renderer.render(scene, camera);
-        }
-        animate();
-        window.addEventListener('resize', () => { const asp = window.innerWidth / window.innerHeight; camera.aspect = asp; camera.fov = (isMobile && asp < 1) ? 95 : 70; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight); });
-    </script>
-</body>
-</html>
+        const roomsCount = isMobile ? 4 : 5; const roomSize = 20; const roomHeight =

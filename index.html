@@ -54,7 +54,6 @@
             touch-action: none; user-select: none; -webkit-user-select: none; 
         }
         
-        /* --- ЛІНКИ --- */
         .text-link {
             color: inherit;
             text-decoration: underline;
@@ -66,7 +65,6 @@
             opacity: 0.8;
         }
         
-        /* ЗАГАЛЬНІ СТИЛІ */
         .ui-screen {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: #E6E6E6; 
@@ -228,32 +226,29 @@
             text-align: center; color: white;
         }
         
-        /* FIX FOR WHITE LINE: Container uses font-size 0 to kill whitespace */
+        /* --- FIX: WHITE LINE REMOVAL --- */
         #img-container {
-            display: block;
-            width: auto;
+            display: flex; /* Flex helps center and removes baseline issues */
+            justify-content: center;
+            align-items: center;
+            width: 100%;
             max-width: 95%;
             max-height: 70vh;
-            margin: 0 auto 20px auto;
-            font-size: 0; 
-            line-height: 0;
-            background: transparent;
+            margin-bottom: 20px;
         }
-
+        
         #modal-img { 
             width: auto;
             height: auto;
-            max-height: 100%; 
-            max-width: 100%; 
+            max-width: 100%;
+            max-height: 70vh;
             object-fit: contain;
             display: block; 
-            border: none;
-            outline: none;
             box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
         
         .no-image { display: none !important; }
-
+        
         #modal-info { max-width: 600px; padding: 0 20px; }
         
         #modal-title { 
@@ -263,22 +258,20 @@
             text-transform: uppercase; 
             line-height: 1.1; 
         }
-        
-        /* WHITE LINKS IN MODAL */
-        #modal-title a, #modal-desc a { 
+        #modal-title a { 
             color: white !important; 
             text-decoration: underline !important; 
-            border: none !important; 
+            border-bottom: none !important; 
             transition: opacity 0.2s; 
         }
-        #modal-title a:hover, #modal-desc a:hover { opacity: 0.7; text-decoration: none !important; }
-        
+        #modal-title a:hover { opacity: 0.7; }
         #modal-desc { 
             font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; 
             font-size: 1rem; 
             color: #ccc; 
             line-height: 1.4; 
         }
+        #modal-desc a { color: white !important; text-decoration: underline !important; }
         
         #modal-close-btn {
             position: absolute; top: 30px; right: 30px; width: 40px; height: 40px; border-radius: 50%;
@@ -550,8 +543,7 @@
             63: { artist: "KESER1", handle: "keser.one" },
             64: { artist: "Станіслав Калагарець", handle: "stanislaawww" },
             65: { artist: "tanchik", handle: "demishkan.t" },
-            
-            // PLACEHOLDERS FOR 66-79
+            // ADDED MISSING POSTERS 66-79
             66: { title: "Artwork #66" }, 67: { title: "Artwork #67" }, 68: { title: "Artwork #68" }, 69: { title: "Artwork #69" },
             70: { title: "Artwork #70" }, 71: { title: "Artwork #71" }, 72: { title: "Artwork #72" }, 73: { title: "Artwork #73" },
             74: { title: "Artwork #74" }, 75: { title: "Artwork #75" }, 76: { title: "Artwork #76" }, 77: { title: "Artwork #77" },
@@ -689,13 +681,12 @@
 
         function getNextImage() {
             const id = currentImageId;
-            let wallUrl;
-            let fullUrl;
+            let wallUrl, fullUrl;
             
-            // UPDATED URL LOGIC: USE 'SMALL' FOR EVERYTHING ON MOBILE
+            // USE 'SMALL' FOLDER FOR EVERYTHING ON MOBILE
             if (isMobile) { 
-                wallUrl = `assets/small/image${id}.jpeg`; // WALL uses SMALL
-                fullUrl = `assets/small/image${id}.jpeg`; // MODAL uses SMALL
+                wallUrl = `assets/small/image${id}.jpeg`; 
+                fullUrl = `assets/small/image${id}.jpeg`; 
             } else { 
                 wallUrl = `assets/small/image${id}.jpeg`; 
                 fullUrl = `assets/image${id}.jpeg`; 
@@ -749,7 +740,7 @@
 
         function checkRoomLoad(currentRoom) { if (!isMobile) return; const keepLoaded = [currentRoom, currentRoom + 1]; for (let idx = 0; idx < 5; idx++) { if (!keepLoaded.includes(idx) && roomStatus[idx] === 'loaded') { unloadRoomTextures(idx); } } keepLoaded.forEach(idx => { if (idx >= 0 && idx < 5 && roomStatus[idx] !== 'loaded') { loadRoomTextures(idx); } }); }
         
-        // REVERTED TO SIMPLE LOADER
+        // SIMPLE LOADER
         function loadRoomTextures(roomIdx) { 
             if (!roomPosters[roomIdx]) return; 
             roomStatus[roomIdx] = 'loaded'; 
@@ -975,7 +966,9 @@
             
             if (i === 0) {
                 createBox(0, roomHeight/2, zCenter + roomSize/2, roomSize, roomHeight, 0.5, true, isDarkRoom, null, i); createDoorWall(zCenter - roomSize/2, roomSize, roomHeight, isDarkRoom, i);
-                if (isMobile) { addPoster( -6.0, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i); addPoster( 6.0, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i); }
+                if (isMobile) { 
+                    // NO DUPLICATE ADDITION HERE - Rely on generic loop below
+                }
             } else if (isDarkRoom) {
                 createBox(0, roomHeight/2, zCenter - roomSize/2, roomSize, roomHeight, 0.5, true, isDarkRoom, null, i); const darkCeiling = new THREE.Mesh(new THREE.PlaneGeometry(roomSize, roomSize), darkWallMat); darkCeiling.rotation.x = Math.PI / 2; darkCeiling.position.set(0, roomHeight, zCenter); addToRoom(darkCeiling, i); benchPosition.set(0, 0.4, zCenter); createBox(0, 0.4, zCenter, 3.5, 0.8, 1.5, true, false, benchMat, i);
             } else if (isMobile && i === roomsCount - 1) {

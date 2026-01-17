@@ -585,7 +585,7 @@
             document.getElementById('start-subtitle').innerText = "Для кращого досвіду радимо переглядати з комп’ютера";
         }
 
-        // ENABLED CACHE TO FIX GREY TEXTURES ON MOBILE
+        // ENABLE CACHE FOR MOBILE
         THREE.Cache.enabled = true;
 
         function initGravityBackground() {
@@ -689,18 +689,18 @@
 
         function getNextImage() {
             const id = currentImageId;
-            let wallUrl, fullUrl;
+            let wallUrl;
+            let fullUrl;
             
-            // URL GENERATION
+            // UPDATED URL LOGIC: USE 'SMALL' FOR EVERYTHING ON MOBILE
             if (isMobile) { 
-                wallUrl = `assets/small_mobile/image${id}.jpeg`; 
-                fullUrl = `assets/small/image${id}.jpeg`; 
+                wallUrl = `assets/small/image${id}.jpeg`; // WALL uses SMALL
+                fullUrl = `assets/small/image${id}.jpeg`; // MODAL uses SMALL
             } else { 
                 wallUrl = `assets/small/image${id}.jpeg`; 
                 fullUrl = `assets/image${id}.jpeg`; 
             }
             
-            // NO SKIPPING LOGIC NEEDED as DB filled 66-79
             const meta = ARTWORK_DB[id] || { artist: "Unknown" };
             const title = meta.title ? meta.title : ""; 
 
@@ -749,11 +749,11 @@
 
         function checkRoomLoad(currentRoom) { if (!isMobile) return; const keepLoaded = [currentRoom, currentRoom + 1]; for (let idx = 0; idx < 5; idx++) { if (!keepLoaded.includes(idx) && roomStatus[idx] === 'loaded') { unloadRoomTextures(idx); } } keepLoaded.forEach(idx => { if (idx >= 0 && idx < 5 && roomStatus[idx] !== 'loaded') { loadRoomTextures(idx); } }); }
         
+        // REVERTED TO SIMPLE LOADER
         function loadRoomTextures(roomIdx) { 
             if (!roomPosters[roomIdx]) return; 
             roomStatus[roomIdx] = 'loaded'; 
             roomPosters[roomIdx].forEach(item => { 
-                // STANDARD LOADING (No complex error handlers that crash mobile)
                 lazyLoader.load(item.url, (tex) => { 
                     tex.colorSpace = THREE.SRGBColorSpace; 
                     item.material.map = tex; 

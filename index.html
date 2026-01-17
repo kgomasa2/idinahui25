@@ -226,7 +226,6 @@
             text-align: center; color: white;
         }
         
-        /* FIX FOR WHITE LINE */
         #img-container {
             display: block;
             width: auto;
@@ -413,7 +412,7 @@
 
         <div class="top-content">
             <div class="title-font">“ІДІ НАХУЙ”</div>
-            <div class="director-font" id="start-subtitle">
+            <div class="director-font">
                 Керування стрілками, можна стрибати, на Shift прискорення. Для перегляду роботи клацни по ній.
             </div>
         </div>
@@ -547,6 +546,11 @@
             63: { artist: "KESER1", handle: "keser.one" },
             64: { artist: "Станіслав Калагарець", handle: "stanislaawww" },
             65: { artist: "tanchik", handle: "demishkan.t" },
+            // ADDED MISSING POSTERS TO PREVENT UNKNOWN
+            66: { title: "Artwork #66" }, 67: { title: "Artwork #67" }, 68: { title: "Artwork #68" }, 69: { title: "Artwork #69" },
+            70: { title: "Artwork #70" }, 71: { title: "Artwork #71" }, 72: { title: "Artwork #72" }, 73: { title: "Artwork #73" },
+            74: { title: "Artwork #74" }, 75: { title: "Artwork #75" }, 76: { title: "Artwork #76" }, 77: { title: "Artwork #77" },
+            78: { title: "Artwork #78" }, 79: { title: "Artwork #79" },
             80: { artist: "Станіслав Калагарець", handle: "stanislaawww" }
         };
 
@@ -576,7 +580,7 @@
             document.getElementById('start-subtitle').innerText = "Для кращого досвіду радимо переглядати з комп’ютера";
         }
 
-        if (isMobile) { THREE.Cache.enabled = false; }
+        // REMOVED THREE.Cache.enabled = false TO FIX GREY TEXTURES
 
         function initGravityBackground() {
             if (isMobile || isLowEnd) return; 
@@ -968,9 +972,7 @@
             
             if (i === 0) {
                 createBox(0, roomHeight/2, zCenter + roomSize/2, roomSize, roomHeight, 0.5, true, isDarkRoom, null, i); createDoorWall(zCenter - roomSize/2, roomSize, roomHeight, isDarkRoom, i);
-                if (isMobile) { 
-                    // NO DUPLICATE ADDITION HERE - Rely on generic loop below
-                }
+                if (isMobile) { addPoster( -6.0, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i); addPoster( 6.0, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i); }
             } else if (isDarkRoom) {
                 createBox(0, roomHeight/2, zCenter - roomSize/2, roomSize, roomHeight, 0.5, true, isDarkRoom, null, i); const darkCeiling = new THREE.Mesh(new THREE.PlaneGeometry(roomSize, roomSize), darkWallMat); darkCeiling.rotation.x = Math.PI / 2; darkCeiling.position.set(0, roomHeight, zCenter); addToRoom(darkCeiling, i); benchPosition.set(0, 0.4, zCenter); createBox(0, 0.4, zCenter, 3.5, 0.8, 1.5, true, false, benchMat, i);
             } else if (isMobile && i === roomsCount - 1) {

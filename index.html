@@ -87,7 +87,7 @@
             font-size: 169px; 
             line-height: 0.8;
             letter-spacing: -0.15em; 
-            margin-bottom: -30px; /* ПОВЕРНУТО ЯК БУЛО */
+            margin-bottom: -30px; 
             position: relative;
             z-index: 20; 
         }
@@ -116,7 +116,7 @@
         }
         
         .bottom-content .director-font {
-            margin-bottom: 10px !important; /* ПОВЕРНУТО ЯК БУЛО */
+            margin-bottom: 10px !important;
         }
 
         /* --- LOADING SCREEN --- */
@@ -242,13 +242,13 @@
         #modal-img { 
             max-height: 70vh; 
             max-width: 95%; 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5); 
             margin-bottom: 20px; 
             object-fit: contain;
-            /* FIX FOR WHITE LINE: Display block removes inline spacing */
+            /* WHITE LINE FIX: Display block, no shadows/borders */
             display: block; 
             border: none;
             outline: none;
+            box-shadow: none !important;
         }
         
         .no-image { display: none !important; }
@@ -263,7 +263,7 @@
             line-height: 1.1; 
         }
         
-        /* СТИЛІ ДЛЯ ЛІНКІВ В МОДАЛЦІ (Білі) */
+        /* WHITE LINKS IN MODAL */
         #modal-title a, #modal-desc a { 
             color: white !important; 
             text-decoration: underline !important; 

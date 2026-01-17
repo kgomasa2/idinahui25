@@ -39,7 +39,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
     
     <style>
-        /* ПІДКЛЮЧЕННЯ ШРИФТІВ */
         @font-face {
             font-family: 'EquateurUA';
             src: url('assets/EquateurUA-Regular.otf') format('opentype');
@@ -56,7 +55,6 @@
         }
         
         /* --- ЛІНКИ --- */
-        /* Базовий стиль (Start Screen) - СІРИЙ (inherit) */
         .text-link {
             color: inherit;
             text-decoration: underline;
@@ -68,7 +66,7 @@
             opacity: 0.8;
         }
         
-        /* ЗАГАЛЬНІ СТИЛІ ДЛЯ ЕКРАНІВ */
+        /* ЗАГАЛЬНІ СТИЛІ */
         .ui-screen {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: #E6E6E6; 
@@ -80,7 +78,6 @@
             text-align: center;
         }
 
-        /* ТИПОГРАФІЯ */
         .title-font {
             font-family: 'EquateurUA', sans-serif;
             text-transform: uppercase;
@@ -119,7 +116,6 @@
             margin-bottom: 10px !important;
         }
 
-        /* --- LOADING SCREEN --- */
         #loading-screen { z-index: 100; transition: opacity 0.8s ease-out; }
         
         .loader-center {
@@ -134,10 +130,8 @@
             transform: translateX(-50%); transition: left 0.1s linear;
         }
 
-        /* --- START SCREEN --- */
         #start-screen { z-index: 50; display: none; overflow: hidden; }
         
-        /* Канвас фізики буде фоном */
         #physics-canvas {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             z-index: 1; pointer-events: auto; 
@@ -160,7 +154,6 @@
         #start-btn:hover { transform: scale(1.05); }
         #start-btn:active { transform: scale(0.95); }
 
-        /* --- IN-GAME UI --- */
         #cursor {
             position: absolute; top: 50%; left: 50%; width: 8px; height: 8px; background: white;
             border-radius: 50%; transform: translate(-50%, -50%); opacity: 0.8; pointer-events: none; mix-blend-mode: difference;
@@ -174,7 +167,6 @@
             border-radius: 20px; font-size: 0.9rem; display: none; pointer-events: none; z-index: 20;
         }
 
-        /* Info Button */
         #info-btn {
             position: absolute; top: 30px; right: 30px; width: 40px; height: 40px; border-radius: 50%;
             background: #fff; color: #000; border: none; 
@@ -188,7 +180,6 @@
         }
         #info-btn:hover { transform: scale(1.1); background: #eee; }
         
-        /* Controls Hint */
         #controls-hint {
             position: absolute; bottom: 20px; right: 20px;
             font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
@@ -197,7 +188,6 @@
             pointer-events: none; text-transform: uppercase;
         }
 
-        /* Mobile Elements */
         .joystick-zone {
             position: absolute; width: 100px; height: 100px; 
             background: rgba(255, 255, 255, 0.1); border-radius: 50%;
@@ -239,16 +229,24 @@
             text-align: center; color: white;
         }
         
+        /* FIX FOR WHITE LINE: Container for image */
+        #img-container {
+            line-height: 0;
+            font-size: 0;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: center;
+            width: 100%;
+        }
+
         #modal-img { 
             max-height: 70vh; 
             max-width: 95%; 
-            margin-bottom: 20px; 
             object-fit: contain;
-            /* WHITE LINE FIX: Display block, no shadows/borders */
             display: block; 
             border: none;
             outline: none;
-            box-shadow: none !important;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
         
         .no-image { display: none !important; }
@@ -263,7 +261,6 @@
             line-height: 1.1; 
         }
         
-        /* WHITE LINKS IN MODAL */
         #modal-title a, #modal-desc a { 
             color: white !important; 
             text-decoration: underline !important; 
@@ -287,7 +284,6 @@
             padding-top: 2px;
         }
 
-        /* --- INFO POPUP --- */
         #info-modal {
             display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: #E6E6E6; 
@@ -333,8 +329,6 @@
             padding-top: 2px;
         }
 
-
-        /* --- MOBILE RESPONSIVENESS --- */
         @media (max-width: 768px) {
             .title-font { font-size: 75px; margin-bottom: -15px; }
             .director-font { font-size: 16px; max-width: 90%; }
@@ -345,7 +339,6 @@
             .info-body-director { font-size: 16px; }
             #controls-hint { display: none !important; }
             
-            /* Fix Info Popup on Mobile */
             #info-modal {
                 justify-content: flex-start;
                 padding-top: 80px;
@@ -375,7 +368,6 @@
 </head>
 <body>
     <script>
-        // --- DEVICE PERFORMANCE DETECTION ---
         window.isLowEnd = false;
         if (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4) {
             window.isLowEnd = true;
@@ -454,7 +446,9 @@
 
     <div id="artwork-modal">
         <div id="modal-close-btn">✕</div>
-        <img id="modal-img" src="" alt="Artwork">
+        <div id="img-container">
+            <img id="modal-img" src="" alt="Artwork">
+        </div>
         <div id="modal-info">
             <div id="modal-title">TITLE</div>
             <div id="modal-desc"></div>
@@ -552,7 +546,7 @@
             63: { artist: "KESER1", handle: "keser.one" },
             64: { artist: "Станіслав Калагарець", handle: "stanislaawww" },
             65: { artist: "tanchik", handle: "demishkan.t" },
-            // Generic placeholders for 66-79 to prevent "Unknown" on mobile last room
+            // ADDED MISSING POSTERS TO PREVENT UNKNOWN
             66: { title: "Artwork #66" }, 67: { title: "Artwork #67" }, 68: { title: "Artwork #68" }, 69: { title: "Artwork #69" },
             70: { title: "Artwork #70" }, 71: { title: "Artwork #71" }, 72: { title: "Artwork #72" }, 73: { title: "Artwork #73" },
             74: { title: "Artwork #74" }, 75: { title: "Artwork #75" }, 76: { title: "Artwork #76" }, 77: { title: "Artwork #77" },
@@ -588,7 +582,6 @@
 
         if (isMobile) { THREE.Cache.enabled = false; }
 
-        // --- PHYSICS BACKGROUND (Desktop Only & High End Only) ---
         function initGravityBackground() {
             if (isMobile || isLowEnd) return; 
             const Engine = Matter.Engine, Render = Matter.Render, Runner = Matter.Runner, Bodies = Matter.Bodies, Composite = Matter.Composite, Mouse = Matter.Mouse, Events = Matter.Events;
@@ -619,7 +612,6 @@
             document.getElementById('start-btn').addEventListener('click', () => { Render.stop(render); Runner.stop(runner); container.innerHTML = ''; });
         }
 
-        // --- LOADING SYSTEM ---
         const loadStartTime = Date.now();
         const minLoadTime = 4000; 
         const progressFill = document.getElementById('progress-line-fill');
@@ -649,7 +641,6 @@
             manager.onLoad = function () { const currentTime = Date.now(); const elapsedTime = currentTime - loadStartTime; const remainingTime = Math.max(0, minLoadTime - elapsedTime); setTimeout(finishLoading, remainingTime); };
         }
 
-        // --- THREE JS INIT ---
         const scene = new THREE.Scene(); scene.background = new THREE.Color(0xffffff); scene.fog = new THREE.Fog(0xffffff, 5, 50); 
         RectAreaLightUniformsLib.init();
         const aspect = window.innerWidth / window.innerHeight; const initialFov = aspect < 1 ? 95 : 70;
@@ -661,7 +652,6 @@
         document.body.appendChild(renderer.domElement);
         const bgMusic = document.getElementById('bgMusic'); bgMusic.volume = 0.65;
 
-        // --- MATERIALS ---
         const textureLoader = isMobile ? new THREE.TextureLoader() : new THREE.TextureLoader(manager);
         const lazyLoader = new THREE.TextureLoader();
         const concreteTex = textureLoader.load('https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/plaster_grey_04/plaster_grey_04_diff_1k.jpg');
@@ -693,18 +683,20 @@
 
         function getNextImage() {
             const id = currentImageId;
-            let wallUrl, fullUrl;
+            let wallUrl;
+            let fullUrl;
             
-            // UPDATED URL LOGIC
+            // UPDATED URL LOGIC: 
+            // Mobile: Preview = small_mobile, Click = small
+            // Desktop: Preview = small, Click = normal (root)
             if (isMobile) { 
                 wallUrl = `assets/small_mobile/image${id}.jpeg`; 
-                fullUrl = `assets/small/image${id}.jpeg`; // Full size on mobile is 'small'
+                fullUrl = `assets/small/image${id}.jpeg`; 
             } else { 
                 wallUrl = `assets/small/image${id}.jpeg`; 
-                fullUrl = `assets/image${id}.jpeg`; // Full size on desktop is 'normal'
+                fullUrl = `assets/image${id}.jpeg`; 
             }
             
-            // Get data from DB
             const meta = ARTWORK_DB[id] || { artist: "Unknown" };
             const title = meta.title ? meta.title : ""; 
 
@@ -752,7 +744,31 @@
         }
 
         function checkRoomLoad(currentRoom) { if (!isMobile) return; const keepLoaded = [currentRoom, currentRoom + 1]; for (let idx = 0; idx < 5; idx++) { if (!keepLoaded.includes(idx) && roomStatus[idx] === 'loaded') { unloadRoomTextures(idx); } } keepLoaded.forEach(idx => { if (idx >= 0 && idx < 5 && roomStatus[idx] !== 'loaded') { loadRoomTextures(idx); } }); }
-        function loadRoomTextures(roomIdx) { if (!roomPosters[roomIdx]) return; roomStatus[roomIdx] = 'loaded'; roomPosters[roomIdx].forEach(item => { lazyLoader.load(item.url, (tex) => { tex.colorSpace = THREE.SRGBColorSpace; item.material.map = tex; item.material.color.setHex(0xffffff); item.material.needsUpdate = true; }); }); }
+        
+        // UPDATED: Added Error Handling for 'small_mobile'
+        function loadRoomTextures(roomIdx) { 
+            if (!roomPosters[roomIdx]) return; 
+            roomStatus[roomIdx] = 'loaded'; 
+            roomPosters[roomIdx].forEach(item => { 
+                const onLoad = (tex) => { 
+                    tex.colorSpace = THREE.SRGBColorSpace; 
+                    item.material.map = tex; 
+                    item.material.color.setHex(0xffffff); 
+                    item.material.needsUpdate = true; 
+                };
+                
+                // If small_mobile fails, fallback to 'small'
+                const onError = () => {
+                    if (item.url.includes('small_mobile')) {
+                        const fallbackUrl = item.url.replace('small_mobile', 'small');
+                        lazyLoader.load(fallbackUrl, onLoad);
+                    }
+                };
+
+                lazyLoader.load(item.url, onLoad, undefined, onError); 
+            }); 
+        }
+        
         function unloadRoomTextures(roomIdx) { if (!roomPosters[roomIdx]) return; roomStatus[roomIdx] = 'unloaded'; roomPosters[roomIdx].forEach(item => { if (item.material.map) { item.material.map.dispose(); item.material.map = null; } item.material.color.setHex(0x888888); item.material.needsUpdate = true; }); }
         function createBox(x, y, z, w, h, d, isWall = true, isDark = false, customMat = null, roomIndex) { let mat = customMat ? customMat : (isDark ? (isWall ? darkWallMat : darkFloorMat) : (isWall ? wallMat : floorMat)); const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat); mesh.position.set(x, y, z); mesh.receiveShadow = !isMobile && !isLowEnd; if(isWall) { if (w > 1 && h > 1 && !isMobile && !isLowEnd) mesh.castShadow = true; mesh.updateMatrixWorld(); collidableObjects.push({ box: new THREE.Box3().setFromObject(mesh) }); } addToRoom(mesh, roomIndex); }
         function createDoorWall(z, width, height, isDark = false, roomIndex) { const doorW = 4, doorH = 3.5, sideW = (width - doorW) / 2, thick = 0.5; createBox(-(width/2) + (sideW/2), height/2, z, sideW, height, thick, true, isDark, null, roomIndex); createBox((width/2) - (sideW/2), height/2, z, sideW, height, thick, true, isDark, null, roomIndex); createBox(0, doorH + (height-doorH)/2, z, doorW, height-doorH, thick, true, isDark, null, roomIndex); }
@@ -965,9 +981,7 @@
             
             if (i === 0) {
                 createBox(0, roomHeight/2, zCenter + roomSize/2, roomSize, roomHeight, 0.5, true, isDarkRoom, null, i); createDoorWall(zCenter - roomSize/2, roomSize, roomHeight, isDarkRoom, i);
-                if (isMobile) { 
-                    // NO DUPLICATE ADDITION HERE - Rely on generic loop below
-                }
+                if (isMobile) { addPoster( -6.0, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i); addPoster( 6.0, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i); }
             } else if (isDarkRoom) {
                 createBox(0, roomHeight/2, zCenter - roomSize/2, roomSize, roomHeight, 0.5, true, isDarkRoom, null, i); const darkCeiling = new THREE.Mesh(new THREE.PlaneGeometry(roomSize, roomSize), darkWallMat); darkCeiling.rotation.x = Math.PI / 2; darkCeiling.position.set(0, roomHeight, zCenter); addToRoom(darkCeiling, i); benchPosition.set(0, 0.4, zCenter); createBox(0, 0.4, zCenter, 3.5, 0.8, 1.5, true, false, benchMat, i);
             } else if (isMobile && i === roomsCount - 1) {
@@ -978,6 +992,7 @@
                 createHangingTV(0, zCenter, roomHeight, 0, i);
             } else {
                 createDoorWall(zCenter - roomSize/2, roomSize, roomHeight, false, i);
+                if (isMobile) { addPoster( -6.0, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i); addPoster( 6.0, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i); addPoster( -6.0, 2.7, zCenter + roomSize/2 - 0.3, Math.PI, 2.2, 2.8, i); addPoster( 6.0, 2.7, zCenter + roomSize/2 - 0.3, Math.PI, 2.2, 2.8, i); }
             }
             if (!isDarkRoom) {
                 if (i === 0) { createHangingTV(0, zCenter, roomHeight, 0, i); } 

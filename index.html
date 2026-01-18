@@ -1,14 +1,6 @@
 <!DOCTYPE html>
 <html lang="uk">
 <head>
-    <link rel="apple-touch-icon" sizes="180x180" href="assets/favicon/apple-touch-icon.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon/favicon-16x16.png">
-    <link rel="manifest" href="assets/favicon/site.webmanifest">
-    <link rel="shortcut icon" href="assets/favicon/favicon.ico">
-    <meta name="msapplication-TileColor" content="#da532c">
-    <meta name="theme-color" content="#ffffff">
-    
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-8RKB3ZJ59V"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
@@ -41,8 +33,8 @@
     <style>
         /* ПІДКЛЮЧЕННЯ ШРИФТІВ */
         @font-face {
-            font-family: 'EquateurUA';
-            src: url('assets/EquateurUA-Regular.otf') format('opentype');
+            font-family: 'KTFCompact';
+            src: url('assets/KTFCompactTrial-Black.otf') format('opentype');
         }
         @font-face {
             font-family: 'DirectorUA';
@@ -69,15 +61,13 @@
 
         /* ТИПОГРАФІЯ */
         .title-font {
-            font-family: 'EquateurUA', sans-serif;
+            font-family: 'KTFCompact', sans-serif;
             text-transform: uppercase;
             font-size: 169px; 
             line-height: 0.8;
-            letter-spacing: -0.15em; 
-            /* Negative margin to overlap text below */
-            margin-bottom: -30px; 
+            margin-bottom: 0px; 
             position: relative;
-            z-index: 20; /* Ensure title is on top */
+            z-index: 10;
         }
 
         .director-font {
@@ -127,11 +117,9 @@
 
         #start-btn {
             background: #fff; color: #000; border: none;
-            /* Optical center adjustment */
-            padding: 35px 100px 30px 100px;
-            font-family: 'EquateurUA', sans-serif; 
+            padding: 30px 100px;
+            font-family: 'KTFCompact', sans-serif;
             font-size: 5rem;
-            letter-spacing: -0.15em; 
             border-radius: 100px;
             cursor: pointer;
             text-transform: uppercase;
@@ -156,30 +144,7 @@
             color: white; background: rgba(0,0,0,0.6); padding: 10px 20px;
             border-radius: 20px; font-size: 0.9rem; display: none; pointer-events: none; z-index: 20;
         }
-
-        /* Info Button - Updated styling */
-        #info-btn {
-            position: absolute; top: 30px; left: 30px; width: 40px; height: 40px; border-radius: 50%;
-            background: #fff; color: #000; border: none; /* White bg, black text, no border */
-            display: none; 
-            align-items: center; justify-content: center;
-            font-family: 'DirectorUA', monospace; font-weight: bold; font-size: 1.4rem;
-            cursor: pointer; pointer-events: auto; z-index: 48;
-            padding-top: 3px; /* Optical center */
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2); /* Small shadow */
-            transition: transform 0.2s;
-        }
-        #info-btn:hover { transform: scale(1.1); background: #eee; }
         
-        /* Controls Hint */
-        #controls-hint {
-            position: absolute; bottom: 20px; right: 20px;
-            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-            font-size: 14px; color: rgba(255, 255, 255, 0.5); /* Semi-transparent white */
-            z-index: 48; display: none; /* Hidden by default */
-            pointer-events: none; text-transform: uppercase;
-        }
-
         /* Mobile Elements */
         .joystick-zone {
             position: absolute; width: 100px; height: 100px; 
@@ -199,12 +164,10 @@
             color: white; font-weight: bold; display: none; z-index: 45;
             align-items: center; justify-content: center; cursor: pointer;
             backdrop-filter: blur(5px); box-shadow: 0 0 10px rgba(255,255,255,0.2);
-            padding-top: 4px; /* Optical center */
         }
         #view-btn {
             position: absolute; bottom: 130px; left: 50%; transform: translateX(-50%);
-            padding: 12px 25px 8px 25px; /* Optical center */
-            border-radius: 25px;
+            padding: 10px 25px; border-radius: 25px;
             background: rgba(255, 255, 255, 0.95); color: black;
             font-weight: bold; font-size: 0.9rem; letter-spacing: 1px; white-space: nowrap;
             display: none; z-index: 46; cursor: pointer;
@@ -213,7 +176,6 @@
         }
         @keyframes pulseBtn { 0% { transform: translateX(-50%) scale(1); } 50% { transform: translateX(-50%) scale(1.05); } 100% { transform: translateX(-50%) scale(1); } }
         
-        /* Artwork Modal */
         #artwork-modal {
             display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(10, 10, 10, 0.98); z-index: 60;
@@ -228,66 +190,15 @@
             background: rgba(255, 255, 255, 0.2); border: 1px solid white;
             display: flex; align-items: center; justify-content: center;
             font-size: 1.2rem; cursor: pointer; pointer-events: auto;
-            padding-top: 2px; /* Optical center */
         }
-
-        /* --- INFO POPUP --- */
-        #info-modal {
-            display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: #E6E6E6; 
-            z-index: 70;
-            flex-direction: column; align-items: center; justify-content: center;
-            text-align: center; color: #000;
-            padding: 40px 20px; box-sizing: border-box;
-            overflow-y: auto; 
-        }
-        .info-content { max-width: 900px; margin: auto; position: relative; top: -20px;}
-        .info-title {
-            font-family: 'EquateurUA', sans-serif; text-transform: uppercase;
-            font-size: 160px; /* 2x bigger */
-            line-height: 0.9; letter-spacing: -0.15em; 
-            margin-bottom: -45px; /* Strong negative margin */
-            position: relative; z-index: 20;
-        }
-        .info-body-director {
-            font-family: 'DirectorUA', monospace; font-size: 19px; line-height: 1.13; margin: 0 0 20px 0;
-            position: relative; z-index: 10;
-        }
-        .info-body-helvetica {
-            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-weight: bold;
-            font-size: 14px; text-transform: uppercase; color: #888; letter-spacing: -0.05em; line-height: 1.0; 
-            margin: 0 0 -15px 0; /* Negative margin to touch button */
-            position: relative; z-index: 10;
-        }
-        .insta-btn {
-            display: inline-block; 
-            /* Optical center adjustment */
-            padding: 18px 40px 12px 40px;
-            background: #000; color: #fff; text-decoration: none;
-            font-family: 'EquateurUA', sans-serif; font-size: 24px; letter-spacing: -0.1em;
-            border-radius: 50px; transition: transform 0.2s;
-            position: relative; z-index: 20;
-        }
-        .insta-btn:hover { transform: scale(1.05); }
-        #info-close-btn {
-            position: absolute; top: 30px; right: 30px; width: 40px; height: 40px; border-radius: 50%;
-            border: 1px solid #000; color: #000;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 1.2rem; cursor: pointer; pointer-events: auto;
-            padding-top: 2px; /* Optical center */
-        }
-
 
         /* --- MOBILE RESPONSIVENESS --- */
         @media (max-width: 768px) {
-            .title-font { font-size: 75px; margin-bottom: -15px; }
+            .title-font { font-size: 75px; margin-bottom: 10px; }
             .director-font { font-size: 16px; max-width: 90%; }
-            #start-btn { font-size: 3rem; padding: 22px 60px 18px 60px; }
+            #start-btn { font-size: 3rem; padding: 20px 60px; }
             .bottom-text { font-size: 0.7rem; max-width: 90%; }
             #physics-canvas { display: none; }
-            .info-title { font-size: 80px; margin-bottom: -25px; }
-            .info-body-director { font-size: 16px; }
-            #controls-hint { display: none !important; }
         }
     </style>
     
@@ -317,8 +228,6 @@
 
     <div id="cursor"></div>
     <div id="sit-hint">Натисни <span class="key">C</span> щоб сісти</div>
-    <div id="info-btn">i</div>
-    <div id="controls-hint">Esc — курсор, I — інфо</div>
     
     <div id="loading-screen" class="ui-screen">
         <div class="top-content">
@@ -390,24 +299,6 @@
             <p id="modal-desc">Description</p>
         </div>
     </div>
-
-    <div id="info-modal">
-        <div id="info-close-btn">✕</div>
-        <div class="info-content">
-            <h1 class="info-title">“ІДІ НАХУЙ”</h1>
-            <div class="info-body-director">
-                Проєкт «ІДІ НАХУЙ» — це деконструкція одного з найгучніших знаків повномасштабної війни: фрази, що стала жестом суверенної відмови, і графічної форми, яка перетворилася на образ тотальної присутності. Ми простежуємо траєкторії цього знака від мовленнєвого акту на острові Зміїний до глобального мему, товарного бренду та інструменту внутрішньої політики. Це спроба зафіксувати безперервну мутацію символу, який водночас є актом спротиву і носієм складної імперської спадщини, демонструючи, як війна перетворює мову на дію, а дію — на нескінченний цифровий тираж.<br><br>
-                Віртуальна виставка функціонує в режимі «живого архіву» — простору, що не тільки консервує минуле, а продовжує виробляти смисли тут і зараз. Замість застиглого монумента ми пропонуємо погляд на знак як на відкрите поле конфлікту, де він втрачає автора, стає «бідним образом» у соцмережах та інструментом суспільного діалогу. Це проєкт про те, як реальність війни входить у культуру, і як ми використовуємо ці нестабільні, амбівалентні форми як спосіб колективного виживання та ствердження суб’єктності.
-            </div>
-            <div class="info-body-helvetica">
-                Виставка відбувалась у червні 2025 року у квартирній галереї Катерини Хадико.<br>
-                Куратор: Володимир Хоменко, менеджер: Станіслав Калагарець. Шрифти: Levtype.<br>
-                Зараз грає композиція Олексія Шмурака
-            </div>
-            <a href="https://www.instagram.com/idinahui.art/" target="_blank" class="insta-btn">ІНСТАГРАМ</a>
-        </div>
-    </div>
-
 
     <script type="module">
         import * as THREE from 'three';
@@ -607,10 +498,6 @@
         concreteTex.wrapS = concreteTex.wrapT = THREE.RepeatWrapping;
         concreteTex.repeat.set(10, 40); concreteTex.colorSpace = THREE.SRGBColorSpace;
 
-        // NEW: Drozd texture for curtain (PNG)
-        const drozdTex = textureLoader.load('assets/drozd.jpg');
-        drozdTex.colorSpace = THREE.SRGBColorSpace;
-
         const wallMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.5 });
         const floorMat = new THREE.MeshStandardMaterial({ map: concreteTex, roughness: 0.8, color: 0xaaaaaa });
         const darkWallMat = new THREE.MeshStandardMaterial({ color: 0x050505, roughness: 0.9 });
@@ -620,28 +507,6 @@
         const benchMat = new THREE.MeshStandardMaterial({ color: 0xdddddd, roughness: 0.3 });
         const mobilePosterMat = new THREE.MeshStandardMaterial({ color: 0xcccccc, roughness: 0.6, metalness: 0.1 });
         const placeholderMat = new THREE.MeshStandardMaterial({ color: 0x888888, roughness: 0.8 });
-
-        // NEW: Curtain Materials (updated for PNG)
-        const curtainDiscMat = new THREE.MeshStandardMaterial({ 
-            map: drozdTex, 
-            color: 0xffffff, // White to show texture colors correctly
-            roughness: 0.4, 
-            metalness: 0.1, 
-            side: THREE.DoubleSide,
-            transparent: true,
-            alphaTest: 0.5 
-        });
-        const chainMat = new THREE.MeshStandardMaterial({ 
-            color: 0x888888, 
-            metalness: 0.9, 
-            roughness: 0.2 
-        });
-        const discGeo = new THREE.CylinderGeometry(0.15, 0.15, 0.02, 32); 
-        // FIXED ROTATION: Rotate Z first to orient texture up, then X to lay flat
-        discGeo.rotateZ(Math.PI / 2);
-        discGeo.rotateX(Math.PI / 2);
-        const ringGeo = new THREE.TorusGeometry(0.04, 0.008, 8, 16);
-
 
         const video1 = document.getElementById('video1');
         const video2 = document.getElementById('video2');
@@ -813,9 +678,8 @@
                 tv.add(screenLight); 
             }
             
-            // REMOVED COLLISION FOR TVs
-            // tv.userData.isObstacle = true; 
-            // collidableObjects.push({ customType: 'cylinder', mesh: tv, radius: 0.1, position: tv.position });
+            tv.userData.isObstacle = true; 
+            collidableObjects.push({ customType: 'cylinder', mesh: tv, radius: 0.1, position: tv.position });
         }
 
         function createProjection(x, y, z, w, h, rotationY, texture, roomIndex) {
@@ -828,53 +692,6 @@
                 light.position.set(x + Math.sin(rotationY), y, z + Math.cos(rotationY)); 
                 addToRoom(light, roomIndex); 
             }
-        }
-        
-        // NEW FUNCTION: CREATE CURTAIN
-        function createCurtain(x, z, roomIndex) {
-            if (isMobile || isLowEnd) return; 
-
-            const curtainGroup = new THREE.Group();
-            // LOWERED POSITION to show rings first
-            curtainGroup.position.set(x, 3.1, z);
-
-            const doorWidth = 4;
-            const strands = 9;
-            const spacing = doorWidth / strands;
-
-            for(let i = 0; i < strands; i++) {
-                 const xPos = (i * spacing) - (doorWidth/2) + (spacing/2);
-                 const strandGroup = new THREE.Group();
-                 strandGroup.position.x = xPos;
-
-                 const length = 3.0; // Hang down 3 meters
-                 const items = 8;
-                 const step = length / items;
-
-                 for(let j = 0; j < items; j++) {
-                     const yPos = -(j * step);
-
-                     // Disc
-                     const disc = new THREE.Mesh(discGeo, curtainDiscMat);
-                     disc.position.y = yPos;
-                     // Random initial rotation
-                     disc.rotation.y = Math.random() * Math.PI;
-                     strandGroup.add(disc);
-                     
-                     // Make it rotate in animation loop
-                     animatedModels.push(disc);
-
-                     // Chain/Ring connecting
-                     if (j < items - 1) {
-                         const ring = new THREE.Mesh(ringGeo, chainMat);
-                         ring.position.y = yPos - (step/2);
-                         ring.rotation.y = Math.PI / 2;
-                         strandGroup.add(ring);
-                     }
-                 }
-                 curtainGroup.add(strandGroup);
-            }
-            addToRoom(curtainGroup, roomIndex);
         }
 
         const cachedPipeGeo = new THREE.CylinderGeometry(0.05, 0.05, 1, 12); 
@@ -1151,14 +968,6 @@
                 else { 
                     let rotation = (i === 3) ? 0 : Math.random() * Math.PI;
                     createHangingTV(0, zCenter, roomHeight, rotation, i); 
-
-                    // --- CURTAIN PLACEMENT START ---
-                    // Between room 3 and 4 (at the back of room 3)
-                    if (i === 3) {
-                         // zCenter is -60. Room size 20. Back wall is at -70.
-                         createCurtain(0, zCenter - roomSize/2, i);
-                    }
-                    // --- CURTAIN PLACEMENT END ---
                 }
                 
                 if (!(isMobile && i === roomsCount - 1)) {
@@ -1190,7 +999,7 @@
         let follower = null;
         
         if (!isMobile) {
-            const followerTex = textureLoader.load('assets/gerb.jpeg', undefined, undefined, (err) => console.error("Missing gerb.png"));
+            const followerTex = textureLoader.load('assets/gerb.png', undefined, undefined, (err) => console.error("Missing gerb.png"));
             followerTex.colorSpace = THREE.SRGBColorSpace;
             const followerGeo = new THREE.PlaneGeometry(3, 3);
             const followerMat = new THREE.MeshBasicMaterial({ map: followerTex, side: THREE.DoubleSide, transparent: true });
@@ -1229,15 +1038,8 @@
         const sitHint = document.getElementById('sit-hint');
         const mobileSitBtn = document.getElementById('mobile-sit-btn');
         const viewBtn = document.getElementById('view-btn');
-        
-        // Modals and Buttons
         const modal = document.getElementById('artwork-modal');
         const modalClose = document.getElementById('modal-close-btn');
-        const infoBtn = document.getElementById('info-btn');
-        const infoModal = document.getElementById('info-modal');
-        const infoCloseBtn = document.getElementById('info-close-btn');
-        const controlsHint = document.getElementById('controls-hint');
-
         const raycaster = new THREE.Raycaster();
         const center = new THREE.Vector2(0, 0);
         const cursor = document.getElementById('cursor');
@@ -1254,8 +1056,6 @@
             e.preventDefault(); e.stopPropagation();
             startScreen.style.display = 'none';
             isGameActive = true;
-            infoBtn.style.display = 'flex'; // Show info button
-            if(!isMobile) controlsHint.style.display = 'block'; // Show controls hint on desktop
             bgMusic.play().catch(e => console.log("Audio block", e));
             if(!isMobile && !isLowEnd) {
                 video1.play().catch(e => console.log("Video1 block", e));
@@ -1273,13 +1073,6 @@
         
         modalClose.addEventListener('click', closeModal);
         modalClose.addEventListener('touchstart', (e) => { e.stopPropagation(); closeModal(); });
-
-        // Info Modal Listeners
-        infoBtn.addEventListener('click', openInfoModal);
-        infoBtn.addEventListener('touchstart', (e) => { e.stopPropagation(); openInfoModal(); });
-        infoCloseBtn.addEventListener('click', closeInfoModal);
-        infoCloseBtn.addEventListener('touchstart', (e) => { e.stopPropagation(); closeInfoModal(); });
-
 
         // --- MOBILE CONTROLS ---
         const stickContainer = document.getElementById('stick-container');
@@ -1308,7 +1101,7 @@
                         stickKnob.style.transform = `translate(-50%, -50%)`;
                     }
                     else if (lookTouchId === null && t.clientX > halfWidth) {
-                        if (e.target.id === 'mobile-sit-btn' || e.target.id === 'view-btn' || e.target.id === 'modal-close-btn' || e.target.id === 'info-btn' || e.target.id === 'info-close-btn' || e.target.closest('#artwork-modal') || e.target.closest('#info-modal')) continue;
+                        if (e.target.id === 'mobile-sit-btn' || e.target.id === 'view-btn' || e.target.id === 'modal-close-btn' || e.target.closest('#artwork-modal')) continue;
                         lookTouchId = t.identifier;
                         lookStartX = t.clientX;
                         lookStartY = t.clientY;
@@ -1361,7 +1154,7 @@
             document.addEventListener('touchstart', handleTouchStart, {passive: false});
             document.addEventListener('touchmove', handleTouchMove, {passive: false});
             document.addEventListener('touchend', handleTouchEnd);
-            document.addEventListener('click', () => { if (isModalOpen && modal.style.display === 'flex') closeModal(); });
+            document.addEventListener('click', () => { if (isModalOpen) closeModal(); });
             // Sit button removed for mobile in last room, keeping code just in case needed elsewhere but hidden
             mobileSitBtn.addEventListener('touchstart', (e) => { e.stopPropagation(); toggleSit(); });
             viewBtn.addEventListener('touchstart', (e) => { 
@@ -1369,11 +1162,9 @@
                 if (currentTarget) openModal(currentTarget.userData); 
             });
         } else {
-            document.addEventListener('click', (e) => {
+            document.addEventListener('click', () => {
                 if (isGameActive) {
-                    if (isModalOpen) {
-                         if (modal.style.display === 'flex' && !e.target.closest('#modal-info') && e.target.id !== 'modal-img') closeModal();
-                    }
+                    if (isModalOpen) closeModal();
                     else { 
                         if (controls.isLocked) checkIntersectionAndClick(); 
                         else controls.lock(); 
@@ -1415,30 +1206,12 @@
             document.getElementById('modal-desc').innerText = `${data.year} • ${data.desc}`;
             modal.style.display = 'flex';
             viewBtn.style.display = 'none';
-            infoBtn.style.display = 'none';
         }
 
         function closeModal() { 
             isModalOpen = false; modal.style.display = 'none'; 
-            if (!isMobile) controls.lock();
-            infoBtn.style.display = 'flex';
+            if (!isMobile) controls.lock(); 
         }
-
-        function openInfoModal() {
-            isModalOpen = true;
-            if (!isMobile) controls.unlock();
-            infoModal.style.display = 'flex';
-            infoBtn.style.display = 'none';
-            viewBtn.style.display = 'none';
-        }
-
-        function closeInfoModal() {
-            isModalOpen = false;
-            infoModal.style.display = 'none';
-            if (!isMobile) controls.lock();
-            infoBtn.style.display = 'flex';
-        }
-
 
         function toggleSit() {
             if (isSitting) { 
@@ -1474,10 +1247,6 @@
             if(code === 'ShiftLeft') move.shift = true;
             if(code === 'Space' && canJump && !isSitting) { velocity.y += 12; canJump = false; }
             if(code === 'KeyC') toggleSit();
-            
-            // Info Modal Shortcut
-            if(code === 'KeyI' && !isMobile && isGameActive && !isModalOpen) openInfoModal();
-            if(code === 'KeyI' && !isMobile && isGameActive && isModalOpen && infoModal.style.display === 'flex') closeInfoModal();
         });
 
         document.addEventListener('keyup', (e) => {
@@ -1521,7 +1290,7 @@
                 const distToBench = camera.position.distanceTo(new THREE.Vector3(benchPosition.x, camera.position.y, benchPosition.z));
                 // Only show hint on desktop since bench removed on mobile
                 if (!isMobile && distToBench < 5.0) { 
-                      sitHint.style.display = 'block'; 
+                     sitHint.style.display = 'block'; 
                 } 
                 else { 
                     sitHint.style.display = 'none'; 

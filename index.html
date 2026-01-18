@@ -1,2329 +1,1155 @@
 <!DOCTYPE html>
-
 <html lang="uk">
-
 <head>
-
     <link rel="apple-touch-icon" sizes="180x180" href="assets/favicon/apple-touch-icon.png">
-
     <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon/favicon-32x32.png">
-
     <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon/favicon-16x16.png">
-
     <link rel="manifest" href="assets/favicon/site.webmanifest">
-
     <link rel="shortcut icon" href="assets/favicon/favicon.ico">
-
     <meta name="msapplication-TileColor" content="#da532c">
-
     <meta name="theme-color" content="#ffffff">
-
     
-
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-8RKB3ZJ59V"></script>
-
     <script>
-
       window.dataLayer = window.dataLayer || [];
-
       function gtag(){dataLayer.push(arguments);}
-
       gtag('js', new Date());
 
-
-
       gtag('config', 'G-8RKB3ZJ59V');
-
     </script>
-
-
 
     <meta charset="UTF-8">
-
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-
     <title>Іді Нахуй</title>
 
-
-
     <meta name="description" content="Віртуальна квартирна виставка артпроєкту «Іді Нахуй». Роботи від 70 українських митців та мисткинь, три зали, кінотеатр і скульптури.">
-
     
-
     <meta property="og:type" content="website">
-
     <meta property="og:url" content="https://idinahui.art/">
-
     <meta property="og:title" content="Віртуальна квартирна виставка артпроєкту «Іді Нахуй»">
-
     <meta property="og:description" content="Роботи від 70 українських митців, три зали, кінотеатр і скульптури. Куратор: Володимир Хоменко.">
-
     <meta property="og:image" content="https://idinahui.art/assets/share.jpg">
 
-
-
     <meta property="twitter:card" content="summary_large_image">
-
     <meta property="twitter:url" content="https://idinahui.art/">
-
     <meta property="twitter:title" content="Віртуальна квартирна виставка артпроєкту «Іді Нахуй»">
-
     <meta property="twitter:description" content="Роботи від 70 українських митців, три зали, кінотеатр і скульптури.">
-
     <meta property="twitter:image" content="https://idinahui.art/assets/share.jpg">
 
-
-
     <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
-
     
-
     <style>
-
         @font-face {
-
             font-family: 'EquateurUA';
-
             src: url('assets/EquateurUA-Regular.otf') format('opentype');
-
         }
-
         @font-face {
-
             font-family: 'DirectorUA';
-
             src: url('assets/DirectorUAVariableVF.ttf') format('truetype');
-
         }
-
-
 
         body { 
-
             margin: 0; overflow: hidden; background-color: #000; 
-
             font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; 
-
             touch-action: none; user-select: none; -webkit-user-select: none; 
-
         }
-
         
-
-        /* --- ЛІНКИ --- */
-
         .text-link {
-
             color: inherit;
-
             text-decoration: underline;
-
             transition: opacity 0.2s;
-
             border-bottom: 1px solid transparent;
-
         }
-
         .text-link:hover {
-
             border-bottom: 1px solid currentColor;
-
             opacity: 0.8;
-
         }
-
         
-
-        /* ЗАГАЛЬНІ СТИЛІ */
-
         .ui-screen {
-
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-
             background: #E6E6E6; 
-
             z-index: 100;
-
             display: flex; flex-direction: column; align-items: center; justify-content: space-between;
-
             color: #000;
-
             padding: 40px 20px;
-
             box-sizing: border-box;
-
             text-align: center;
-
         }
-
-
 
         .title-font {
-
             font-family: 'EquateurUA', sans-serif;
-
             text-transform: uppercase;
-
             font-size: 169px; 
-
             line-height: 0.8;
-
             letter-spacing: -0.15em; 
-
             margin-bottom: -30px; 
-
             position: relative;
-
             z-index: 20; 
-
         }
-
-
 
         .director-font {
-
             font-family: 'DirectorUA', monospace;
-
             font-size: 30px; 
-
             line-height: 1.1;
-
             max-width: 900px;
-
             margin: 0 auto;
-
             position: relative;
-
             z-index: 10;
-
         }
-
-
 
         .bottom-text {
-
             font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-
             font-size: 0.9rem;
-
             line-height: 1.07;
-
             letter-spacing: -0.03em;
-
             color: #888; 
-
             text-transform: uppercase; 
-
             max-width: 800px;
-
             margin: 0 auto;
-
             position: relative;
-
             z-index: 10;
-
         }
-
         
-
         .bottom-content .director-font {
-
             margin-bottom: 10px !important;
-
         }
-
-
 
         #loading-screen { z-index: 100; transition: opacity 0.8s ease-out; }
-
         
-
         .loader-center {
-
             width: 100%; max-width: 600px; position: relative; padding: 40px 0; z-index: 10;
-
         }
-
         #progress-line-bg { width: 100%; height: 4px; background: #ccc; position: relative; margin-top: 20px; }
-
         #progress-line-fill { position: absolute; top: 0; left: 0; height: 100%; width: 0%; background: #000; transition: width 0.1s linear; }
-
         #angel-loader {
-
             position: absolute; top: -50px; left: 0%; 
-
             width: 60px; 
-
             height: auto;
-
             transform: translateX(-50%); transition: left 0.1s linear;
-
         }
-
-
 
         #start-screen { z-index: 50; display: none; overflow: hidden; }
-
         
-
         #physics-canvas {
-
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-
             z-index: 1; pointer-events: auto; 
-
         }
-
-
 
         #start-btn {
-
             background: #fff; color: #000; border: none;
-
             padding: 40px 100px 25px 100px;
-
             font-family: 'EquateurUA', sans-serif; 
-
             font-size: 5rem;
-
             letter-spacing: -0.15em; 
-
             border-radius: 100px;
-
             cursor: pointer;
-
             text-transform: uppercase;
-
             box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-
             transition: transform 0.2s, box-shadow 0.2s;
-
             margin: 20px 0;
-
             position: relative; z-index: 10;
-
         }
-
         #start-btn:hover { transform: scale(1.05); }
-
         #start-btn:active { transform: scale(0.95); }
 
-
-
         #cursor {
-
             position: absolute; top: 50%; left: 50%; width: 8px; height: 8px; background: white;
-
             border-radius: 50%; transform: translate(-50%, -50%); opacity: 0.8; pointer-events: none; mix-blend-mode: difference;
-
             z-index: 5; transition: transform 0.15s;
-
         }
-
         .hover-active { transform: translate(-50%, -50%) scale(2.0) !important; background: #00ff66 !important; }
 
-
-
         #sit-hint {
-
             position: absolute; bottom: 120px; left: 50%; transform: translateX(-50%);
-
             color: white; background: rgba(0,0,0,0.6); padding: 10px 20px;
-
             border-radius: 20px; font-size: 0.9rem; display: none; pointer-events: none; z-index: 20;
-
         }
-
-
 
         #info-btn {
-
             position: absolute; top: 30px; right: 30px; width: 40px; height: 40px; border-radius: 50%;
-
             background: #fff; color: #000; border: none; 
-
             display: none; 
-
             align-items: center; justify-content: center;
-
             font-family: 'DirectorUA', monospace; font-weight: bold; font-size: 1.4rem;
-
             cursor: pointer; pointer-events: auto; z-index: 48;
-
             padding-top: 3px; 
-
             box-shadow: 0 2px 5px rgba(0,0,0,0.2); 
-
             transition: transform 0.2s;
-
         }
-
         #info-btn:hover { transform: scale(1.1); background: #eee; }
-
         
-
         #controls-hint {
-
             position: absolute; bottom: 20px; right: 20px;
-
             font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-
             font-size: 14px; color: rgba(255, 255, 255, 0.5); 
-
             z-index: 48; display: none; 
-
             pointer-events: none; text-transform: uppercase;
-
         }
-
-
 
         .joystick-zone {
-
             position: absolute; width: 100px; height: 100px; 
-
             background: rgba(255, 255, 255, 0.1); border-radius: 50%;
-
             border: 2px solid rgba(255, 255, 255, 0.2);
-
             display: none; z-index: 40; touch-action: none; pointer-events: none;
-
         }
-
         .stick-knob {
-
             position: absolute; top: 50%; left: 50%; width: 40px; height: 40px;
-
             background: rgba(255, 255, 255, 0.5); border-radius: 50%;
-
             transform: translate(-50%, -50%); pointer-events: none;
-
         }
-
         #mobile-sit-btn {
-
             position: absolute; right: 20px; bottom: 40px;
-
             width: 70px; height: 70px; border-radius: 50%;
-
             background: rgba(0, 0, 0, 0.6); border: 2px solid white;
-
             color: white; font-weight: bold; display: none; z-index: 45;
-
             align-items: center; justify-content: center; cursor: pointer;
-
             backdrop-filter: blur(5px); box-shadow: 0 0 10px rgba(255,255,255,0.2);
-
             padding-top: 4px; 
-
         }
-
         #view-btn {
-
             position: absolute; bottom: 130px; left: 50%; transform: translateX(-50%);
-
             padding: 12px 25px 8px 25px; 
-
             border-radius: 25px;
-
             background: rgba(255, 255, 255, 0.95); color: black;
-
             font-weight: bold; font-size: 0.9rem; letter-spacing: 1px; white-space: nowrap;
-
             display: none; z-index: 46; cursor: pointer;
-
             box-shadow: 0 0 15px rgba(255,255,255,0.5);
-
             animation: pulseBtn 2s infinite;
-
         }
-
         @keyframes pulseBtn { 0% { transform: translateX(-50%) scale(1); } 50% { transform: translateX(-50%) scale(1.05); } 100% { transform: translateX(-50%) scale(1); } }
-
         
-
-        /* Artwork Modal */
-
         #artwork-modal {
-
             display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-
             background: rgba(10, 10, 10, 0.8); 
-
             z-index: 60;
-
             flex-direction: column; align-items: center; justify-content: center;
-
             text-align: center; color: white;
-
         }
-
         
-
-        /* FIX FOR WHITE LINE: Container for image */
-
+        /* FIX FOR WHITE LINE: Container uses font-size 0 to kill whitespace */
         #img-container {
-
+            display: block;
+            width: auto;
+            max-width: 95%;
+            max-height: 70vh;
+            margin: 0 auto 20px auto;
+            font-size: 0; 
             line-height: 0;
-
-            font-size: 0;
-
-            margin-bottom: 20px;
-
-            display: flex;
-
-            justify-content: center;
-
-            width: 100%;
-
+            background: transparent;
         }
-
-
 
         #modal-img { 
-
-            max-height: 70vh; 
-
-            max-width: 95%; 
-
+            width: auto;
+            height: auto;
+            max-height: 100%; 
+            max-width: 100%; 
             object-fit: contain;
-
             display: block; 
-
             border: none;
-
             outline: none;
-
             box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-
         }
-
         
-
         .no-image { display: none !important; }
 
-
-
         #modal-info { max-width: 600px; padding: 0 20px; }
-
         
-
         #modal-title { 
-
             font-weight: 800; 
-
             font-size: 1.5rem; 
-
             margin: 0 0 5px 0; 
-
             text-transform: uppercase; 
-
             line-height: 1.1; 
-
         }
-
         
-
+        /* WHITE LINKS IN MODAL */
         #modal-title a, #modal-desc a { 
-
             color: white !important; 
-
             text-decoration: underline !important; 
-
             border: none !important; 
-
             transition: opacity 0.2s; 
-
         }
-
         #modal-title a:hover, #modal-desc a:hover { opacity: 0.7; text-decoration: none !important; }
-
         
-
         #modal-desc { 
-
             font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; 
-
             font-size: 1rem; 
-
             color: #ccc; 
-
             line-height: 1.4; 
-
         }
-
         
-
         #modal-close-btn {
-
             position: absolute; top: 30px; right: 30px; width: 40px; height: 40px; border-radius: 50%;
-
             background: rgba(255, 255, 255, 0.2); border: 1px solid white;
-
             display: flex; align-items: center; justify-content: center;
-
             font-size: 1.2rem; cursor: pointer; pointer-events: auto;
-
             padding-top: 2px;
-
         }
-
-
 
         #info-modal {
-
             display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-
             background: #E6E6E6; 
-
             z-index: 70;
-
             flex-direction: column; align-items: center; justify-content: center;
-
             text-align: center; color: #000;
-
             padding: 40px 20px; box-sizing: border-box;
-
             overflow-y: auto; 
-
         }
-
         .info-content { max-width: 900px; margin: auto; position: relative; top: -20px;}
-
         .info-title {
-
             font-family: 'EquateurUA', sans-serif; text-transform: uppercase;
-
             font-size: 160px; 
-
             line-height: 0.9; letter-spacing: -0.15em; 
-
             margin-bottom: -30px; 
-
             position: relative; z-index: 20;
-
         }
-
         .info-body-director {
-
             font-family: 'DirectorUA', monospace; font-size: 19px; line-height: 1.13; 
-
             margin: 0 0 15px 0; 
-
             position: relative; z-index: 10;
-
         }
-
         .info-body-helvetica {
-
             font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-weight: bold;
-
             font-size: 14px; text-transform: uppercase; color: #888; letter-spacing: -0.05em; line-height: 1.0; 
-
             margin: 0 0 5px 0; 
-
             position: relative; z-index: 10;
-
         }
-
         .insta-btn {
-
             display: inline-block; 
-
             padding: 18px 40px 12px 40px;
-
             background: #000; color: #fff; text-decoration: none;
-
             font-family: 'EquateurUA', sans-serif; font-size: 24px; letter-spacing: -0.1em;
-
             border-radius: 50px; transition: transform 0.2s;
-
             position: relative; z-index: 20;
-
         }
-
         .insta-btn:hover { transform: scale(1.05); }
-
         #info-close-btn {
-
             position: absolute; top: 30px; right: 30px; width: 40px; height: 40px; border-radius: 50%;
-
             border: 1px solid #000; color: #000;
-
             display: flex; align-items: center; justify-content: center;
-
             font-size: 1.2rem; cursor: pointer; pointer-events: auto;
-
             padding-top: 2px;
-
         }
-
-
 
         @media (max-width: 768px) {
-
             .title-font { font-size: 75px; margin-bottom: -15px; }
-
             .director-font { font-size: 16px; max-width: 90%; }
-
             #start-btn { font-size: 3rem; padding: 25px 60px 15px 60px; } 
-
             .bottom-text { font-size: 0.7rem; max-width: 90%; }
-
             #physics-canvas { display: none; }
-
             .info-title { font-size: 80px; margin-bottom: -15px; }
-
             .info-body-director { font-size: 16px; }
-
             #controls-hint { display: none !important; }
-
             
-
             #info-modal {
-
                 justify-content: flex-start;
-
                 padding-top: 80px;
-
             }
-
             #info-close-btn {
-
                 position: fixed;
-
                 background: white; 
-
                 z-index: 100;
-
                 top: 20px; right: 20px;
-
                 width: 50px; height: 50px;
-
                 font-size: 1.5rem;
-
             }
-
             .info-content {
-
                 padding-top: 0px; 
-
             }
-
         }
-
     </style>
-
     
-
     <script type="importmap">
-
         {
-
             "imports": {
-
                 "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
-
                 "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
-
             }
-
         }
-
     </script>
-
 </head>
-
 <body>
-
     <script>
-
         window.isLowEnd = false;
-
         if (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4) {
-
             window.isLowEnd = true;
-
             console.log("Low-end device detected. Optimizing...");
-
         }
-
         const isMobileCheck = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-
         if(isMobileCheck) window.isLowEnd = true; 
-
     </script>
-
-
 
     <div id="cursor"></div>
-
     <div id="sit-hint">Натисни <span class="key">C</span> щоб сісти</div>
-
     <div id="info-btn">i</div>
-
     <div id="controls-hint">Esc — курсор, I — інфо</div>
-
     
-
     <div id="loading-screen" class="ui-screen">
-
         <div class="top-content">
-
             <div class="title-font">ПРИВІТ</div>
-
             <div class="director-font">
-
                 Ти в черзі на віртуальну квартирну виставку артпроєкту “Іді Нахуй”. Зараз всі текстури прогрузить і ахуєєш!
-
             </div>
-
         </div>
-
-
 
         <div class="loader-center">
-
             <div id="progress-line-bg">
-
                 <div id="progress-line-fill"></div>
-
                 <img id="angel-loader" src="assets/loader.png" alt="loading...">
-
             </div>
-
         </div>
-
-
 
         <div class="bottom-content">
-
             <div class="director-font">
-
                 Роботи від 70 українських митців та мисткинь, три зали, кінотеатр і скульптури.
-
             </div>
-
             <div class="bottom-text">
-
                 Зараз заграє композиція <a href="https://www.instagram.com/alexeyshmurak/" target="_blank" class="text-link">Олексія Шмурака</a>. Виставка відбувалась у червні 2025 року у квартирній галереї <a href="https://www.instagram.com/hadykins/" target="_blank" class="text-link">Катерини Хадико</a>. Куратор: <a href="https://www.instagram.com/adult.xoma/" target="_blank" class="text-link">Володимир Хоменко</a>, менеджер: <a href="https://www.instagram.com/stanislaawww/" target="_blank" class="text-link">Станіслав Калагарець</a>. Шрифти: <a href="https://www.instagram.com/levtype/" target="_blank" class="text-link">LEVTYPE</a>. На завантаженні використано фрагмент з роботи <a href="https://www.instagram.com/sinica_karina_a/" target="_blank" class="text-link">Каріни Синиці</a>
-
             </div>
-
         </div>
-
     </div>
 
-
-
     <div id="start-screen" class="ui-screen">
-
         <div id="physics-canvas"></div>
 
-
-
         <div class="top-content">
-
             <div class="title-font">“ІДІ НАХУЙ”</div>
-
-            <div class="director-font" id="start-subtitle">
-
+            <div class="director-font">
                 Керування стрілками, можна стрибати, на Shift прискорення. Для перегляду роботи клацни по ній.
-
             </div>
-
         </div>
-
-
 
         <button id="start-btn" type="button">УВІЙТИ</button>
 
-
-
         <div class="bottom-content">
-
             <div class="director-font">
-
                 Роботи від 70 українських митців та мисткинь, три зали, кінотеатр і скульптури.
-
             </div>
-
             <div class="bottom-text">
-
                 Зараз заграє композиція <a href="https://www.instagram.com/alexeyshmurak/" target="_blank" class="text-link">Олексія Шмурака</a>. Виставка відбувалась у червні 2025 року у квартирній галереї <a href="https://www.instagram.com/hadykins/" target="_blank" class="text-link">Катерини Хадико</a>. Куратор: <a href="https://www.instagram.com/adult.xoma/" target="_blank" class="text-link">Володимир Хоменко</a>, менеджер: <a href="https://www.instagram.com/stanislaawww/" target="_blank" class="text-link">Станіслав Калагарець</a>. Шрифти: <a href="https://www.instagram.com/levtype/" target="_blank" class="text-link">LEVTYPE</a>. На завантаженні використано фрагмент з роботи <a href="https://www.instagram.com/sinica_karina_a/" target="_blank" class="text-link">Каріни Синиці</a>
-
             </div>
-
         </div>
-
     </div>
-
-
 
     <div id="stick-container" class="joystick-zone"><div class="stick-knob"></div></div>
-
     <div id="mobile-sit-btn">SIT</div>
-
     <div id="view-btn">VIEW</div>
 
-
-
     <audio id="bgMusic" loop preload="auto">
-
         <source src="assets/song.mp3" type="audio/mpeg">
-
     </audio>
 
-
-
     <video id="video1" loop crossOrigin="anonymous" playsinline style="display:none" muted preload="metadata">
-
         <source src="assets/video1.mp4" type="video/mp4">
-
     </video>
-
     <video id="video2" loop crossOrigin="anonymous" playsinline style="display:none" muted preload="metadata">
-
         <source src="assets/video2.mp4" type="video/mp4">
-
     </video>
-
-
 
     <div id="artwork-modal">
-
         <div id="modal-close-btn">✕</div>
-
         <div id="img-container">
-
             <img id="modal-img" src="" alt="Artwork">
-
         </div>
-
         <div id="modal-info">
-
             <div id="modal-title">TITLE</div>
-
             <div id="modal-desc"></div>
-
         </div>
-
     </div>
-
-
 
     <div id="info-modal">
-
         <div id="info-close-btn">✕</div>
-
         <div class="info-content">
-
             <h1 class="info-title">“ІДІ НАХУЙ”</h1>
-
             <div class="info-body-director">
-
                 Проєкт «ІДІ НАХУЙ» — це деконструкція одного з найгучніших знаків повномасштабної війни: фрази, що стала жестом суверенної відмови, і графічної форми, яка перетворилась на образ тотальної присутності. Ми простежуємо траєкторії цього знака від мовленнєвого акту на острові Зміїний до глобального мему, товарного бренду та інструменту внутрішньої політики. Фіксуємо безперервну мутацію символу, який водночас є актом спротиву і носієм складної імперської спадщини, демонструючи, як війна перетворює мову на дію, а дію — на нескінченний цифровий тираж.<br><br>
-
                 Віртуальна виставка функціонує в режимі «живого архіву». Знак у цій логіці не закріплюється в статусі завершеного образу, а залишається відкритим полем напруги й конфлікту. Він втрачає персональне авторство, переходить у режим «бідного образу», циркулює в соцмережах, змінюється разом із контекстами та аудиторіями, стає засобом суспільного діалогу. Як реальність війни входить у культуру, і як ми використовуємо ці нестабільні, амбівалентні форми як спосіб колективного виживання та ствердження суб’єктності.
-
             </div>
-
             <div class="info-body-helvetica">
-
                 Виставка відбувалась у червні 2025 року у квартирній галереї <a href="https://www.instagram.com/hadykins/" target="_blank" class="text-link">Катерини Хадико</a>.<br>
-
                 Куратор: <a href="https://www.instagram.com/adult.xoma/" target="_blank" class="text-link">Володимир Хоменко</a>, менеджер: <a href="https://www.instagram.com/stanislaawww/" target="_blank" class="text-link">Станіслав Калагарець</a>. Шрифти: <a href="https://www.instagram.com/levtype/" target="_blank" class="text-link">LevType</a>.<br>
-
                 Зараз грає композиція <a href="https://www.instagram.com/alexeyshmurak/" target="_blank" class="text-link">Олексія Шмурака</a>
-
             </div>
-
             <a href="https://www.instagram.com/idinahui.art/" target="_blank" class="insta-btn">ІНСТАГРАМ</a>
-
         </div>
-
     </div>
-
-
-
 
 
     <script type="module">
-
         import * as THREE from 'three';
-
         import { PointerLockControls } from 'three/addons/controls/PointerLockControls.js';
-
         import { RectAreaLightUniformsLib } from 'three/addons/lights/RectAreaLightUniformsLib.js';
-
         import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
-
-
         // --- DATABASE OF ARTWORKS ---
-
         const ARTWORK_DB = {
-
             1: { artist: "Mashka Tyapa", handle: "mariia_tikhonova1" },
-
             2: { artist: "Марія Чудна", handle: "_mariiachudna_art" },
-
             3: { artist: "Valeriia", handle: "whilerie" },
-
             4: { artist: "Каріна Синиця", handle: "sinica_karina_a" },
-
             5: { artist: "Olha Lebedieva", handle: "loveandmess" },
-
             6: { artist: "квітланка", handle: "konoplyovycvit", title: "Козацька капличка «Іді Наxуй»" },
-
             7: { artist: "Volodymyr Khomenko", handle: "adult.xoma" },
-
             8: { artist: "Valeriia", handle: "whilerie" },
-
             9: { artist: "akinapakina", handle: "akinapakina" },
-
             10: { artist: "Hristina Novykova", handle: "hristinazhopa2" },
-
             11: { artist: "Sofiia Markova", handle: "sofiia_markova_" },
-
             12: { artist: "Олесь Дерега", handle: "derega" },
-
             13: { artist: "Oleksandra Liadetska", handle: "liadetskaa" },
-
             14: { artist: "Dmytro Drobotenko", handle: "dmytroner" },
-
             15: { artist: "Mariia Charuta", handle: "mariyacharuta" },
-
             16: { artist: "соломійка", handle: "solomi.ya" },
-
             17: { artist: "Даня", handle: "danyash.a" },
-
             18: { artist: "Volodymyr Khomenko", handle: "adult.xoma" },
-
             19: { artist: "Dasha Podoltseva", handle: "dashapodoltseva" },
-
             20: { artist: "Nataliia Oliferovych", handle: "nataliia_olif" },
-
             21: { artist: "Snizhana", handle: "snig.gggg.tattoo" },
-
             22: { artist: "Marta Leshak", handle: "martaleshak" },
-
             23: { artist: "xeniя", handle: "xeniahav" },
-
             24: { artist: "Вова Януш", handle: "jan.gog" },
-
             25: { artist: "Nadia Zim", handle: "nadia.zim" },
-
             26: { artist: "мілка", handle: "shikarichan" },
-
             27: { artist: "Кирило Орел", handle: "ciriearn" },
-
             28: { artist: "NBA HOB", handle: "nba_hob" },
-
             29: { artist: "Oleksii Salnykov", handle: "a.salio" },
-
             30: { artist: "Maksim Nikiškin", handle: "gamernia" },
-
             31: { artist: "Olia Hordiienko", handle: "coca.colia" },
-
             32: { customHTML: "Артдирекція: <a href='https://www.instagram.com/tajaju/' target='_blank'>Таїсія Юрків</a><br>Виконання (в’язання): <a href='https://www.instagram.com/janeushtan/' target='_blank'>Євгенія Уштан</a>" },
-
             33: { artist: "Serhii Hrychaniuk", handle: "serhiihrychaniuk" },
-
             34: { artist: "Denys Honcheruk", handle: "xillitu" },
-
             35: { customHTML: "“Нюрнберзький процес”<br><a href='https://www.instagram.com/oliakoval.ua/' target='_blank'>Оля Коваль</a> і <a href='https://www.instagram.com/dikayasuka/' target='_blank'>Поліна Лаптій</a>" }, 
-
             36: { artist: "Іра Джа", handle: "ira.dja" },
-
             37: { artist: "Anton AB044", handle: "anton_abo" },
-
             38: { artist: "Maria Vasylenko", handle: "ma_vko" },
-
             39: { artist: "Vira Sh", handle: "vira.shmoilova" },
-
             40: { artist: "Yan Imbrik", handle: "imbrikyan" },
-
             41: { artist: "Dasha Podoltseva", handle: "dashapodoltseva" },
-
             42: { artist: "Федір Хорьков", handle: "fedirkhorkov" },
-
             43: { artist: "Даша Коломієць", handle: "blindestlover" },
-
             44: { artist: "Maksym Mazigula", handle: "maks1m4ek" },
-
             45: { artist: "Leonora Yanko", handle: "leonoragallery", title: "Sk(q)trkt" },
-
             46: { artist: "Дмитро Онопрійко", handle: "khrrr5320" },
-
             47: { artist: "Олексій", handle: "oleksa_bober" },
-
             48: { artist: "Ihor", handle: "itmshchk" },
-
             49: { artist: "Макс Михайлов", handle: "_youngbook._" },
-
             50: { artist: "y3sy3sy00", handle: "y3sy3sy00" },
-
             51: { artist: "Саша Китаєва (Кругла)", handle: "dorobok" },
-
             52: { artist: "Ільчук Діма", handle: "xfriscobluesx" },
-
             53: { artist: "Kateryna Khadyko", handle: "hadykins" },
-
             54: { artist: "Нікіта", handle: "firefoh" },
-
             55: { artist: "Zєба", handle: "zeba_art32" },
-
             56: { artist: "Дмитро Онопрійко", handle: "khrrr5320" },
-
             57: { artist: "Sofiia Markova", handle: "sofiia_markova_", title: "Tri4ko" },
-
             58: { artist: "Volodymyr Khomenko", handle: "adult.xoma" },
-
             59: { artist: "Ksenia Lysenko", handle: "solnechnayazhenshchina" },
-
             60: { artist: "Edik Balula", handle: "balula.e" },
-
             61: { artist: "Volodymyr Khomenko", handle: "adult.xoma", title: "Деформований алюмінієвий сплав..." },
-
             62: { artist: "Павло Круппот", handle: "pavlo_kruppot" },
-
             63: { artist: "KESER1", handle: "keser.one" },
-
             64: { artist: "Станіслав Калагарець", handle: "stanislaawww" },
-
             65: { artist: "tanchik", handle: "demishkan.t" },
-
             // ADDED MISSING POSTERS TO PREVENT UNKNOWN
-
             66: { title: "Artwork #66" }, 67: { title: "Artwork #67" }, 68: { title: "Artwork #68" }, 69: { title: "Artwork #69" },
-
             70: { title: "Artwork #70" }, 71: { title: "Artwork #71" }, 72: { title: "Artwork #72" }, 73: { title: "Artwork #73" },
-
             74: { title: "Artwork #74" }, 75: { title: "Artwork #75" }, 76: { title: "Artwork #76" }, 77: { title: "Artwork #77" },
-
             78: { title: "Artwork #78" }, 79: { title: "Artwork #79" },
-
             80: { artist: "Станіслав Калагарець", handle: "stanislaawww" }
-
         };
-
-
 
         const MODEL_DB = {
-
             '1.glb': { title: "Multidisciplinary independent artist", artist: "Volodymyr Khomenko", handle: "adult.xoma" },
-
             '2.glb': { title: "Післясмак розпачу провини ненависті після висловлення фрази іді нахуй", artist: "Ганна", handle: "gannaganya" },
-
             '3.glb': { artist: "Гоша Тоскно", handle: "toskno.wav" },
-
             '4.glb': { artist: "Olla Kuzovkina", handle: "olla.kuzovkina" },
-
             '5.glb': { artist: "Владислав Краснощок", handle: "vkrasnmuseum" },
-
             '6.glb': { artist: "Veronika", handle: "vavavurvur" },
-
             '7.glb': { artist: "Максим Неживий", handle: "nejuwuimaxim" },
-
             '8.glb': { title: "Encapsulant", artist: "Kateryna Khadyko", handle: "hadykins" }
-
         };
-
-
 
         const CURTAIN_DATA = { artist: "Катя Дрозд", handle: "kkkaaattteee_ddd" };
 
-
-
         const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-
         const isLowEnd = window.isLowEnd;
 
-
-
         if(isMobile) {
-
             const titles = document.querySelectorAll('.title-font');
-
             titles.forEach(t => {
-
                 if(t.innerHTML.includes('ІДІ')) {
-
                     t.innerHTML = '“ІДІ&nbsp; НАХУЙ”';
-
                 }
-
             });
-
             document.getElementById('start-subtitle').innerText = "Для кращого досвіду радимо переглядати з комп’ютера";
-
         }
 
-
-
-        if (isMobile) { THREE.Cache.enabled = false; }
-
-
+        // ENABLE CACHE FOR MOBILE TO PREVENT GREY SQUARES
+        THREE.Cache.enabled = true;
 
         function initGravityBackground() {
-
             if (isMobile || isLowEnd) return; 
-
             const Engine = Matter.Engine, Render = Matter.Render, Runner = Matter.Runner, Bodies = Matter.Bodies, Composite = Matter.Composite, Mouse = Matter.Mouse, Events = Matter.Events;
-
             const engine = Engine.create(); const world = engine.world;
-
             const container = document.getElementById('physics-canvas');
-
             const width = window.innerWidth; const height = window.innerHeight;
-
             const render = Render.create({ element: container, engine: engine, options: { width: width, height: height, background: 'transparent', wireframes: false } });
-
             const ground = Bodies.rectangle(width / 2, height + 50, width, 100, { isStatic: true, render: { visible: false } });
-
             const leftWall = Bodies.rectangle(-50, height / 2, 100, height, { isStatic: true, render: { visible: false } });
-
             const rightWall = Bodies.rectangle(width + 50, height / 2, 100, height, { isStatic: true, render: { visible: false } });
-
             Composite.add(world, [ground, leftWall, rightWall]);
-
             const items = [];
-
             for (let i = 1; i <= 6; i++) {
-
                 const x = Math.random() * (width - 200) + 100; const y = -Math.random() * 500 - 100; const scale = 0.75; 
-
                 const item = Bodies.rectangle(x, y, 150 * scale, 150 * scale, { restitution: 0.8, frictionAir: 0.01, render: { sprite: { texture: `assets/fon${i}.png`, xScale: scale, yScale: scale } } });
-
                 items.push(item);
-
             }
-
             Composite.add(world, items);
-
             const mouse = Mouse.create(render.canvas);
-
             Events.on(engine, 'beforeUpdate', function() {
-
                 const mousePos = mouse.position;
-
                 items.forEach(body => {
-
                     const dx = body.position.x - mousePos.x; const dy = body.position.y - mousePos.y; const dist = Math.sqrt(dx*dx + dy*dy);
-
                     if (dist < 120) { const forceMagnitude = 0.2; Matter.Body.applyForce(body, body.position, { x: (dx / dist) * forceMagnitude, y: (dy / dist) * forceMagnitude - 0.25 }); }
-
                 });
-
             });
-
             Render.run(render); const runner = Runner.create(); Runner.run(runner, engine);
-
             document.getElementById('start-btn').addEventListener('click', () => { Render.stop(render); Runner.stop(runner); container.innerHTML = ''; });
-
         }
-
-
 
         const loadStartTime = Date.now();
-
         const minLoadTime = 4000; 
-
         const progressFill = document.getElementById('progress-line-fill');
-
         const angelLoader = document.getElementById('angel-loader');
-
         const manager = new THREE.LoadingManager();
-
         
-
         function updateLoaderUI(percent) { progressFill.style.width = percent + '%'; angelLoader.style.left = percent + '%'; }
-
         function finishLoading() {
-
             updateLoaderUI(100);
-
             setTimeout(() => {
-
                 const loader = document.getElementById('loading-screen'); loader.style.opacity = 0;
-
                 setTimeout(() => {
-
                     loader.style.display = 'none'; document.getElementById('start-screen').style.display = 'flex';
-
                     initGravityBackground(); if (isMobile) checkRoomLoad(0);
-
                 }, 800); 
-
             }, 500);
-
         }
-
-
 
         if (isMobile) {
-
             let simPercent = 0;
-
             const simInterval = setInterval(() => {
-
                 simPercent += 3; if (simPercent > 100) simPercent = 100; updateLoaderUI(simPercent);
-
                 if (simPercent >= 100) { clearInterval(simInterval); finishLoading(); }
-
             }, 60);
-
         } else {
-
             manager.onProgress = function (item, loaded, total) { const rawPercent = (loaded / total) * 100; if(!isNaN(rawPercent)) updateLoaderUI(Math.round(rawPercent)); };
-
             manager.onLoad = function () { const currentTime = Date.now(); const elapsedTime = currentTime - loadStartTime; const remainingTime = Math.max(0, minLoadTime - elapsedTime); setTimeout(finishLoading, remainingTime); };
-
         }
-
-
 
         const scene = new THREE.Scene(); scene.background = new THREE.Color(0xffffff); scene.fog = new THREE.Fog(0xffffff, 5, 50); 
-
         RectAreaLightUniformsLib.init();
-
         const aspect = window.innerWidth / window.innerHeight; const initialFov = aspect < 1 ? 95 : 70;
-
         const camera = new THREE.PerspectiveCamera(initialFov, window.innerWidth / window.innerHeight, 0.1, 100); camera.position.set(0, 1.7, 8); camera.rotation.order = 'YXZ'; 
-
         const renderer = new THREE.WebGLRenderer({ antialias: !isMobile && !isLowEnd, powerPreference: "high-performance" });
-
         renderer.setSize(window.innerWidth, window.innerHeight); renderer.outputColorSpace = THREE.SRGBColorSpace; renderer.toneMapping = THREE.NoToneMapping; 
-
         const pixelRatio = isLowEnd ? 0.75 : Math.min(window.devicePixelRatio, 1.5); renderer.setPixelRatio(pixelRatio);
-
         if (isMobile || isLowEnd) { renderer.shadowMap.enabled = false; } else { renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap; }
-
         document.body.appendChild(renderer.domElement);
-
         const bgMusic = document.getElementById('bgMusic'); bgMusic.volume = 0.65;
 
-
-
         const textureLoader = isMobile ? new THREE.TextureLoader() : new THREE.TextureLoader(manager);
-
         const lazyLoader = new THREE.TextureLoader();
-
         const concreteTex = textureLoader.load('https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/plaster_grey_04/plaster_grey_04_diff_1k.jpg');
-
         concreteTex.wrapS = concreteTex.wrapT = THREE.RepeatWrapping; concreteTex.repeat.set(10, 40); concreteTex.colorSpace = THREE.SRGBColorSpace;
-
         const drozdTex = textureLoader.load('assets/drozd.jpg'); drozdTex.colorSpace = THREE.SRGBColorSpace;
-
         const wallMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.5 });
-
         const floorMat = new THREE.MeshStandardMaterial({ map: concreteTex, roughness: 0.8, color: 0xaaaaaa });
-
         const darkWallMat = new THREE.MeshStandardMaterial({ color: 0x050505, roughness: 0.9 });
-
         const darkFloorMat = new THREE.MeshStandardMaterial({ color: 0x020202, roughness: 0.9 });
-
         const tvFrameMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.2 });
-
         const cableMat = new THREE.MeshBasicMaterial({ color: 0x000000 });
-
         const benchMat = new THREE.MeshStandardMaterial({ color: 0xdddddd, roughness: 0.3 });
-
         const mobilePosterMat = new THREE.MeshStandardMaterial({ color: 0xcccccc, roughness: 0.6, metalness: 0.1 });
-
         const placeholderMat = new THREE.MeshStandardMaterial({ color: 0x888888, roughness: 0.8 });
-
         const curtainDiscMat = new THREE.MeshStandardMaterial({ map: drozdTex, color: 0xffffff, roughness: 0.4, metalness: 0.1, side: THREE.DoubleSide, transparent: true, alphaTest: 0.5 });
-
         const chainMat = new THREE.MeshStandardMaterial({ color: 0x888888, metalness: 0.9, roughness: 0.2 });
-
         const discGeo = new THREE.CylinderGeometry(0.15, 0.15, 0.02, 32); discGeo.rotateZ(Math.PI / 2); discGeo.rotateX(Math.PI / 2);
-
         const ringGeo = new THREE.TorusGeometry(0.04, 0.008, 8, 16);
 
-
-
         const video1 = document.getElementById('video1'); const video2 = document.getElementById('video2'); let videoTex1, videoTex2;
-
         if (isMobile || isLowEnd) { const tvStaticTex = textureLoader.load('assets/for tv.jpeg'); tvStaticTex.colorSpace = THREE.SRGBColorSpace; videoTex1 = tvStaticTex; videoTex2 = tvStaticTex; } 
-
         else { videoTex1 = new THREE.VideoTexture(video1); videoTex2 = new THREE.VideoTexture(video2); videoTex1.colorSpace = THREE.SRGBColorSpace; videoTex2.colorSpace = THREE.SRGBColorSpace; }
 
-
-
         const collidableObjects = []; const clickableObjects = []; const postersArray = []; const roomPosters = {}; const roomStatus = {}; const roomGroups = {};
-
         let revolvingStage = null; const animatedModels = []; const interactiveObjects = []; 
 
-
-
         let currentImageId = 1;
-
         const totalImages = 79; 
 
-
-
         function getNextImage() {
-
             const id = currentImageId;
-
-            let wallUrl;
-
-            let fullUrl;
-
+            let wallUrl, fullUrl;
             
-
-            // UPDATED URL LOGIC: 
-
-            // Mobile: Preview = small_mobile, Click = small
-
-            // Desktop: Preview = small, Click = normal (root)
-
+            // UPDATED URL LOGIC: USE 'SMALL' FOR EVERYTHING ON MOBILE
             if (isMobile) { 
-
-                wallUrl = `assets/small_mobile/image${id}.jpeg`; 
-
-                fullUrl = `assets/small/image${id}.jpeg`; 
-
-            } else { 
-
                 wallUrl = `assets/small/image${id}.jpeg`; 
-
+                fullUrl = `assets/small/image${id}.jpeg`; 
+            } else { 
+                wallUrl = `assets/small/image${id}.jpeg`; 
                 fullUrl = `assets/image${id}.jpeg`; 
-
             }
-
             
-
             const meta = ARTWORK_DB[id] || { artist: "Unknown" };
-
             const title = meta.title ? meta.title : ""; 
 
-
-
             currentImageId++; if (currentImageId > totalImages) currentImageId = 1; 
-
             return { wallUrl, fullUrl, title, id, meta };
-
         }
-
-
 
         function addToRoom(object, roomIndex) {
-
             if (!roomGroups[roomIndex]) { roomGroups[roomIndex] = new THREE.Group(); scene.add(roomGroups[roomIndex]); }
-
             roomGroups[roomIndex].add(object);
-
         }
-
-
 
         function addPoster(x, y, z, ry, w, h, roomIndex) {
-
             const data = getNextImage();
-
             const geo = new THREE.PlaneGeometry(w, h);
-
             
-
             let mat;
-
             if (isMobile) {
-
                 mat = placeholderMat.clone();
-
                 if (!roomPosters[roomIndex]) roomPosters[roomIndex] = [];
-
                 roomPosters[roomIndex].push({ mesh: null, material: mat, url: data.wallUrl });
-
             } else {
-
                 const tex = textureLoader.load(data.wallUrl, (t) => { t.colorSpace = THREE.SRGBColorSpace; });
-
                 mat = new THREE.MeshStandardMaterial({ map: tex, color: 0xffffff, roughness: 0.4 });
-
             }
-
             
-
             const mesh = new THREE.Mesh(geo, mat);
-
             mesh.position.set(x, y, z); mesh.rotation.y = ry;
-
             
-
             mesh.userData = { 
-
                 type: 'poster', 
-
                 id: data.id, 
-
                 url: data.fullUrl, 
-
                 title: data.title, 
-
                 artist: data.meta.artist,
-
                 handle: data.meta.handle,
-
                 extraLink: data.meta.extraLink,
-
                 customHTML: data.meta.customHTML
-
             };
-
             
-
             addToRoom(mesh, roomIndex);
-
             postersArray.push(mesh);
-
             clickableObjects.push(mesh);
-
             if (isMobile && roomPosters[roomIndex]) { roomPosters[roomIndex][roomPosters[roomIndex].length - 1].mesh = mesh; }
-
         }
-
-
 
         function checkRoomLoad(currentRoom) { if (!isMobile) return; const keepLoaded = [currentRoom, currentRoom + 1]; for (let idx = 0; idx < 5; idx++) { if (!keepLoaded.includes(idx) && roomStatus[idx] === 'loaded') { unloadRoomTextures(idx); } } keepLoaded.forEach(idx => { if (idx >= 0 && idx < 5 && roomStatus[idx] !== 'loaded') { loadRoomTextures(idx); } }); }
-
         
-
-        // UPDATED: Added Error Handling for 'small_mobile'
-
+        // SIMPLE LOADER RELOADED
         function loadRoomTextures(roomIdx) { 
-
             if (!roomPosters[roomIdx]) return; 
-
             roomStatus[roomIdx] = 'loaded'; 
-
             roomPosters[roomIdx].forEach(item => { 
-
-                const onLoad = (tex) => { 
-
+                lazyLoader.load(item.url, (tex) => { 
                     tex.colorSpace = THREE.SRGBColorSpace; 
-
                     item.material.map = tex; 
-
                     item.material.color.setHex(0xffffff); 
-
                     item.material.needsUpdate = true; 
-
-                };
-
-                
-
-                // If small_mobile fails, fallback to 'small'
-
-                const onError = () => {
-
-                    if (item.url.includes('small_mobile')) {
-
-                        const fallbackUrl = item.url.replace('small_mobile', 'small');
-
-                        lazyLoader.load(fallbackUrl, onLoad);
-
-                    }
-
-                };
-
-
-
-                lazyLoader.load(item.url, onLoad, undefined, onError); 
-
+                });
             }); 
-
         }
-
         
-
         function unloadRoomTextures(roomIdx) { if (!roomPosters[roomIdx]) return; roomStatus[roomIdx] = 'unloaded'; roomPosters[roomIdx].forEach(item => { if (item.material.map) { item.material.map.dispose(); item.material.map = null; } item.material.color.setHex(0x888888); item.material.needsUpdate = true; }); }
-
         function createBox(x, y, z, w, h, d, isWall = true, isDark = false, customMat = null, roomIndex) { let mat = customMat ? customMat : (isDark ? (isWall ? darkWallMat : darkFloorMat) : (isWall ? wallMat : floorMat)); const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat); mesh.position.set(x, y, z); mesh.receiveShadow = !isMobile && !isLowEnd; if(isWall) { if (w > 1 && h > 1 && !isMobile && !isLowEnd) mesh.castShadow = true; mesh.updateMatrixWorld(); collidableObjects.push({ box: new THREE.Box3().setFromObject(mesh) }); } addToRoom(mesh, roomIndex); }
-
         function createDoorWall(z, width, height, isDark = false, roomIndex) { const doorW = 4, doorH = 3.5, sideW = (width - doorW) / 2, thick = 0.5; createBox(-(width/2) + (sideW/2), height/2, z, sideW, height, thick, true, isDark, null, roomIndex); createBox((width/2) - (sideW/2), height/2, z, sideW, height, thick, true, isDark, null, roomIndex); createBox(0, doorH + (height-doorH)/2, z, doorW, height-doorH, thick, true, isDark, null, roomIndex); }
 
-
-
         function createHangingTV(x, z, ceilingHeight, rotationY = 0, roomIndex) {
-
             const tvW = 1.78; const tvH = 3.16; const tvD = 0.1;
-
             const tvGeo = new THREE.BoxGeometry(tvW, tvH, tvD);
-
             const screenMat = new THREE.MeshBasicMaterial({ map: videoTex2 });
-
             const materials = [tvFrameMat, tvFrameMat, tvFrameMat, tvFrameMat, screenMat, tvFrameMat];
-
             const tv = new THREE.Mesh(tvGeo, materials);
-
             const tvY = 3.8; tv.position.set(x, tvY, z); tv.rotation.y = rotationY; 
-
             
-
             tv.userData = { 
-
                 type: 'tv-link', 
-
                 artist: 'SHREKY', 
-
                 handle: 'shrekycore'
-
             };
-
             
-
             addToRoom(tv, roomIndex);
-
             clickableObjects.push(tv);
 
-
-
             const tvTopY = tvY + (tvH / 2); const cableLen = ceilingHeight - tvTopY; const cableGeo = new THREE.CylinderGeometry(0.01, 0.01, cableLen > 0 ? cableLen : 0.1); cableGeo.translate(0, cableLen / 2, 0); 
-
             const c1 = new THREE.Mesh(cableGeo, cableMat); c1.position.set(-tvW*0.3, tvH/2, 0); tv.add(c1);
-
             const c2 = new THREE.Mesh(cableGeo, cableMat); c2.position.set(tvW*0.3, tvH/2, 0); tv.add(c2);
-
             if(!isMobile && !isLowEnd) { const screenLight = new THREE.PointLight(0xffffff, 2.0, 4.0); screenLight.position.set(0, 0, 1.0); tv.add(screenLight); }
-
         }
-
-
 
         function createProjection(x, y, z, w, h, rotationY, texture, roomIndex) {
-
             const mesh = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshBasicMaterial({ map: texture, side: THREE.DoubleSide }));
-
             mesh.position.set(x, y, z); mesh.rotation.y = rotationY; 
-
             
-
             mesh.userData = { 
-
                 type: 'projection', 
-
                 isMultiArtist: true,
-
                 desc: `
-
                     Музика: <a href="https://www.instagram.com/imj.ytt/" target="_blank" class="text-link">Варя</a><br>
-
                     Відео: <a href="https://www.instagram.com/sht_design/" target="_blank" class="text-link">Max Shtayn</a><br>
-
                     <a href="https://www.instagram.com/xdout228/" target="_blank" class="text-link">Богдан</a><br>
-
                     <a href="https://www.instagram.com/zhucccci/" target="_blank" class="text-link">Denys Zhuk</a><br>
-
                     <a href="https://www.instagram.com/tortil_ya/" target="_blank" class="text-link">Авіталь Коючкова</a><br>
-
                     <a href="https://www.instagram.com/worse404/" target="_blank" class="text-link">Максим</a><br>
-
                     <a href="https://www.instagram.com/beahudson20/" target="_blank" class="text-link">Beahudson20</a>
-
                 `
-
             };
-
             
-
             addToRoom(mesh, roomIndex);
-
             clickableObjects.push(mesh);
-
             if(!isMobile && !isLowEnd) { const light = new THREE.PointLight(0xaaaaff, 30, 25); light.position.set(x + Math.sin(rotationY), y, z + Math.cos(rotationY)); addToRoom(light, roomIndex); }
-
         }
-
         
-
         function createCurtain(x, z, roomIndex) {
-
             if (isMobile || isLowEnd) return; 
-
             const curtainGroup = new THREE.Group(); const headerHeight = 3.5; curtainGroup.position.set(x, headerHeight, z);
-
             const doorWidth = 4; const strands = 9; const spacing = doorWidth / strands;
-
             const topRingGeo = new THREE.TorusGeometry(0.04, 0.008, 8, 16); topRingGeo.rotateX(Math.PI / 2); 
 
-
-
             for(let i = 0; i < strands; i++) {
-
                     const xPos = (i * spacing) - (doorWidth/2) + (spacing/2);
-
                     const strandGroup = new THREE.Group(); strandGroup.position.x = xPos;
-
                     const topRing = new THREE.Mesh(topRingGeo, chainMat); topRing.position.y = 0; strandGroup.add(topRing);
-
                     const length = 3.0; const items = 8; const step = length / items;
 
-
-
                     for(let j = 0; j < items; j++) {
-
                         const yPos = -((j + 1) * step) + (step / 2);
-
                         const disc = new THREE.Mesh(discGeo, curtainDiscMat);
-
                         disc.position.y = yPos; disc.rotation.y = Math.random() * Math.PI;
-
                         
-
                         disc.userData = {
-
                             type: 'sculpture', 
-
                             artist: CURTAIN_DATA.artist,
-
                             handle: CURTAIN_DATA.handle
-
                         };
-
                         
-
                         strandGroup.add(disc); animatedModels.push(disc); clickableObjects.push(disc);
-
                         if (j < items - 1) { const ring = new THREE.Mesh(ringGeo, chainMat); ring.position.y = yPos - (step/2); ring.rotation.y = Math.PI / 2; strandGroup.add(ring); }
-
                     }
-
                     curtainGroup.add(strandGroup);
-
             }
-
             addToRoom(curtainGroup, roomIndex);
-
         }
-
-
 
         const cachedPipeGeo = new THREE.CylinderGeometry(0.05, 0.05, 1, 12); const cachedJointGeo = new THREE.SphereGeometry(0.09, 12, 8);
 
-
-
         function createScaffoldingStructure(x, z, roomIndex) {
-
             revolvingStage = new THREE.Group(); revolvingStage.position.set(x, 0, z);
-
             if (!isMobile) {
-
                 const platform = new THREE.Mesh(new THREE.CylinderGeometry(3.5, 3.5, 0.2, 32), new THREE.MeshStandardMaterial({ color: 0x333333, roughness: 0.8, metalness: 0.5 }));
-
                 platform.position.y = 0.1; platform.receiveShadow = !isMobile && !isLowEnd; revolvingStage.add(platform); collidableObjects.push({ box: new THREE.Box3().setFromObject(platform) }); 
-
                 const structureGroup = new THREE.Group(); structureGroup.position.y = 0.2; const metalMat = new THREE.MeshStandardMaterial({ color: 0xeeeeee, roughness: 0.2, metalness: 0.8 });
-
                 const w = 4; const h = 3.5; const d = 4;
-
                 
-
                 function addPipe(px, py, pz, height, axis) { const mesh = new THREE.Mesh(cachedPipeGeo, metalMat); mesh.position.set(px, py, pz); mesh.scale.set(1, height, 1); if (axis === 'z') mesh.rotation.x = Math.PI / 2; if (axis === 'x') mesh.rotation.z = Math.PI / 2; mesh.castShadow = !isLowEnd; structureGroup.add(mesh); collidableObjects.push({ box: new THREE.Box3().setFromObject(mesh) }); }
-
                 function addJoint(jx, jy, jz) { const mesh = new THREE.Mesh(cachedJointGeo, metalMat); mesh.position.set(jx, jy, jz); structureGroup.add(mesh); }
-
                 addPipe(-w/2, h/2, -d/2, h, 'y'); addPipe(w/2, h/2, -d/2, h, 'y'); addPipe(-w/2, h/2, d/2, h, 'y'); addPipe(w/2, h/2, d/2, h, 'y');
-
                 const levels = [0.2, h - 0.2]; levels.forEach(lev => { addPipe(0, lev, -d/2, w, 'x'); addPipe(0, lev, d/2, w, 'x'); addPipe(-w/2, lev, 0, d, 'z'); addPipe(w/2, lev, 0, d, 'z'); });
-
                 const cornersX = [-w/2, w/2]; const cornersZ = [-d/2, d/2]; levels.forEach(lev => { cornersX.forEach(cx => { cornersZ.forEach(cz => { addJoint(cx, lev, cz); }); }); });
-
                 
-
                 function mountPoster(px, py, pz, ry, width, height, pipeYLevel, specificUrl = null) {
-
                     let data;
-
                     if (specificUrl) { data = { wallUrl: specificUrl, fullUrl: specificUrl, meta: ARTWORK_DB[80], id: 80 }; } 
-
                     else { data = getNextImage(); }
 
-
-
                     const mat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.4, side: THREE.DoubleSide });
-
                     const tex = textureLoader.load(data.wallUrl, (t) => { t.colorSpace = THREE.SRGBColorSpace; mat.map = t; mat.needsUpdate = true; });
-
                     const mesh = new THREE.Mesh(new THREE.PlaneGeometry(2.0, 2.5), mat); mesh.position.set(px, py, pz); mesh.rotation.y = ry;
-
                     const stringMat = new THREE.LineBasicMaterial({ color: 0x111111 }); const topOfPosterY = 2.5 / 2; const distToPipe = (pipeYLevel - 0.05) - (py + topOfPosterY);
-
                     const pointsL = [new THREE.Vector3(-1 + 0.15, topOfPosterY, 0), new THREE.Vector3(-1 + 0.15, topOfPosterY + distToPipe, 0)]; const pointsR = [new THREE.Vector3(1 - 0.15, topOfPosterY, 0), new THREE.Vector3(1 - 0.15, topOfPosterY + distToPipe, 0)];
-
                     mesh.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pointsL), stringMat)); mesh.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pointsR), stringMat));
 
-
-
                     mesh.userData = { 
-
                         type: 'poster', 
-
                         url: data.fullUrl, 
-
                         title: data.meta.title || "", 
-
                         artist: data.meta.artist,
-
                         handle: data.meta.handle,
-
                         customHTML: data.meta.customHTML
-
                     };
-
                     revolvingStage.add(mesh); postersArray.push(mesh); clickableObjects.push(mesh); 
-
                 }
-
                 const topPipeLevel = 3.3; const posterCenterY = 3.5 / 2; const d2 = 4; const w2 = 4;
-
                 mountPoster(0, posterCenterY, d2/2, 0, 2, 2.5, topPipeLevel); mountPoster(-w2/2, posterCenterY, 0, Math.PI/2, 2, 2.5, topPipeLevel); mountPoster(0, posterCenterY, -d2/2, Math.PI, 2.5, 1.8, topPipeLevel); mountPoster(w2/2, posterCenterY, 0, -Math.PI/2, 2, 2.5, topPipeLevel, 'assets/image80.jpeg');
-
                 revolvingStage.add(structureGroup);
-
             }
-
             addToRoom(revolvingStage, roomIndex);
-
         }
-
-
 
         function fixMaterial(object) { object.traverse((child) => { if (child.isMesh) { if (!isMobile && !isLowEnd) child.castShadow = true; child.receiveShadow = !isMobile && !isLowEnd; if (child.material) { child.material.metalness = 0; child.material.roughness = 0.8; } } }); }
-
         
-
         const modelFiles = ['1.glb', '2.glb', '3.glb', '4.glb', '5.glb', '6.glb', '8.glb'];
-
         
-
         function loadAllModels(roomCenterX, roomCenterZ, roomIndex) {
-
             const gltfLoader = new GLTFLoader(manager);
-
             modelFiles.forEach((filename, index) => {
-
                 const angle = (index / modelFiles.length) * Math.PI * 2;
-
                 const radius = 5; 
-
                 const offsetX = Math.cos(angle) * radius; const offsetZ = Math.sin(angle) * radius;
-
                 const fullPath = `assets/3d/${filename}`;
-
                 
-
                 const meta = MODEL_DB[filename];
 
-
-
                 gltfLoader.load(fullPath, (gltf) => {
-
                     const object = gltf.scene;
-
                     fixMaterial(object);
-
                     
-
                     object.userData = { 
-
                         type: 'sculpture', // type sculpture hides image
-
                         title: meta.title || "", 
-
                         artist: meta.artist,
-
                         handle: meta.handle
-
                     };
-
                     
-
                     object.scale.set(1, 1, 1); 
-
                     const box = new THREE.Box3().setFromObject(object);
-
                     const size = new THREE.Vector3(); box.getSize(size);
-
                     const maxDim = Math.max(size.x, size.y, size.z);
-
                     let targetScale = 1.0;
-
                     if (maxDim > 5) { targetScale = 3.0 / maxDim; } else if (maxDim < 0.5) { targetScale = 2.0 / maxDim; }
-
                     let multiplier = 2.3; if (filename === '3.glb') multiplier *= 0.8; if (filename === '5.glb' || filename === '6.glb') multiplier = 1.9; if (filename === '8.glb') multiplier = (2.3 / 3.0) * 1.4; 
-
                     targetScale *= multiplier;
-
                     object.scale.set(targetScale, targetScale, targetScale); object.rotation.set(0, 0, 0); 
-
                     if (filename === '4.glb') animatedModels.push(object); 
-
                     object.updateMatrixWorld(); 
-
                     const newBox = new THREE.Box3().setFromObject(object);
-
                     object.position.set(roomCenterX + offsetX, -newBox.min.y, roomCenterZ + offsetZ);
-
                     addToRoom(object, roomIndex); collidableObjects.push({ box: new THREE.Box3().setFromObject(object) }); clickableObjects.push(object); 
-
                     
-
                     if (filename === '6.glb') {
-
                         const loader9 = new GLTFLoader();
-
                         loader9.load('assets/3d/9.glb', (gltf9) => {
-
                             const obj9 = gltf9.scene; fixMaterial(obj9); obj9.userData = object.userData; 
-
                             const smallScale = (((1.9 / 4.0) * 1.4) / 3.0) * 1.5; obj9.scale.set(smallScale, smallScale, smallScale); obj9.rotation.set(0, 0, 0); animatedModels.push(obj9); 
-
                             const box6 = new THREE.Box3().setFromObject(object); const topY = box6.max.y; obj9.updateMatrixWorld(); const box9 = new THREE.Box3().setFromObject(obj9); const heightOffset9 = -box9.min.y; 
-
                             obj9.position.set(object.position.x, topY * 1.45 + heightOffset9, object.position.z);
-
                             addToRoom(obj9, roomIndex); clickableObjects.push(obj9);
-
                         });
-
                     }
-
                 }, undefined, (e) => { console.error("Model fail", filename); });
-
             });
-
         }
-
-
 
         function createHangingModel7(x, z, roomCeiling, roomIndex) {
-
             const gltfLoader = new GLTFLoader(manager); const meta = MODEL_DB['7.glb'];
-
             gltfLoader.load('assets/3d/7.glb', (gltf) => {
-
                 const object = gltf.scene; fixMaterial(object); object.scale.set(1.4, 1.4, 1.4); object.rotation.set(0, 0, 0); const hangY = 3.0; object.position.set(x, hangY, z);
-
                 object.userData = { 
-
                     type: 'sculpture', 
-
                     title: meta.title || "", 
-
                     artist: meta.artist,
-
                     handle: meta.handle
-
                 };
-
                 addToRoom(object, roomIndex); collidableObjects.push({ box: new THREE.Box3().setFromObject(object) }); clickableObjects.push(object);
-
                 const cableLen = roomCeiling - hangY; const cableGeo = new THREE.CylinderGeometry(0.01, 0.01, cableLen); cableGeo.translate(0, cableLen/2, 0); const cable = new THREE.Mesh(cableGeo, cableMat); cable.position.set(x, hangY, z); addToRoom(cable, roomIndex);
-
             });
-
         }
-
-
 
         // --- WORLD GENERATION ---
-
         const roomsCount = isMobile ? 4 : 5; const roomSize = 20; const roomHeight = 6; const whiteFloorL = roomSize * (roomsCount - (isMobile ? 0 : 1)); 
-
         const floor1 = new THREE.Mesh(new THREE.PlaneGeometry(roomSize, whiteFloorL), floorMat); floor1.rotation.x = -Math.PI / 2; floor1.position.z = -whiteFloorL / 2 + roomSize / 2; floor1.receiveShadow = !isMobile && !isLowEnd; scene.add(floor1);
-
         const zLastRoom = -((roomsCount - 1) * roomSize); let benchPosition = new THREE.Vector3(0, -9999, 0); 
-
         if (!isMobile) { const floor2 = new THREE.Mesh(new THREE.PlaneGeometry(roomSize, roomSize), darkFloorMat); floor2.rotation.x = -Math.PI / 2; floor2.position.z = zLastRoom; scene.add(floor2); }
 
-
-
         for (let i = 0; i < roomsCount; i++) {
-
             const zCenter = -(i * roomSize); const isDarkRoom = (!isMobile && i === roomsCount - 1);
-
             if (!isDarkRoom) {
-
                 if (isMobile || isLowEnd) { const roomLight = new THREE.PointLight(0xffffff, 1.5, 25); roomLight.position.set(0, 5, zCenter); addToRoom(roomLight, i); } 
-
                 else { const rectLightLeft = new THREE.RectAreaLight(0xffffff, 6.0, roomSize - 2, 0.5); rectLightLeft.position.set(-8, 5.5, zCenter); rectLightLeft.lookAt(-20, 1, zCenter); addToRoom(rectLightLeft, i); const rectLightRight = new THREE.RectAreaLight(0xffffff, 6.0, roomSize - 2, 0.5); rectLightRight.position.set(8, 5.5, zCenter); rectLightRight.lookAt(20, 1, zCenter); addToRoom(rectLightRight, i); const fillLight = new THREE.PointLight(0xffffff, 2, 20); fillLight.position.set(0, 5, zCenter); addToRoom(fillLight, i); }
-
             }
-
             createBox(-roomSize/2, roomHeight/2, zCenter, 0.5, roomHeight, roomSize, true, isDarkRoom, null, i); createBox(roomSize/2, roomHeight/2, zCenter, 0.5, roomHeight, roomSize, true, isDarkRoom, null, i); 
-
             if (!isDarkRoom) { const ceiling = new THREE.Mesh(new THREE.PlaneGeometry(roomSize, roomSize), wallMat); ceiling.rotation.x = Math.PI / 2; ceiling.position.set(0, roomHeight, zCenter); addToRoom(ceiling, i); }
-
             
-
             if (i === 0) {
-
                 createBox(0, roomHeight/2, zCenter + roomSize/2, roomSize, roomHeight, 0.5, true, isDarkRoom, null, i); createDoorWall(zCenter - roomSize/2, roomSize, roomHeight, isDarkRoom, i);
-
                 if (isMobile) { addPoster( -6.0, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i); addPoster( 6.0, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i); }
-
             } else if (isDarkRoom) {
-
                 createBox(0, roomHeight/2, zCenter - roomSize/2, roomSize, roomHeight, 0.5, true, isDarkRoom, null, i); const darkCeiling = new THREE.Mesh(new THREE.PlaneGeometry(roomSize, roomSize), darkWallMat); darkCeiling.rotation.x = Math.PI / 2; darkCeiling.position.set(0, roomHeight, zCenter); addToRoom(darkCeiling, i); benchPosition.set(0, 0.4, zCenter); createBox(0, 0.4, zCenter, 3.5, 0.8, 1.5, true, false, benchMat, i);
-
             } else if (isMobile && i === roomsCount - 1) {
-
                 createBox(0, roomHeight/2, zCenter - roomSize/2, roomSize, roomHeight, 0.5, true, false, null, i);
-
                 const backGap = 2.6; addPoster(-backGap * 2, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i); addPoster(-backGap, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i); addPoster(0, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i); addPoster(backGap, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i); addPoster(backGap * 2, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i); 
-
                 const sideCount = 5; const sideGap = 2.6; const startZ = zCenter + ((sideCount - 1) * sideGap) / 2;
-
                 for (let k = 0; k < sideCount; k++) { const zPos = startZ - (k * sideGap); addPoster(-9.7, 2.7, zPos, Math.PI/2, 2.2, 2.8, i); addPoster(9.7, 2.7, zPos, -Math.PI/2, 2.2, 2.8, i); }
-
                 createHangingTV(0, zCenter, roomHeight, 0, i);
-
             } else {
-
                 createDoorWall(zCenter - roomSize/2, roomSize, roomHeight, false, i);
-
                 if (isMobile) { addPoster( -6.0, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i); addPoster( 6.0, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i); addPoster( -6.0, 2.7, zCenter + roomSize/2 - 0.3, Math.PI, 2.2, 2.8, i); addPoster( 6.0, 2.7, zCenter + roomSize/2 - 0.3, Math.PI, 2.2, 2.8, i); }
-
             }
-
             if (!isDarkRoom) {
-
                 if (i === 0) { createHangingTV(0, zCenter, roomHeight, 0, i); } 
-
                 else if (i === 1) { if (!isLowEnd) { loadAllModels(0, zCenter, i); createHangingModel7(0, zCenter, roomHeight, i); } } 
-
                 else if (i === 2) { createScaffoldingStructure(0, zCenter, i); if (isMobile) createHangingTV(0, zCenter, roomHeight, 0, i); } 
-
                 else { 
-
                     let rotation = (i === 3) ? 0 : Math.random() * Math.PI; createHangingTV(0, zCenter, roomHeight, rotation, i); 
-
                     if (i === 3) { createCurtain(0, zCenter - roomSize/2, i); }
-
                 }
-
                 if (!(isMobile && i === roomsCount - 1)) {
-
                     // SIDE WALLS
-
                     const standardW = isMobile ? 2.2 : 2.6; const standardH = isMobile ? 2.8 : 3.25; const postersPerSide = isMobile ? 6 : 6; const availableWidth = 14; const step = availableWidth / (postersPerSide - 1);
-
                     for (let k = 0; k < postersPerSide; k++) { const zPos = (zCenter + availableWidth/2) - (k * step); addPoster(-9.7, 2.7, zPos, Math.PI/2, standardW, standardH, i); addPoster(9.7, 2.7, zPos, -Math.PI/2, standardW, standardH, i); }
-
                     
-
-                    // NEW: DOOR WALL POSTERS (To reach 65 total count)
-
+                    // NEW: DOOR WALL POSTERS (To reach 79 total count)
                     // 1. Far wall (facing viewer) - present in all light rooms
-
                     addPoster(-6.0, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i);
-
                     addPoster( 6.0, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i);
 
-
-
                     // 2. Near wall (facing back) - present in rooms 1, 2, 3
-
                     if (i > 0) {
-
                         addPoster(-6.0, 2.7, zCenter + roomSize/2 - 0.3, Math.PI, 2.2, 2.8, i);
-
                         addPoster( 6.0, 2.7, zCenter + roomSize/2 - 0.3, Math.PI, 2.2, 2.8, i);
-
                     }
-
                 }
-
             } else {
-
                 const projW = 9.0; const projH = 5.06; const wallDist = (roomSize/2) - 0.4;
-
                 createProjection(0, 3, zCenter - wallDist, projW, projH, 0, videoTex1, i);
-
                 if (!isMobile) { createProjection(-wallDist, 3, zCenter, projW, projH, Math.PI/2, videoTex1, i); createProjection(wallDist, 3, zCenter, projW, projH, -Math.PI/2, videoTex1, i); }
-
             }
-
         }
-
-
 
         // --- FOLLOWER & LIGHTS ---
-
         let isFollowing = true; let follower = null;
-
         if (!isMobile) {
-
             const followerTex = textureLoader.load('assets/gerb.jpeg', undefined, undefined, (err) => console.error("Missing gerb.png")); followerTex.colorSpace = THREE.SRGBColorSpace;
-
             const followerGeo = new THREE.PlaneGeometry(3, 3); const followerMat = new THREE.MeshBasicMaterial({ map: followerTex, side: THREE.DoubleSide, transparent: true });
-
             follower = new THREE.Mesh(followerGeo, followerMat); follower.position.set(0, 2.5, 12); follower.userData = { type: 'follower', title: "Watcher", desc: "Click to toggle following" };
-
             scene.add(follower); interactiveObjects.push(follower); clickableObjects.push(follower);
-
         }
-
         const ambientLight = new THREE.AmbientLight(0xffffff, isMobile || isLowEnd ? 1.6 : 0.6); scene.add(ambientLight);
-
         if (!isMobile && !isLowEnd) { const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 1.2); hemiLight.position.set(0, 20, 0); scene.add(hemiLight); const dirLight = new THREE.DirectionalLight(0xffffff, 1.0); dirLight.position.set(5, 10, 7); dirLight.castShadow = true; dirLight.shadow.mapSize.width = 512; dirLight.shadow.mapSize.height = 512; scene.add(dirLight); } 
-
         else { const dirLightMobile = new THREE.DirectionalLight(0xffffff, 0.8); dirLightMobile.position.set(5, 10, 7); scene.add(dirLightMobile); }
 
-
-
         // --- CONTROLS & UI ---
-
         const controls = new PointerLockControls(camera, document.body);
-
         const startScreen = document.getElementById('start-screen'); const startBtn = document.getElementById('start-btn'); const sitHint = document.getElementById('sit-hint'); const mobileSitBtn = document.getElementById('mobile-sit-btn'); const viewBtn = document.getElementById('view-btn');
-
         const modal = document.getElementById('artwork-modal'); const modalClose = document.getElementById('modal-close-btn'); const infoBtn = document.getElementById('info-btn'); const infoModal = document.getElementById('info-modal'); const infoCloseBtn = document.getElementById('info-close-btn'); const controlsHint = document.getElementById('controls-hint');
-
         const raycaster = new THREE.Raycaster(); const center = new THREE.Vector2(0, 0); const cursor = document.getElementById('cursor');
-
         let isModalOpen = false; let isSitting = false; let isGameActive = false; let currentTarget = null; let frameCount = 0;
 
-
-
         function startGame(e) { e.preventDefault(); e.stopPropagation(); startScreen.style.display = 'none'; isGameActive = true; infoBtn.style.display = 'flex'; if(!isMobile) controlsHint.style.display = 'block'; bgMusic.play().catch(e => console.log("Audio block", e)); if(!isMobile && !isLowEnd) { video1.play().catch(e => console.log("Video1 block", e)); video2.play().catch(e => console.log("Video2 block", e)); } if (!isMobile) { controls.lock(); } else { checkRoomLoad(0); } }
-
         startBtn.addEventListener('click', startGame); startBtn.addEventListener('touchstart', startGame);
-
         modalClose.addEventListener('click', closeModal); modalClose.addEventListener('touchstart', (e) => { e.stopPropagation(); closeModal(); });
-
         infoBtn.addEventListener('click', openInfoModal); infoBtn.addEventListener('touchstart', (e) => { e.stopPropagation(); openInfoModal(); });
-
         infoCloseBtn.addEventListener('click', closeInfoModal); infoCloseBtn.addEventListener('touchstart', (e) => { e.stopPropagation(); closeInfoModal(); });
 
-
-
         const stickContainer = document.getElementById('stick-container'); const stickKnob = stickContainer.querySelector('.stick-knob');
-
         let moveTouchId = null; let lookTouchId = null; let lookStartX = 0; let lookStartY = 0; let moveVector = { x: 0, y: 0 }; let stickCenter = { x: 0, y: 0 };
-
         if(isMobile) {
-
              function handleTouchStart(e) { if (!isGameActive) return; for (let i = 0; i < e.changedTouches.length; i++) { const t = e.changedTouches[i]; const halfWidth = window.innerWidth / 2; if(isModalOpen) continue; if (moveTouchId === null && t.clientX < halfWidth) { moveTouchId = t.identifier; stickContainer.style.display = 'block'; stickContainer.style.left = (t.clientX - 50) + 'px'; stickContainer.style.top = (t.clientY - 50) + 'px'; stickCenter = { x: t.clientX, y: t.clientY }; stickKnob.style.transform = `translate(-50%, -50%)`; } else if (lookTouchId === null && t.clientX > halfWidth) { if (e.target.id === 'mobile-sit-btn' || e.target.id === 'view-btn' || e.target.id === 'modal-close-btn' || e.target.id === 'info-btn' || e.target.id === 'info-close-btn' || e.target.closest('#artwork-modal') || e.target.closest('#info-modal')) continue; lookTouchId = t.identifier; lookStartX = t.clientX; lookStartY = t.clientY; } } }
-
              function handleTouchMove(e) { if (!isGameActive || isModalOpen) return; e.preventDefault(); for (let i = 0; i < e.changedTouches.length; i++) { const t = e.changedTouches[i]; if (t.identifier === moveTouchId) { const maxDist = 50; let dx = t.clientX - stickCenter.x; let dy = t.clientY - stickCenter.y; const dist = Math.sqrt(dx*dx + dy*dy); if (dist > maxDist) { const ratio = maxDist / dist; dx *= ratio; dy *= ratio; } stickKnob.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`; moveVector.x = dx / maxDist; moveVector.y = dy / maxDist; } else if (t.identifier === lookTouchId) { const deltaX = (t.clientX - lookStartX) * 0.3; camera.rotation.y -= deltaX * 0.015; lookStartX = t.clientX; lookStartY = t.clientY; } } }
-
              function handleTouchEnd(e) { for (let i = 0; i < e.changedTouches.length; i++) { const t = e.changedTouches[i]; if (t.identifier === moveTouchId) { moveTouchId = null; moveVector = { x: 0, y: 0 }; stickContainer.style.display = 'none'; } if (t.identifier === lookTouchId) { lookTouchId = null; } } }
-
              document.addEventListener('touchstart', handleTouchStart, {passive: false}); document.addEventListener('touchmove', handleTouchMove, {passive: false}); document.addEventListener('touchend', handleTouchEnd);
-
              document.addEventListener('click', () => { if (isModalOpen && modal.style.display === 'flex') closeModal(); });
-
              mobileSitBtn.addEventListener('touchstart', (e) => { e.stopPropagation(); toggleSit(); });
-
              viewBtn.addEventListener('touchstart', (e) => { e.preventDefault(); e.stopPropagation(); if (currentTarget) openModal(currentTarget.userData); });
-
         } else {
-
              document.addEventListener('click', (e) => { if (isGameActive) { if (isModalOpen) { if (modal.style.display === 'flex' && !e.target.closest('#modal-info') && e.target.id !== 'modal-img') closeModal(); } else { if (controls.isLocked) checkIntersectionAndClick(); else controls.lock(); } } });
-
         }
-
-
 
         function checkIntersectionAndClick() {
-
             raycaster.setFromCamera(center, camera); const objectsToCheck = clickableObjects; const intersects = raycaster.intersectObjects(objectsToCheck);
-
             if (intersects.length > 0 && intersects[0].distance < 8) {
-
                 let obj = intersects[0].object; while(!obj.userData.type && obj.parent) { obj = obj.parent; }
-
                 if (obj.userData.type === 'poster' || obj.userData.type === 'tv-link' || obj.userData.type === 'sculpture' || obj.userData.type === 'projection') {
-
                     if(isMobile) { currentTarget = obj; viewBtn.style.display = 'block'; } else { openModal(obj.userData); }
-
                 } else if (obj.userData.type === 'follower') { isFollowing = !isFollowing; }
-
             } else { if(isMobile) { viewBtn.style.display = 'none'; currentTarget = null; } }
-
         }
-
-
 
         function openModal(data) {
-
             isModalOpen = true; 
-
             if (!isMobile) controls.unlock();
-
             const imgEl = document.getElementById('modal-img');
-
             
-
             // 1. IMAGE LOGIC
-
             if (data.type === 'sculpture' || data.type === 'tv-link' || data.type === 'projection') {
-
                 imgEl.classList.add('no-image');
-
             } else {
-
                 imgEl.classList.remove('no-image');
-
                 // IMAGE 4 SWAP
-
                 if (data.id === 4) {
-
                     imgEl.src = 'assets/image4 3.jpeg';
-
                 } else if (data.url) {
-
                     imgEl.src = data.url;
-
                 } else {
-
                     imgEl.src = 'assets/share.jpg';
-
                 }
-
             }
-
-
 
             const titleEl = document.getElementById('modal-title');
-
             
-
             // 2. TEXT LOGIC
-
             if (data.isMultiArtist) {
-
                 titleEl.innerText = ""; 
-
                 document.getElementById('modal-desc').innerHTML = data.desc;
-
             } 
-
             else if (data.customHTML) {
-
                 titleEl.innerHTML = data.customHTML;
-
                 document.getElementById('modal-desc').innerText = "";
-
             }
-
             else if (data.artist) {
-
                 const instagramUrl = `https://www.instagram.com/${data.handle}/`;
-
                 let artistHTML = `<a href="${instagramUrl}" target="_blank">${data.artist}</a>`;
-
                 
-
                 if (data.extraLink) {
-
                     artistHTML += `, <a href="https://www.instagram.com/${data.extraLink}/" target="_blank">@${data.extraLink}</a>`;
-
                 }
-
                 
-
                 if (data.title) {
-
                     titleEl.innerHTML = `“${data.title}”<br>${artistHTML}`;
-
                 } else {
-
                     titleEl.innerHTML = `${artistHTML}`;
-
                 }
-
                 document.getElementById('modal-desc').innerText = ""; 
-
             } 
-
             else {
-
                 titleEl.innerText = data.title;
-
                 document.getElementById('modal-desc').innerText = ""; 
-
             }
-
-
 
             modal.style.display = 'flex';
-
             viewBtn.style.display = 'none';
-
             infoBtn.style.display = 'none';
-
         }
-
-
 
         function closeModal() { isModalOpen = false; modal.style.display = 'none'; if (!isMobile) controls.lock(); infoBtn.style.display = 'flex'; }
-
         function openInfoModal() { isModalOpen = true; if (!isMobile) controls.unlock(); infoModal.style.display = 'flex'; infoBtn.style.display = 'none'; viewBtn.style.display = 'none'; }
-
         function closeInfoModal() { isModalOpen = false; infoModal.style.display = 'none'; if (!isMobile) controls.lock(); infoBtn.style.display = 'flex'; }
-
         function toggleSit() { if (isSitting) { isSitting = false; camera.position.y = 1.7; camera.fov = (isMobile && aspect < 1) ? 95 : 70; camera.updateProjectionMatrix(); bgMusic.volume = 0.65; if(video1 && !isMobile) video1.muted = true; if(isMobile) mobileSitBtn.style.display = 'none'; } else { const dist = camera.position.distanceTo(new THREE.Vector3(benchPosition.x, camera.position.y, benchPosition.z)); if (dist < 5.0) { isSitting = true; camera.position.set(benchPosition.x, benchPosition.y + 1.2, benchPosition.z); velocity.set(0, 0, 0); camera.lookAt(0, 3, benchPosition.z - 20); camera.fov = (isMobile && aspect < 1) ? 60 : 40; camera.updateProjectionMatrix(); bgMusic.volume = 0.1; if(video1 && !isMobile) { video1.muted = false; video1.volume = 1.0; } if(isMobile) { mobileSitBtn.style.display = 'flex'; mobileSitBtn.innerText = "UP"; } } } }
 
-
-
         const move = { f: false, b: false, l: false, r: false, shift: false }; const velocity = new THREE.Vector3(); let canJump = false;
-
         document.addEventListener('keydown', (e) => { const code = e.code; if(code === 'KeyW' || code === 'ArrowUp') move.f = true; if(code === 'KeyS' || code === 'ArrowDown') move.b = true; if(code === 'KeyA' || code === 'ArrowLeft') move.l = true; if(code === 'KeyD' || code === 'ArrowRight') move.r = true; if(code === 'ShiftLeft') move.shift = true; if(code === 'Space' && canJump && !isSitting) { velocity.y += 12; canJump = false; } if(code === 'KeyC') toggleSit(); if (code === 'KeyI') { if (!isMobile) { if (isModalOpen && infoModal.style.display === 'flex') { closeInfoModal(); } else if (!isModalOpen) { openInfoModal(); } else if (isModalOpen && modal.style.display === 'flex') { closeModal(); openInfoModal(); } } } });
-
         document.addEventListener('keyup', (e) => { const code = e.code; if(code === 'KeyW' || code === 'ArrowUp') move.f = false; if(code === 'KeyS' || code === 'ArrowDown') move.b = false; if(code === 'KeyA' || code === 'ArrowLeft') move.l = false; if(code === 'KeyD' || code === 'ArrowRight') move.r = false; if(code === 'ShiftLeft') move.shift = false; });
 
-
-
         let prevTime = performance.now(); let lastRoomIndex = -1;
-
         function animate() {
-
             requestAnimationFrame(animate); if (!isGameActive) return; const time = performance.now(); const delta = Math.min((time - prevTime) / 1000, 0.1);
-
             if (!isMobile) { if (revolvingStage) { revolvingStage.rotation.y += 0.1 * delta; } animatedModels.forEach(model => { model.rotation.y -= 1.0 * delta; }); } else { animatedModels.forEach(model => { model.rotation.y -= 1.0 * delta; }); }
-
             if (follower && isFollowing) { follower.lookAt(camera.position); const dist = follower.position.distanceTo(camera.position); if (dist > 3.0) { const direction = new THREE.Vector3().subVectors(camera.position, follower.position).normalize(); follower.position.add(direction.multiplyScalar(3.5 * delta)); follower.position.y = 2.5 + Math.sin(time * 0.002) * 0.2; } } else if (follower && !isFollowing) { follower.position.y = 2.5 + Math.sin(time * 0.002) * 0.2; }
-
             if (!isSitting) {
-
                 const distToBench = camera.position.distanceTo(new THREE.Vector3(benchPosition.x, camera.position.y, benchPosition.z));
-
                 if (!isMobile && distToBench < 5.0) { sitHint.style.display = 'block'; } else { sitHint.style.display = 'none'; if (isMobile) mobileSitBtn.style.display = 'none'; }
-
                 velocity.x -= velocity.x * 10.0 * delta; velocity.z -= velocity.z * 10.0 * delta; velocity.y -= 30.0 * delta; const speed = (move.shift ? 150 : 72); const direction = new THREE.Vector3();
-
                 if (isMobile) { const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion); forward.y = 0; forward.normalize(); const right = new THREE.Vector3(1, 0, 0).applyQuaternion(camera.quaternion); right.y = 0; right.normalize(); if (moveVector.x !== 0 || moveVector.y !== 0) { velocity.x += (right.x * moveVector.x + forward.x * moveVector.y) * speed * delta; velocity.z += (right.z * moveVector.x + forward.z * moveVector.y) * speed * delta; } } else { direction.z = Number(move.f) - Number(move.b); direction.x = Number(move.r) - Number(move.l); direction.normalize(); if (move.f || move.b) velocity.z -= direction.z * speed * delta; if (move.l || move.r) velocity.x -= direction.x * speed * delta; controls.moveRight(-velocity.x * delta); controls.moveForward(-velocity.z * delta); }
-
                 if(isMobile) { camera.position.add(new THREE.Vector3(velocity.x * delta, 0, velocity.z * delta)); } camera.position.y += velocity.y * delta; if (camera.position.y < 1.7) { velocity.y = 0; camera.position.y = 1.7; canJump = true; } if (camera.position.y < -10) { camera.position.set(0, 1.7, 8); velocity.set(0, 0, 0); }
-
                 const pPos = camera.position; const pBox = new THREE.Box3(new THREE.Vector3(pPos.x-0.4, pPos.y-1, pPos.z-0.4), new THREE.Vector3(pPos.x+0.4, pPos.y+1, pPos.z+0.4)); let hit = false;
-
                 for(let obj of collidableObjects) { if (obj.box && pBox.intersectsBox(obj.box)) hit = true; if (obj.customType === 'cylinder') { const dist = Math.sqrt(Math.pow(pPos.x - obj.position.x, 2) + Math.pow(pPos.z - obj.position.z, 2)); if (dist < obj.radius && Math.abs(pPos.y - obj.position.y) < 2.0) hit = true; } }
-
                 if(hit) { if(isMobile) { camera.position.sub(new THREE.Vector3(velocity.x * delta, 0, velocity.z * delta)); } else { controls.moveForward(velocity.z * delta); controls.moveRight(velocity.x * delta); } }
-
                 if (isMobile) { const currentRoom = Math.max(0, Math.round(-camera.position.z / 20)); if (currentRoom !== lastRoomIndex) { lastRoomIndex = currentRoom; checkRoomLoad(currentRoom); } frameCount++; if (frameCount % 5 === 0 && !isModalOpen) checkIntersectionAndClick(); }
-
             } else { sitHint.style.display = 'none'; velocity.set(0,0,0); }
-
             if (!isMobile) { raycaster.setFromCamera(center, camera); const objectsToCheck = clickableObjects; const intersects = raycaster.intersectObjects(objectsToCheck); if (intersects.length > 0 && intersects[0].distance < 8) cursor.classList.add('hover-active'); else cursor.classList.remove('hover-active'); }
-
             prevTime = time; renderer.render(scene, camera);
-
         }
-
         animate();
-
         window.addEventListener('resize', () => { const asp = window.innerWidth / window.innerHeight; camera.aspect = asp; camera.fov = (isMobile && asp < 1) ? 95 : 70; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight); });
-
     </script>
-
 </body>
-
 </html>

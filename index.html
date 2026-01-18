@@ -732,12 +732,15 @@
         // --- NEW MOBILE POSTER LOGIC ---
         let mobileImageCounter = 1;
         function addMobilePoster(x, y, z, ry, w, h, roomIndex) {
-            if (mobileImageCounter > totalImages) return;
+            // Cycle ID if exceeded
+            let id = mobileImageCounter;
+            if (id > totalImages) {
+                id = (id - 1) % totalImages + 1;
+            }
 
-            const id = mobileImageCounter;
             const meta = ARTWORK_DB[id] || { artist: "" };
             
-            // Explicit paths for mobile
+            // Explicit paths for mobile with fallbacks in loading
             const wallUrl = `assets/small_mobile/image${id}.jpeg`;
             const fullUrl = `assets/small/image${id}.jpeg`;
 
@@ -763,13 +766,17 @@
             
             // Force texture load for Room 0 immediately
             if (roomIndex === 0) {
-                 const tex = textureLoader.load(wallUrl, (t) => { 
+                 const onLoad = (t) => { 
                      t.colorSpace = THREE.SRGBColorSpace; 
                      mesh.material.map = t; 
                      mesh.material.color.setHex(0xffffff);
                      mesh.material.needsUpdate = true;
+                 };
+                 // Try loading, if fail try small fallback (handles missing small_mobile)
+                 lazyLoader.load(wallUrl, onLoad, undefined, () => {
+                      const fallback = wallUrl.replace('small_mobile', 'small');
+                      lazyLoader.load(fallback, onLoad);
                  });
-                 // Mark as loaded so checkRoomLoad doesn't re-trigger unnecessarily (optional, but safe)
                  roomStatus[0] = 'loaded';
             }
 
@@ -793,7 +800,16 @@
                     item.material.color.setHex(0xffffff); 
                     item.material.needsUpdate = true; 
                 };
-                lazyLoader.load(item.url, onLoad, undefined, (e) => { console.log('Err loading', item.url); }); 
+                
+                // Fallback logic
+                const onError = () => {
+                    if (item.url.includes('small_mobile')) {
+                        const fallbackUrl = item.url.replace('small_mobile', 'small');
+                        lazyLoader.load(fallbackUrl, onLoad);
+                    }
+                };
+
+                lazyLoader.load(item.url, onLoad, undefined, onError); 
             }); 
         }
         
@@ -1022,30 +1038,62 @@
                 const posterW = 1.9; const posterH = 2.5; const yPos = 2.7;
                 
                 // 1. Left Wall (8 posters)
-                // Range zCenter+8.5 to zCenter-8.5 (17m span)
-                // Step = 17 / 7 = 2.42
+                // Range zCenter+6.5 to zCenter-6.5 (13m span)
+                // Leaving 3.5m padding on each side
+                const sideStep = 13 / 7;
                 for(let k=0; k<8; k++) {
-                    const zPos = (zCenter + 8.5) - (k * 2.42); 
+                    const zPos = (zCenter + 6.5) - (k * sideStep); 
                     addMobilePoster(-9.7, yPos, zPos, Math.PI/2, posterW, posterH, i);
                 }
                 // 2. Right Wall (8 posters)
                 for(let k=0; k<8; k++) {
-                    const zPos = (zCenter + 8.5) - (k * 2.42);
+                    const zPos = (zCenter + 6.5) - (k * sideStep);
                     addMobilePoster(9.7, yPos, zPos, -Math.PI/2, posterW, posterH, i);
                 }
-                // 3. Divider Walls (4 posters total - 2 front, 2 back of prev room)
-                // Front wall of current room (facing player)
-                addMobilePoster(-5.0, yPos, zCenter - roomSize/2 + 0.3, 0, posterW, posterH, i);
-                addMobilePoster(5.0, yPos, zCenter - roomSize/2 + 0.3, 0, posterW, posterH, i);
                 
-                // Back wall (if not first room) - facing previous room
-                if (i > 0) {
-                    addMobilePoster(-5.0, yPos, zCenter + roomSize/2 - 0.3, Math.PI, posterW, posterH, i);
-                    addMobilePoster(5.0, yPos, zCenter + roomSize/2 - 0.3, Math.PI, posterW, posterH, i);
+                // 3. FRONT/BACK WALLS LOGIC
+                
+                // A) Front Wall (Facing the viewer when entering room)
+                // In all rooms except Room 0 (it has an entrance door), this is a "door wall".
+                // In Room 0, it's a solid back wall (behind you when you start, but "front" in coord terms? No, wait)
+                // Let's stick to world coordinates:
+                // Z-Front (towards camera start) = zCenter + roomSize/2
+                // Z-Back (towards next room) = zCenter - roomSize/2
+                
+                // WALL FACING NEXT ROOM (The "Back" wall in camera view, zCenter - 10)
+                // If it's not the last room, it has a door.
+                if (i < roomsCount - 1) {
+                    // Door Wall: 2 posters left, 2 posters right
+                    // Left side: x = -9 to -3 (6m span). Center at -6.
+                    addMobilePoster(-7.0, yPos, zCenter - roomSize/2 + 0.3, 0, posterW, posterH, i);
+                    addMobilePoster(-4.0, yPos, zCenter - roomSize/2 + 0.3, 0, posterW, posterH, i);
+                    // Right side: x = 3 to 9
+                    addMobilePoster(4.0, yPos, zCenter - roomSize/2 + 0.3, 0, posterW, posterH, i);
+                    addMobilePoster(7.0, yPos, zCenter - roomSize/2 + 0.3, 0, posterW, posterH, i);
                 } else {
-                     // In first room, put on the solid back wall
-                     addMobilePoster(-4.0, yPos, zCenter + roomSize/2 - 0.3, Math.PI, posterW, posterH, i);
-                     addMobilePoster(4.0, yPos, zCenter + roomSize/2 - 0.3, Math.PI, posterW, posterH, i);
+                     // Last Room (Dark Room) - Solid Wall
+                     // 5 posters distributed evenly
+                     const endStep = 16 / 4; // 16m usable width
+                     for(let k=0; k<5; k++) {
+                         const xPos = -8 + (k * endStep);
+                         addMobilePoster(xPos, yPos, zCenter - roomSize/2 + 0.3, 0, posterW, posterH, i);
+                     }
+                }
+
+                // WALL FACING PREVIOUS ROOM (The "Front" wall in camera view, zCenter + 10)
+                if (i > 0) {
+                     // Door Wall (Entrance from previous room)
+                    addMobilePoster(-7.0, yPos, zCenter + roomSize/2 - 0.3, Math.PI, posterW, posterH, i);
+                    addMobilePoster(-4.0, yPos, zCenter + roomSize/2 - 0.3, Math.PI, posterW, posterH, i);
+                    addMobilePoster(4.0, yPos, zCenter + roomSize/2 - 0.3, Math.PI, posterW, posterH, i);
+                    addMobilePoster(7.0, yPos, zCenter + roomSize/2 - 0.3, Math.PI, posterW, posterH, i);
+                } else {
+                     // First Room - Solid Wall behind camera start
+                     const endStep = 16 / 4;
+                     for(let k=0; k<5; k++) {
+                         const xPos = -8 + (k * endStep);
+                         addMobilePoster(xPos, yPos, zCenter + roomSize/2 - 0.3, Math.PI, posterW, posterH, i);
+                     }
                 }
 
                 // Extra TVs for mobile ambience

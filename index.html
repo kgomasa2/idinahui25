@@ -625,7 +625,10 @@
                 const loader = document.getElementById('loading-screen'); loader.style.opacity = 0;
                 setTimeout(() => {
                     loader.style.display = 'none'; document.getElementById('start-screen').style.display = 'flex';
-                    initGravityBackground(); if (isMobile) checkRoomLoad(0);
+                    initGravityBackground(); 
+                    if (isMobile) {
+                        checkRoomLoad(0); // Load current room
+                    }
                 }, 800); 
             }, 500);
         }
@@ -757,6 +760,18 @@
             
             if (!roomPosters[roomIndex]) roomPosters[roomIndex] = [];
             roomPosters[roomIndex].push({ mesh: mesh, material: mat, url: wallUrl });
+            
+            // Force texture load for Room 0 immediately
+            if (roomIndex === 0) {
+                 const tex = textureLoader.load(wallUrl, (t) => { 
+                     t.colorSpace = THREE.SRGBColorSpace; 
+                     mesh.material.map = t; 
+                     mesh.material.color.setHex(0xffffff);
+                     mesh.material.needsUpdate = true;
+                 });
+                 // Mark as loaded so checkRoomLoad doesn't re-trigger unnecessarily (optional, but safe)
+                 roomStatus[0] = 'loaded';
+            }
 
             addToRoom(mesh, roomIndex);
             clickableObjects.push(mesh);
@@ -769,6 +784,9 @@
             if (!roomPosters[roomIdx]) return; 
             roomStatus[roomIdx] = 'loaded'; 
             roomPosters[roomIdx].forEach(item => { 
+                // Skip if already has map
+                if (item.material.map) return;
+
                 const onLoad = (tex) => { 
                     tex.colorSpace = THREE.SRGBColorSpace; 
                     item.material.map = tex; 
@@ -1001,27 +1019,29 @@
             // --- MOBILE POSTER PLACEMENT (LINEAR 1-80) ---
             if (isMobile) {
                 // Distribute ~20 posters per room to reach 80 total
-                const posterW = 2.2; const posterH = 2.8; const yPos = 2.7;
+                const posterW = 1.9; const posterH = 2.5; const yPos = 2.7;
                 
                 // 1. Left Wall (8 posters)
+                // Range zCenter+8.5 to zCenter-8.5 (17m span)
+                // Step = 17 / 7 = 2.42
                 for(let k=0; k<8; k++) {
-                    const zPos = (zCenter + 9) - (k * 2.5); // Spread 8 items over length
+                    const zPos = (zCenter + 8.5) - (k * 2.42); 
                     addMobilePoster(-9.7, yPos, zPos, Math.PI/2, posterW, posterH, i);
                 }
                 // 2. Right Wall (8 posters)
                 for(let k=0; k<8; k++) {
-                    const zPos = (zCenter + 9) - (k * 2.5);
+                    const zPos = (zCenter + 8.5) - (k * 2.42);
                     addMobilePoster(9.7, yPos, zPos, -Math.PI/2, posterW, posterH, i);
                 }
                 // 3. Divider Walls (4 posters total - 2 front, 2 back of prev room)
                 // Front wall of current room (facing player)
-                addMobilePoster(-6.0, yPos, zCenter - roomSize/2 + 0.3, 0, posterW, posterH, i);
-                addMobilePoster(6.0, yPos, zCenter - roomSize/2 + 0.3, 0, posterW, posterH, i);
+                addMobilePoster(-5.0, yPos, zCenter - roomSize/2 + 0.3, 0, posterW, posterH, i);
+                addMobilePoster(5.0, yPos, zCenter - roomSize/2 + 0.3, 0, posterW, posterH, i);
                 
                 // Back wall (if not first room) - facing previous room
                 if (i > 0) {
-                    addMobilePoster(-6.0, yPos, zCenter + roomSize/2 - 0.3, Math.PI, posterW, posterH, i);
-                    addMobilePoster(6.0, yPos, zCenter + roomSize/2 - 0.3, Math.PI, posterW, posterH, i);
+                    addMobilePoster(-5.0, yPos, zCenter + roomSize/2 - 0.3, Math.PI, posterW, posterH, i);
+                    addMobilePoster(5.0, yPos, zCenter + roomSize/2 - 0.3, Math.PI, posterW, posterH, i);
                 } else {
                      // In first room, put on the solid back wall
                      addMobilePoster(-4.0, yPos, zCenter + roomSize/2 - 0.3, Math.PI, posterW, posterH, i);

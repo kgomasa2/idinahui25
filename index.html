@@ -220,7 +220,6 @@
         }
         @keyframes pulseBtn { 0% { transform: translateX(-50%) scale(1); } 50% { transform: translateX(-50%) scale(1.05); } 100% { transform: translateX(-50%) scale(1); } }
         
-        /* Artwork Modal */
         #artwork-modal {
             display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(10, 10, 10, 0.8); 
@@ -229,19 +228,23 @@
             text-align: center; color: white;
         }
         
-        /* FIX FOR WHITE LINE: Container for image */
+        /* FIX FOR WHITE LINE AND ALIGNMENT */
         #img-container {
+            display: block;
+            width: auto;
+            max-width: 95%;
+            max-height: 70vh;
+            margin: 0 auto 20px auto;
+            font-size: 0; 
             line-height: 0;
-            font-size: 0;
-            margin-bottom: 20px;
-            display: flex;
-            justify-content: center;
-            width: 100%;
+            background: transparent;
         }
 
         #modal-img { 
-            max-height: 70vh; 
-            max-width: 95%; 
+            width: auto;
+            height: auto;
+            max-height: 100%; 
+            max-width: 100%; 
             object-fit: contain;
             display: block; 
             border: none;
@@ -261,6 +264,7 @@
             line-height: 1.1; 
         }
         
+        /* WHITE LINKS IN MODAL */
         #modal-title a, #modal-desc a { 
             color: white !important; 
             text-decoration: underline !important; 
@@ -412,7 +416,7 @@
 
         <div class="top-content">
             <div class="title-font">“ІДІ НАХУЙ”</div>
-            <div class="director-font" id="start-subtitle">
+            <div class="director-font">
                 Керування стрілками, можна стрибати, на Shift прискорення. Для перегляду роботи клацни по ній.
             </div>
         </div>
@@ -546,7 +550,8 @@
             63: { artist: "KESER1", handle: "keser.one" },
             64: { artist: "Станіслав Калагарець", handle: "stanislaawww" },
             65: { artist: "tanchik", handle: "demishkan.t" },
-            // ADDED MISSING POSTERS TO PREVENT UNKNOWN
+            
+            // PLACEHOLDERS FOR 66-79
             66: { title: "Artwork #66" }, 67: { title: "Artwork #67" }, 68: { title: "Artwork #68" }, 69: { title: "Artwork #69" },
             70: { title: "Artwork #70" }, 71: { title: "Artwork #71" }, 72: { title: "Artwork #72" }, 73: { title: "Artwork #73" },
             74: { title: "Artwork #74" }, 75: { title: "Artwork #75" }, 76: { title: "Artwork #76" }, 77: { title: "Artwork #77" },
@@ -580,7 +585,8 @@
             document.getElementById('start-subtitle').innerText = "Для кращого досвіду радимо переглядати з комп’ютера";
         }
 
-        if (isMobile) { THREE.Cache.enabled = false; }
+        // ENABLE CACHE FOR MOBILE
+        THREE.Cache.enabled = true;
 
         function initGravityBackground() {
             if (isMobile || isLowEnd) return; 
@@ -679,38 +685,24 @@
         let revolvingStage = null; const animatedModels = []; const interactiveObjects = []; 
 
         let currentImageId = 1;
-        const totalImages = 80; 
+        const totalImages = 79; 
 
-        // --- NEW: STRICT SEQUENTIAL COUNTER FOR MOBILE ---
-        let mobilePosterCounter = 1;
-
-        function getMobilePosterData() {
-            let id = mobilePosterCounter;
-            
-            // If we run out of unique posters (more than 80 walls), wrap around or cap
-            if (id > totalImages) {
-                 id = (id - 1) % totalImages + 1;
-            }
-
-            // --- MOBILE SPECIFIC PATHS ---
-            // Wall: small_mobile
-            // Click: small
-            const wallUrl = `assets/small_mobile/image${id}.jpeg`; 
-            const fullUrl = `assets/small/image${id}.jpeg`; 
-            
-            const meta = ARTWORK_DB[id] || { artist: "Unknown" };
-            const title = meta.title ? meta.title : ""; 
-            
-            mobilePosterCounter++; // Increment purely by 1 every time we place a poster on mobile
-            return { wallUrl, fullUrl, title, id, meta };
-        }
-
-        // DESKTOP LOGIC (UNCHANGED)
         function getNextImage() {
             const id = currentImageId;
-            const wallUrl = `assets/small/image${id}.jpeg`; 
-            const fullUrl = `assets/image${id}.jpeg`; 
+            let wallUrl, fullUrl;
             
+            // UPDATED URL LOGIC: USE 'SMALL' FOR EVERYTHING ON MOBILE
+            if (isMobile) { 
+                wallUrl = `assets/small/image${id}.jpeg`; 
+                fullUrl = `assets/small/image${id}.jpeg`; 
+            } else { 
+                wallUrl = `assets/small/image${id}.jpeg`; 
+                fullUrl = `assets/image${id}.jpeg`; 
+            }
+            
+            // STRICT SKIP for 66 and 67
+            if (currentImageId === 66) currentImageId = 68;
+
             const meta = ARTWORK_DB[id] || { artist: "Unknown" };
             const title = meta.title ? meta.title : ""; 
 
@@ -724,15 +716,7 @@
         }
 
         function addPoster(x, y, z, ry, w, h, roomIndex) {
-            let data;
-            
-            // --- SPLIT LOGIC ---
-            if (isMobile) {
-                data = getMobilePosterData();
-            } else {
-                data = getNextImage();
-            }
-
+            const data = getNextImage();
             const geo = new THREE.PlaneGeometry(w, h);
             
             let mat;
@@ -767,26 +751,17 @@
 
         function checkRoomLoad(currentRoom) { if (!isMobile) return; const keepLoaded = [currentRoom, currentRoom + 1]; for (let idx = 0; idx < 5; idx++) { if (!keepLoaded.includes(idx) && roomStatus[idx] === 'loaded') { unloadRoomTextures(idx); } } keepLoaded.forEach(idx => { if (idx >= 0 && idx < 5 && roomStatus[idx] !== 'loaded') { loadRoomTextures(idx); } }); }
         
+        // SIMPLE LOADER RELOADED
         function loadRoomTextures(roomIdx) { 
             if (!roomPosters[roomIdx]) return; 
             roomStatus[roomIdx] = 'loaded'; 
             roomPosters[roomIdx].forEach(item => { 
-                const onLoad = (tex) => { 
+                lazyLoader.load(item.url, (tex) => { 
                     tex.colorSpace = THREE.SRGBColorSpace; 
                     item.material.map = tex; 
                     item.material.color.setHex(0xffffff); 
                     item.material.needsUpdate = true; 
-                };
-                
-                // If small_mobile fails, fallback to 'small' just in case
-                const onError = () => {
-                    if (item.url.includes('small_mobile')) {
-                        const fallbackUrl = item.url.replace('small_mobile', 'small');
-                        lazyLoader.load(fallbackUrl, onLoad);
-                    }
-                };
-
-                lazyLoader.load(item.url, onLoad, undefined, onError); 
+                });
             }); 
         }
         
@@ -890,13 +865,7 @@
                 function mountPoster(px, py, pz, ry, width, height, pipeYLevel, specificUrl = null) {
                     let data;
                     if (specificUrl) { data = { wallUrl: specificUrl, fullUrl: specificUrl, meta: ARTWORK_DB[80], id: 80 }; } 
-                    else { 
-                         // REUSE GLOBAL LOGIC OR DESKTOP LOGIC?
-                         // Scaffolding is Desktop only per user request "desktop ne chipay"
-                         // But we are in the function for both.
-                         // Let's use desktop logic here as scaffolding is mostly desktop.
-                         data = getNextImage();
-                    }
+                    else { data = getNextImage(); }
 
                     const mat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.4, side: THREE.DoubleSide });
                     const tex = textureLoader.load(data.wallUrl, (t) => { t.colorSpace = THREE.SRGBColorSpace; mat.map = t; mat.needsUpdate = true; });
@@ -941,7 +910,7 @@
                     fixMaterial(object);
                     
                     object.userData = { 
-                        type: 'sculpture', 
+                        type: 'sculpture', // type sculpture hides image
                         title: meta.title || "", 
                         artist: meta.artist,
                         handle: meta.handle
@@ -1031,12 +1000,15 @@
                 }
                 if (!(isMobile && i === roomsCount - 1)) {
                     // SIDE WALLS
-                    const postersPerSide = isMobile ? 7 : 6; const standardW = isMobile ? 2.2 : 2.6; const standardH = isMobile ? 2.8 : 3.25; const availableWidth = 14; const step = availableWidth / (postersPerSide - 1);
+                    const standardW = isMobile ? 2.2 : 2.6; const standardH = isMobile ? 2.8 : 3.25; const postersPerSide = isMobile ? 6 : 6; const availableWidth = 14; const step = availableWidth / (postersPerSide - 1);
                     for (let k = 0; k < postersPerSide; k++) { const zPos = (zCenter + availableWidth/2) - (k * step); addPoster(-9.7, 2.7, zPos, Math.PI/2, standardW, standardH, i); addPoster(9.7, 2.7, zPos, -Math.PI/2, standardW, standardH, i); }
                     
-                    // DOOR WALL POSTERS
+                    // NEW: DOOR WALL POSTERS (To reach 79 total count)
+                    // 1. Far wall (facing viewer) - present in all light rooms
                     addPoster(-6.0, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i);
                     addPoster( 6.0, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i);
+
+                    // 2. Near wall (facing back) - present in rooms 1, 2, 3
                     if (i > 0) {
                         addPoster(-6.0, 2.7, zCenter + roomSize/2 - 0.3, Math.PI, 2.2, 2.8, i);
                         addPoster( 6.0, 2.7, zCenter + roomSize/2 - 0.3, Math.PI, 2.2, 2.8, i);

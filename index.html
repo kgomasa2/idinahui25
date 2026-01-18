@@ -13,8 +13,8 @@
     <link rel="preconnect" href="https://cdnjs.cloudflare.com">
     <link rel="dns-prefetch" href="https://www.googletagmanager.com">
     
-    <link rel="preload" href="assets/EquateurUA-Regular.otf" as="font" type="font/otf" crossorigin>
-    <link rel="preload" href="assets/DirectorUAVariableVF.ttf" as="font" type="font/ttf" crossorigin>
+    <link rel="preload" href="assets/EquateurUA-Regular.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="assets/DirectorUAVariableVF.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="preload" href="assets/loader.png" as="image">
 
     <meta charset="UTF-8">
@@ -34,17 +34,18 @@
     <meta property="twitter:title" content="Віртуальна квартирна виставка артпроєкту «Іді Нахуй»">
     <meta property="twitter:description" content="Роботи від 70 українських митців, три зали, кінотеатр і скульптури.">
     <meta property="twitter:image" content="https://idinahui.art/assets/share.jpg">
-
+    
     <style>
+        /* UPDATED: Використовуємо WOFF2 */
         @font-face {
             font-family: 'EquateurUA';
-            src: url('assets/EquateurUA-Regular.otf') format('opentype');
-            font-display: swap; /* UPDATED: Додано swap */
+            src: url('assets/EquateurUA-Regular.woff2') format('woff2');
+            font-display: swap; 
         }
         @font-face {
             font-family: 'DirectorUA';
-            src: url('assets/DirectorUAVariableVF.ttf') format('truetype');
-            font-display: swap; /* UPDATED: Додано swap */
+            src: url('assets/DirectorUAVariableVF.woff2') format('woff2');
+            font-display: swap; 
         }
 
         body { 

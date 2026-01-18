@@ -9,6 +9,9 @@
     <meta name="msapplication-TileColor" content="#da532c">
     <meta name="theme-color" content="#ffffff">
     
+    <link rel="preload" href="assets/EquateurUA-Regular.otf" as="font" type="font/otf" crossorigin>
+    <link rel="preload" href="assets/DirectorUAVariableVF.ttf" as="font" type="font/ttf" crossorigin>
+
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-8RKB3ZJ59V"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
@@ -42,10 +45,12 @@
         @font-face {
             font-family: 'EquateurUA';
             src: url('assets/EquateurUA-Regular.otf') format('opentype');
+            font-display: swap; /* ОПТИМІЗАЦІЯ */
         }
         @font-face {
             font-family: 'DirectorUA';
             src: url('assets/DirectorUAVariableVF.ttf') format('truetype');
+            font-display: swap; /* ОПТИМІЗАЦІЯ */
         }
 
         body { 
@@ -437,7 +442,7 @@
     <div id="mobile-sit-btn">SIT</div>
     <div id="view-btn">VIEW</div>
 
-    <audio id="bgMusic" loop preload="auto">
+    <audio id="bgMusic" loop preload="none">
         <source src="assets/song.mp3" type="audio/mpeg">
     </audio>
 
@@ -633,7 +638,9 @@
         }
 
         const loadStartTime = Date.now();
-        const minLoadTime = 4000; 
+        // --- OPTIMIZATION: Reduced from 4000 to 1500 for Lighthouse ---
+        const minLoadTime = 1500; 
+        
         const progressFill = document.getElementById('progress-line-fill');
         const angelLoader = document.getElementById('angel-loader');
         const manager = new THREE.LoadingManager();

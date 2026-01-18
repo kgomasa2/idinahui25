@@ -220,7 +220,6 @@
         }
         @keyframes pulseBtn { 0% { transform: translateX(-50%) scale(1); } 50% { transform: translateX(-50%) scale(1.05); } 100% { transform: translateX(-50%) scale(1); } }
         
-        /* Artwork Modal */
         #artwork-modal {
             display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(10, 10, 10, 0.8); 
@@ -229,19 +228,23 @@
             text-align: center; color: white;
         }
         
-        /* FIX FOR WHITE LINE: Container for image */
+        /* FIX FOR WHITE LINE */
         #img-container {
+            display: block;
+            width: auto;
+            max-width: 95%;
+            max-height: 70vh;
+            margin: 0 auto 20px auto;
+            font-size: 0; 
             line-height: 0;
-            font-size: 0;
-            margin-bottom: 20px;
-            display: flex;
-            justify-content: center;
-            width: 100%;
+            background: transparent;
         }
 
         #modal-img { 
-            max-height: 70vh; 
-            max-width: 95%; 
+            width: auto;
+            height: auto;
+            max-height: 100%; 
+            max-width: 100%; 
             object-fit: contain;
             display: block; 
             border: none;
@@ -261,6 +264,7 @@
             line-height: 1.1; 
         }
         
+        /* WHITE LINKS IN MODAL */
         #modal-title a, #modal-desc a { 
             color: white !important; 
             text-decoration: underline !important; 
@@ -412,7 +416,7 @@
 
         <div class="top-content">
             <div class="title-font">“ІДІ НАХУЙ”</div>
-            <div class="director-font" id="start-subtitle">
+            <div class="director-font">
                 Керування стрілками, можна стрибати, на Shift прискорення. Для перегляду роботи клацни по ній.
             </div>
         </div>
@@ -546,11 +550,19 @@
             63: { artist: "KESER1", handle: "keser.one" },
             64: { artist: "Станіслав Калагарець", handle: "stanislaawww" },
             65: { artist: "tanchik", handle: "demishkan.t" },
-            // ADDED MISSING POSTERS TO PREVENT UNKNOWN
+            
+            // PLACEHOLDERS & NEW
             66: { title: "Artwork #66" }, 67: { title: "Artwork #67" }, 68: { title: "Artwork #68" }, 69: { title: "Artwork #69" },
-            70: { title: "Artwork #70" }, 71: { title: "Artwork #71" }, 72: { title: "Artwork #72" }, 73: { title: "Artwork #73" },
-            74: { title: "Artwork #74" }, 75: { title: "Artwork #75" }, 76: { title: "Artwork #76" }, 77: { title: "Artwork #77" },
-            78: { title: "Artwork #78" }, 79: { title: "Artwork #79" },
+            70: { title: "Artwork #70" }, 
+            71: { artist: "Denys Zhuk", handle: "zhucccci" },
+            72: { artist: "Богдан", handle: "xdout228" },
+            73: { artist: "Volodymyr Khomenko", handle: "adult.xoma" },
+            74: { artist: "Veronika", handle: "vavavurvur" },
+            75: { artist: "Vladyslav Krasnoshchok", handle: "vkrasnmuseum" },
+            76: { artist: "Olla Kuzovkina", handle: "olla.kuzovkina" },
+            77: { title: "Ділдрон", artist: "pinkbrick_3d", handle: "pinkbrick_3d" },
+            78: { title: "Artwork #78" }, 
+            79: { artist: "xfriscobluesx", handle: "xfriscobluesx" },
             80: { artist: "Станіслав Калагарець", handle: "stanislaawww" }
         };
 
@@ -580,7 +592,8 @@
             document.getElementById('start-subtitle').innerText = "Для кращого досвіду радимо переглядати з комп’ютера";
         }
 
-        if (isMobile) { THREE.Cache.enabled = false; }
+        // ENABLE CACHE FOR MOBILE
+        THREE.Cache.enabled = true;
 
         function initGravityBackground() {
             if (isMobile || isLowEnd) return; 
@@ -625,10 +638,7 @@
                 const loader = document.getElementById('loading-screen'); loader.style.opacity = 0;
                 setTimeout(() => {
                     loader.style.display = 'none'; document.getElementById('start-screen').style.display = 'flex';
-                    initGravityBackground(); 
-                    if (isMobile) {
-                        checkRoomLoad(0); // Load current room
-                    }
+                    initGravityBackground(); if (isMobile) checkRoomLoad(0);
                 }, 800); 
             }, 500);
         }
@@ -682,18 +692,35 @@
         let revolvingStage = null; const animatedModels = []; const interactiveObjects = []; 
 
         let currentImageId = 1;
-        const totalImages = 80; 
+        const totalImages = 80; // Changed to 80 to fit all
 
-        // DESKTOP LOGIC (kept for desktop)
         function getNextImage() {
             const id = currentImageId;
-            let wallUrl = `assets/small/image${id}.jpeg`; 
-            let fullUrl = `assets/image${id}.jpeg`; 
+            let wallUrl, fullUrl;
             
+            // UPDATED URL LOGIC: 
+            // Mobile: Preview = small_mobile, Click = small
+            // Desktop: Preview = small, Click = normal (root)
+            if (isMobile) { 
+                wallUrl = `assets/small_mobile/image${id}.jpeg`; 
+                fullUrl = `assets/small/image${id}.jpeg`; 
+            } else { 
+                wallUrl = `assets/small/image${id}.jpeg`; 
+                fullUrl = `assets/image${id}.jpeg`; 
+            }
+            
+            // SKIP 66, 67, 78 based on user instruction
+            // Logic: if current is 65, next is 68. If current is 77, next is 79.
+            if (currentImageId === 65) currentImageId = 68;
+            else if (currentImageId === 77) currentImageId = 79;
+            else currentImageId++; 
+
+            if (currentImageId > totalImages) currentImageId = 1; 
+
+            // Get metadata (if missing, use placeholder)
             const meta = ARTWORK_DB[id] || { artist: "Unknown" };
             const title = meta.title ? meta.title : ""; 
-
-            currentImageId++; if (currentImageId > totalImages) currentImageId = 1; 
+            
             return { wallUrl, fullUrl, title, id, meta };
         }
 
@@ -703,12 +730,18 @@
         }
 
         function addPoster(x, y, z, ry, w, h, roomIndex) {
-            // ORIGINAL FUNCTION - USED BY DESKTOP ONLY NOW
             const data = getNextImage();
             const geo = new THREE.PlaneGeometry(w, h);
             
-            const tex = textureLoader.load(data.wallUrl, (t) => { t.colorSpace = THREE.SRGBColorSpace; });
-            const mat = new THREE.MeshStandardMaterial({ map: tex, color: 0xffffff, roughness: 0.4 });
+            let mat;
+            if (isMobile) {
+                mat = placeholderMat.clone();
+                if (!roomPosters[roomIndex]) roomPosters[roomIndex] = [];
+                roomPosters[roomIndex].push({ mesh: null, material: mat, url: data.wallUrl });
+            } else {
+                const tex = textureLoader.load(data.wallUrl, (t) => { t.colorSpace = THREE.SRGBColorSpace; });
+                mat = new THREE.MeshStandardMaterial({ map: tex, color: 0xffffff, roughness: 0.4 });
+            }
             
             const mesh = new THREE.Mesh(geo, mat);
             mesh.position.set(x, y, z); mesh.rotation.y = ry;
@@ -727,97 +760,22 @@
             addToRoom(mesh, roomIndex);
             postersArray.push(mesh);
             clickableObjects.push(mesh);
-        }
-
-        // --- NEW MOBILE POSTER LOGIC ---
-        // 1. Create array of VALID IDs (skip 66, 67, 78)
-        const validMobileIDs = [];
-        for(let i=1; i<=80; i++) {
-            if (i !== 66 && i !== 67 && i !== 78) {
-                validMobileIDs.push(i);
-            }
-        }
-        
-        let mobilePosterIndex = 0; // Index in validMobileIDs array
-
-        function addMobilePoster(x, y, z, ry, w, h, roomIndex) {
-            // Get ID from the filtered array
-            const id = validMobileIDs[mobilePosterIndex];
-            
-            // Advance index, loop back if needed
-            mobilePosterIndex = (mobilePosterIndex + 1) % validMobileIDs.length;
-
-            const meta = ARTWORK_DB[id] || { artist: "" };
-            
-            // Explicit paths for mobile with fallbacks in loading
-            const wallUrl = `assets/small_mobile/image${id}.jpeg`;
-            const fullUrl = `assets/small/image${id}.jpeg`;
-
-            const geo = new THREE.PlaneGeometry(w, h);
-            const mat = placeholderMat.clone();
-            
-            const mesh = new THREE.Mesh(geo, mat);
-            mesh.position.set(x, y, z); mesh.rotation.y = ry;
-            
-            mesh.userData = { 
-                type: 'poster', 
-                id: id, 
-                url: fullUrl, 
-                title: meta.title || "", 
-                artist: meta.artist,
-                handle: meta.handle,
-                extraLink: meta.extraLink,
-                customHTML: meta.customHTML
-            };
-            
-            if (!roomPosters[roomIndex]) roomPosters[roomIndex] = [];
-            roomPosters[roomIndex].push({ mesh: mesh, material: mat, url: wallUrl });
-            
-            // Force texture load for Room 0 immediately
-            if (roomIndex === 0) {
-                 const onLoad = (t) => { 
-                     t.colorSpace = THREE.SRGBColorSpace; 
-                     mesh.material.map = t; 
-                     mesh.material.color.setHex(0xffffff);
-                     mesh.material.needsUpdate = true;
-                 };
-                 // Try loading, if fail try small fallback (handles missing small_mobile)
-                 lazyLoader.load(wallUrl, onLoad, undefined, () => {
-                      const fallback = wallUrl.replace('small_mobile', 'small');
-                      lazyLoader.load(fallback, onLoad);
-                 });
-                 roomStatus[0] = 'loaded';
-            }
-
-            addToRoom(mesh, roomIndex);
-            clickableObjects.push(mesh);
+            if (isMobile && roomPosters[roomIndex]) { roomPosters[roomIndex][roomPosters[roomIndex].length - 1].mesh = mesh; }
         }
 
         function checkRoomLoad(currentRoom) { if (!isMobile) return; const keepLoaded = [currentRoom, currentRoom + 1]; for (let idx = 0; idx < 5; idx++) { if (!keepLoaded.includes(idx) && roomStatus[idx] === 'loaded') { unloadRoomTextures(idx); } } keepLoaded.forEach(idx => { if (idx >= 0 && idx < 5 && roomStatus[idx] !== 'loaded') { loadRoomTextures(idx); } }); }
         
+        // SIMPLE LOADER RELOADED
         function loadRoomTextures(roomIdx) { 
             if (!roomPosters[roomIdx]) return; 
             roomStatus[roomIdx] = 'loaded'; 
             roomPosters[roomIdx].forEach(item => { 
-                // Skip if already has map
-                if (item.material.map) return;
-
-                const onLoad = (tex) => { 
+                lazyLoader.load(item.url, (tex) => { 
                     tex.colorSpace = THREE.SRGBColorSpace; 
                     item.material.map = tex; 
                     item.material.color.setHex(0xffffff); 
                     item.material.needsUpdate = true; 
-                };
-                
-                // Fallback logic
-                const onError = () => {
-                    if (item.url.includes('small_mobile')) {
-                        const fallbackUrl = item.url.replace('small_mobile', 'small');
-                        lazyLoader.load(fallbackUrl, onLoad);
-                    }
-                };
-
-                lazyLoader.load(item.url, onLoad, undefined, onError); 
+                });
             }); 
         }
         
@@ -1023,118 +981,60 @@
         if (!isMobile) { const floor2 = new THREE.Mesh(new THREE.PlaneGeometry(roomSize, roomSize), darkFloorMat); floor2.rotation.x = -Math.PI / 2; floor2.position.z = zLastRoom; scene.add(floor2); }
 
         for (let i = 0; i < roomsCount; i++) {
-            const zCenter = -(i * roomSize); 
-            const isLastRoom = (i === roomsCount - 1);
-            const useDarkMaterials = (!isMobile && isLastRoom);
-
-            if (!useDarkMaterials) {
+            const zCenter = -(i * roomSize); const isDarkRoom = (!isMobile && i === roomsCount - 1);
+            if (!isDarkRoom) {
                 if (isMobile || isLowEnd) { const roomLight = new THREE.PointLight(0xffffff, 1.5, 25); roomLight.position.set(0, 5, zCenter); addToRoom(roomLight, i); } 
                 else { const rectLightLeft = new THREE.RectAreaLight(0xffffff, 6.0, roomSize - 2, 0.5); rectLightLeft.position.set(-8, 5.5, zCenter); rectLightLeft.lookAt(-20, 1, zCenter); addToRoom(rectLightLeft, i); const rectLightRight = new THREE.RectAreaLight(0xffffff, 6.0, roomSize - 2, 0.5); rectLightRight.position.set(8, 5.5, zCenter); rectLightRight.lookAt(20, 1, zCenter); addToRoom(rectLightRight, i); const fillLight = new THREE.PointLight(0xffffff, 2, 20); fillLight.position.set(0, 5, zCenter); addToRoom(fillLight, i); }
             }
+            createBox(-roomSize/2, roomHeight/2, zCenter, 0.5, roomHeight, roomSize, true, isDarkRoom, null, i); createBox(roomSize/2, roomHeight/2, zCenter, 0.5, roomHeight, roomSize, true, isDarkRoom, null, i); 
+            if (!isDarkRoom) { const ceiling = new THREE.Mesh(new THREE.PlaneGeometry(roomSize, roomSize), wallMat); ceiling.rotation.x = Math.PI / 2; ceiling.position.set(0, roomHeight, zCenter); addToRoom(ceiling, i); }
             
-            createBox(-roomSize/2, roomHeight/2, zCenter, 0.5, roomHeight, roomSize, true, useDarkMaterials, null, i); 
-            createBox(roomSize/2, roomHeight/2, zCenter, 0.5, roomHeight, roomSize, true, useDarkMaterials, null, i); 
-            
-            if (!useDarkMaterials) { const ceiling = new THREE.Mesh(new THREE.PlaneGeometry(roomSize, roomSize), wallMat); ceiling.rotation.x = Math.PI / 2; ceiling.position.set(0, roomHeight, zCenter); addToRoom(ceiling, i); }
-            
-            // Generate basic walls
             if (i === 0) {
-                createBox(0, roomHeight/2, zCenter + roomSize/2, roomSize, roomHeight, 0.5, true, useDarkMaterials, null, i); createDoorWall(zCenter - roomSize/2, roomSize, roomHeight, useDarkMaterials, i);
-            } else if (isLastRoom) {
-                createBox(0, roomHeight/2, zCenter - roomSize/2, roomSize, roomHeight, 0.5, true, useDarkMaterials, null, i); 
-                if (useDarkMaterials) {
-                    const darkCeiling = new THREE.Mesh(new THREE.PlaneGeometry(roomSize, roomSize), darkWallMat); darkCeiling.rotation.x = Math.PI / 2; darkCeiling.position.set(0, roomHeight, zCenter); addToRoom(darkCeiling, i); benchPosition.set(0, 0.4, zCenter); createBox(0, 0.4, zCenter, 3.5, 0.8, 1.5, true, false, benchMat, i);
-                }
+                createBox(0, roomHeight/2, zCenter + roomSize/2, roomSize, roomHeight, 0.5, true, isDarkRoom, null, i); createDoorWall(zCenter - roomSize/2, roomSize, roomHeight, isDarkRoom, i);
+                if (isMobile) { addPoster( -6.0, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i); addPoster( 6.0, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i); }
+            } else if (isDarkRoom) {
+                createBox(0, roomHeight/2, zCenter - roomSize/2, roomSize, roomHeight, 0.5, true, isDarkRoom, null, i); const darkCeiling = new THREE.Mesh(new THREE.PlaneGeometry(roomSize, roomSize), darkWallMat); darkCeiling.rotation.x = Math.PI / 2; darkCeiling.position.set(0, roomHeight, zCenter); addToRoom(darkCeiling, i); benchPosition.set(0, 0.4, zCenter); createBox(0, 0.4, zCenter, 3.5, 0.8, 1.5, true, false, benchMat, i);
+            } else if (isMobile && i === roomsCount - 1) {
+                createBox(0, roomHeight/2, zCenter - roomSize/2, roomSize, roomHeight, 0.5, true, false, null, i);
+                const backGap = 2.6; addPoster(-backGap * 2, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i); addPoster(-backGap, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i); addPoster(0, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i); addPoster(backGap, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i); addPoster(backGap * 2, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i); 
+                const sideCount = 5; const sideGap = 2.6; const startZ = zCenter + ((sideCount - 1) * sideGap) / 2;
+                for (let k = 0; k < sideCount; k++) { const zPos = startZ - (k * sideGap); addPoster(-9.7, 2.7, zPos, Math.PI/2, 2.2, 2.8, i); addPoster(9.7, 2.7, zPos, -Math.PI/2, 2.2, 2.8, i); }
+                createHangingTV(0, zCenter, roomHeight, 0, i);
             } else {
                 createDoorWall(zCenter - roomSize/2, roomSize, roomHeight, false, i);
+                if (isMobile) { addPoster( -6.0, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i); addPoster( 6.0, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i); addPoster( -6.0, 2.7, zCenter + roomSize/2 - 0.3, Math.PI, 2.2, 2.8, i); addPoster( 6.0, 2.7, zCenter + roomSize/2 - 0.3, Math.PI, 2.2, 2.8, i); }
             }
-            
-            // --- MOBILE POSTER PLACEMENT (LINEAR 1-80) ---
-            if (isMobile) {
-                // Distribute ~77 posters total without repetition.
-                const posterW = 1.9; const posterH = 2.5; const yPos = 2.7; const gap = 0.22; // Increased gap by 10%
-                
-                // 1. Left Wall (6 posters)
-                const sideTotalW = (6 * posterW) + (5 * gap);
-                const sideStartZ = zCenter + (sideTotalW / 2) - (posterW/2);
-                
-                for(let k=0; k<6; k++) {
-                    const zPos = sideStartZ - (k * (posterW + gap)); 
-                    addMobilePoster(-9.7, yPos, zPos, Math.PI/2, posterW, posterH, i);
+            if (!isDarkRoom) {
+                if (i === 0) { createHangingTV(0, zCenter, roomHeight, 0, i); } 
+                else if (i === 1) { if (!isLowEnd) { loadAllModels(0, zCenter, i); createHangingModel7(0, zCenter, roomHeight, i); } } 
+                else if (i === 2) { createScaffoldingStructure(0, zCenter, i); if (isMobile) createHangingTV(0, zCenter, roomHeight, 0, i); } 
+                else { 
+                    let rotation = (i === 3) ? 0 : Math.random() * Math.PI; createHangingTV(0, zCenter, roomHeight, rotation, i); 
+                    if (i === 3) { createCurtain(0, zCenter - roomSize/2, i); }
                 }
-                
-                // 2. Right Wall (6 posters)
-                for(let k=0; k<6; k++) {
-                    const zPos = sideStartZ - (k * (posterW + gap));
-                    addMobilePoster(9.7, yPos, zPos, -Math.PI/2, posterW, posterH, i);
-                }
-                
-                // 3. FRONT/BACK WALLS LOGIC
-                const doorOffset = (posterW + gap) / 2; // Offset from center of door/wall section
-
-                // A) WALL FACING NEXT ROOM (The "Back" wall in camera view, zCenter - 10)
-                if (i < roomsCount - 1) {
-                    // Door Wall: 2 posters left, 2 posters right. Center at -6 and +6.
-                    addMobilePoster(-6 - doorOffset, yPos, zCenter - roomSize/2 + 0.3, 0, posterW, posterH, i);
-                    addMobilePoster(-6 + doorOffset, yPos, zCenter - roomSize/2 + 0.3, 0, posterW, posterH, i);
+                if (!(isMobile && i === roomsCount - 1)) {
+                    // SIDE WALLS - INCREASED TO 8 TO FIT ALL IMAGES
+                    const postersPerSide = 8; 
+                    const standardW = isMobile ? 2.2 : 2.6; const standardH = isMobile ? 2.8 : 3.25; 
+                    const availableWidth = 14; const step = availableWidth / (postersPerSide - 1);
                     
-                    addMobilePoster(6 - doorOffset, yPos, zCenter - roomSize/2 + 0.3, 0, posterW, posterH, i);
-                    addMobilePoster(6 + doorOffset, yPos, zCenter - roomSize/2 + 0.3, 0, posterW, posterH, i);
-                } else {
-                     // Last Room - SOLID WALL (No exit)
-                     // 5 posters distributed evenly on the back wall
-                     const endTotalW = (5 * posterW) + (4 * gap);
-                     const endStartX = - (endTotalW / 2) + (posterW/2);
-                     for(let k=0; k<5; k++) {
-                         const xPos = endStartX + (k * (posterW + gap));
-                         addMobilePoster(xPos, yPos, zCenter - roomSize/2 + 0.3, 0, posterW, posterH, i);
-                     }
-                }
-
-                // B) WALL FACING PREVIOUS ROOM (The "Front" wall in camera view, zCenter + 10)
-                if (i > 0) {
-                     // Door Wall (Entrance from previous room)
-                    addMobilePoster(-6 - doorOffset, yPos, zCenter + roomSize/2 - 0.3, Math.PI, posterW, posterH, i);
-                    addMobilePoster(-6 + doorOffset, yPos, zCenter + roomSize/2 - 0.3, Math.PI, posterW, posterH, i);
+                    for (let k = 0; k < postersPerSide; k++) { const zPos = (zCenter + availableWidth/2) - (k * step); addPoster(-9.7, 2.7, zPos, Math.PI/2, standardW, standardH, i); addPoster(9.7, 2.7, zPos, -Math.PI/2, standardW, standardH, i); }
                     
-                    addMobilePoster(6 - doorOffset, yPos, zCenter + roomSize/2 - 0.3, Math.PI, posterW, posterH, i);
-                    addMobilePoster(6 + doorOffset, yPos, zCenter + roomSize/2 - 0.3, Math.PI, posterW, posterH, i);
-                } else {
-                     // First Room - Solid Wall behind camera start. Left empty as requested.
+                    // NEW: DOOR WALL POSTERS (To reach 79 total count)
+                    // 1. Far wall (facing viewer) - present in all light rooms
+                    addPoster(-6.0, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i);
+                    addPoster( 6.0, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i);
+
+                    // 2. Near wall (facing back) - present in rooms 1, 2, 3
+                    if (i > 0) {
+                        addPoster(-6.0, 2.7, zCenter + roomSize/2 - 0.3, Math.PI, 2.2, 2.8, i);
+                        addPoster( 6.0, 2.7, zCenter + roomSize/2 - 0.3, Math.PI, 2.2, 2.8, i);
+                    }
                 }
-
-                // Extra TVs for mobile ambience
-                if (i === 0 || i === 2 || i === 3) createHangingTV(0, zCenter, roomHeight, 0, i);
-                if (i === 3) createHangingTV(0, zCenter, roomHeight, Math.PI, i);
-
             } else {
-                // --- DESKTOP POSTER PLACEMENT (ORIGINAL) ---
-                const isDarkRoom = useDarkMaterials;
-                if (!isDarkRoom) {
-                    if (i === 0) { if (isMobile) { addPoster( -6.0, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i); addPoster( 6.0, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i); } }
-                    
-                    if (i === 0) { createHangingTV(0, zCenter, roomHeight, 0, i); } 
-                    else if (i === 1) { if (!isLowEnd) { loadAllModels(0, zCenter, i); createHangingModel7(0, zCenter, roomHeight, i); } } 
-                    else if (i === 2) { createScaffoldingStructure(0, zCenter, i); } 
-                    else { 
-                        let rotation = (i === 3) ? 0 : Math.random() * Math.PI; createHangingTV(0, zCenter, roomHeight, rotation, i); 
-                        if (i === 3) { createCurtain(0, zCenter - roomSize/2, i); }
-                    }
-                    if (!(isMobile && i === roomsCount - 1)) {
-                        const standardW = 2.6; const standardH = 3.25; const postersPerSide = 6; const availableWidth = 14; const step = availableWidth / (postersPerSide - 1);
-                        for (let k = 0; k < postersPerSide; k++) { const zPos = (zCenter + availableWidth/2) - (k * step); addPoster(-9.7, 2.7, zPos, Math.PI/2, standardW, standardH, i); addPoster(9.7, 2.7, zPos, -Math.PI/2, standardW, standardH, i); }
-                        addPoster(-6.0, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i);
-                        addPoster( 6.0, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i);
-                        if (i > 0) {
-                            addPoster(-6.0, 2.7, zCenter + roomSize/2 - 0.3, Math.PI, 2.2, 2.8, i);
-                            addPoster( 6.0, 2.7, zCenter + roomSize/2 - 0.3, Math.PI, 2.2, 2.8, i);
-                        }
-                    }
-                } else {
-                    const projW = 9.0; const projH = 5.06; const wallDist = (roomSize/2) - 0.4;
-                    createProjection(0, 3, zCenter - wallDist, projW, projH, 0, videoTex1, i);
-                    if (!isMobile) { createProjection(-wallDist, 3, zCenter, projW, projH, Math.PI/2, videoTex1, i); createProjection(wallDist, 3, zCenter, projW, projH, -Math.PI/2, videoTex1, i); }
-                }
+                const projW = 9.0; const projH = 5.06; const wallDist = (roomSize/2) - 0.4;
+                createProjection(0, 3, zCenter - wallDist, projW, projH, 0, videoTex1, i);
+                if (!isMobile) { createProjection(-wallDist, 3, zCenter, projW, projH, Math.PI/2, videoTex1, i); createProjection(wallDist, 3, zCenter, projW, projH, -Math.PI/2, videoTex1, i); }
             }
         }
 

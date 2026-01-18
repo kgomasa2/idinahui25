@@ -678,14 +678,16 @@
         const collidableObjects = []; const clickableObjects = []; const postersArray = []; const roomPosters = {}; const roomStatus = {}; const roomGroups = {};
         let revolvingStage = null; const animatedModels = []; const interactiveObjects = []; 
 
-        let currentImageId = 1;
-        const totalImages = 80; 
+        // --- UPDATED LOGIC TO HANDLE GAPS AND SPECIFIC MOBILE PATHS ---
+        const VALID_IDS = Object.keys(ARTWORK_DB).map(Number).sort((a, b) => a - b);
+        let currentPosterIndex = 0; 
 
         function getNextImage() {
-            const id = currentImageId;
+            // Get the specific ID from our valid list, skipping non-existent numbers
+            const id = VALID_IDS[currentPosterIndex];
+
             let wallUrl, fullUrl;
             
-            // --- UPDATED URL LOGIC ---
             if (isMobile) { 
                 // Mobile: Preview = small_mobile, Click = small
                 wallUrl = `assets/small_mobile/image${id}.jpeg`; 
@@ -699,7 +701,9 @@
             const meta = ARTWORK_DB[id] || { artist: "Unknown" };
             const title = meta.title ? meta.title : ""; 
 
-            currentImageId++; if (currentImageId > totalImages) currentImageId = 1; 
+            // Increment pointer, wrap around if we run out of art in the valid list
+            currentPosterIndex = (currentPosterIndex + 1) % VALID_IDS.length;
+
             return { wallUrl, fullUrl, title, id, meta };
         }
 
@@ -744,7 +748,7 @@
 
         function checkRoomLoad(currentRoom) { if (!isMobile) return; const keepLoaded = [currentRoom, currentRoom + 1]; for (let idx = 0; idx < 5; idx++) { if (!keepLoaded.includes(idx) && roomStatus[idx] === 'loaded') { unloadRoomTextures(idx); } } keepLoaded.forEach(idx => { if (idx >= 0 && idx < 5 && roomStatus[idx] !== 'loaded') { loadRoomTextures(idx); } }); }
         
-        // --- UPDATED: Safe Loading with Fallback ---
+        // --- SAFE LOADING WITH MOBILE PATHS ---
         function loadRoomTextures(roomIdx) { 
             if (!roomPosters[roomIdx]) return; 
             roomStatus[roomIdx] = 'loaded'; 
@@ -756,7 +760,7 @@
                     item.material.needsUpdate = true; 
                 };
                 
-                // If small_mobile fails, fallback to 'small'
+                // If small_mobile fails, fallback to 'small' just in case
                 const onError = () => {
                     if (item.url.includes('small_mobile')) {
                         const fallbackUrl = item.url.replace('small_mobile', 'small');
@@ -1003,7 +1007,6 @@
                 }
                 if (!(isMobile && i === roomsCount - 1)) {
                     // SIDE WALLS
-                    // UPDATED: increased to 7 for mobile to ensure enough slots for 80 images
                     const postersPerSide = isMobile ? 7 : 6; const standardW = isMobile ? 2.2 : 2.6; const standardH = isMobile ? 2.8 : 3.25; const availableWidth = 14; const step = availableWidth / (postersPerSide - 1);
                     for (let k = 0; k < postersPerSide; k++) { const zPos = (zCenter + availableWidth/2) - (k * step); addPoster(-9.7, 2.7, zPos, Math.PI/2, standardW, standardH, i); addPoster(9.7, 2.7, zPos, -Math.PI/2, standardW, standardH, i); }
                     

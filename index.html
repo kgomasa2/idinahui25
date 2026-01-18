@@ -546,11 +546,20 @@
             63: { artist: "KESER1", handle: "keser.one" },
             64: { artist: "Станіслав Калагарець", handle: "stanislaawww" },
             65: { artist: "tanchik", handle: "demishkan.t" },
-            // ADDED MISSING POSTERS TO PREVENT UNKNOWN
+            // UPDATED MOBILE POSTERS
             66: { title: "Artwork #66" }, 67: { title: "Artwork #67" }, 68: { title: "Artwork #68" }, 69: { title: "Artwork #69" },
-            70: { title: "Artwork #70" }, 71: { title: "Artwork #71" }, 72: { title: "Artwork #72" }, 73: { title: "Artwork #73" },
-            74: { title: "Artwork #74" }, 75: { title: "Artwork #75" }, 76: { title: "Artwork #76" }, 77: { title: "Artwork #77" },
-            78: { title: "Artwork #78" }, 79: { title: "Artwork #79" },
+            70: { title: "Artwork #70" }, 
+            
+            71: { artist: "Denys Zhuk", handle: "zhucccci" },
+            72: { artist: "Богдан", handle: "xdout228" },
+            73: { artist: "Volodymyr Khomenko", handle: "adult.xoma" },
+            74: { artist: "Veronika", handle: "vavavurvur" },
+            75: { artist: "Vladyslav Krasnoshchok", handle: "vkrasnmuseum" },
+            76: { artist: "Olla Kuzovkina", handle: "olla.kuzovkina" },
+            77: { title: "Ділдрон", artist: "pinkbrick_3d", handle: "pinkbrick_3d" },
+            78: { title: "Artwork #78" }, 
+            79: { artist: "xfriscobluesx", handle: "xfriscobluesx" },
+
             80: { artist: "Станіслав Калагарець", handle: "stanislaawww" }
         };
 
@@ -783,8 +792,8 @@
                  };
                  // Try loading, if fail try small fallback (handles missing small_mobile)
                  lazyLoader.load(wallUrl, onLoad, undefined, () => {
-                      const fallback = wallUrl.replace('small_mobile', 'small');
-                      lazyLoader.load(fallback, onLoad);
+                     const fallback = wallUrl.replace('small_mobile', 'small');
+                     lazyLoader.load(fallback, onLoad);
                  });
                  roomStatus[0] = 'loaded';
             }
@@ -1081,26 +1090,26 @@
                     addMobilePoster(6 - doorOffset, yPos, zCenter - roomSize/2 + 0.3, 0, posterW, posterH, i);
                     addMobilePoster(6 + doorOffset, yPos, zCenter - roomSize/2 + 0.3, 0, posterW, posterH, i);
                 } else {
-                     // Last Room - SOLID WALL (No exit)
-                     // 5 posters distributed evenly on the back wall
-                     const endTotalW = (5 * posterW) + (4 * gap);
-                     const endStartX = - (endTotalW / 2) + (posterW/2);
-                     for(let k=0; k<5; k++) {
-                         const xPos = endStartX + (k * (posterW + gap));
-                         addMobilePoster(xPos, yPos, zCenter - roomSize/2 + 0.3, 0, posterW, posterH, i);
-                     }
+                      // Last Room - SOLID WALL (No exit)
+                      // 5 posters distributed evenly on the back wall
+                      const endTotalW = (5 * posterW) + (4 * gap);
+                      const endStartX = - (endTotalW / 2) + (posterW/2);
+                      for(let k=0; k<5; k++) {
+                          const xPos = endStartX + (k * (posterW + gap));
+                          addMobilePoster(xPos, yPos, zCenter - roomSize/2 + 0.3, 0, posterW, posterH, i);
+                      }
                 }
 
                 // B) WALL FACING PREVIOUS ROOM (The "Front" wall in camera view, zCenter + 10)
                 if (i > 0) {
-                     // Door Wall (Entrance from previous room)
+                      // Door Wall (Entrance from previous room)
                     addMobilePoster(-6 - doorOffset, yPos, zCenter + roomSize/2 - 0.3, Math.PI, posterW, posterH, i);
                     addMobilePoster(-6 + doorOffset, yPos, zCenter + roomSize/2 - 0.3, Math.PI, posterW, posterH, i);
                     
                     addMobilePoster(6 - doorOffset, yPos, zCenter + roomSize/2 - 0.3, Math.PI, posterW, posterH, i);
                     addMobilePoster(6 + doorOffset, yPos, zCenter + roomSize/2 - 0.3, Math.PI, posterW, posterH, i);
                 } else {
-                     // First Room - Solid Wall behind camera start. Left empty as requested.
+                      // First Room - Solid Wall behind camera start. Left empty as requested.
                 }
 
                 // Extra TVs for mobile ambience

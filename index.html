@@ -1023,70 +1023,70 @@
         if (!isMobile) { const floor2 = new THREE.Mesh(new THREE.PlaneGeometry(roomSize, roomSize), darkFloorMat); floor2.rotation.x = -Math.PI / 2; floor2.position.z = zLastRoom; scene.add(floor2); }
 
         for (let i = 0; i < roomsCount; i++) {
-            const zCenter = -(i * roomSize); const isDarkRoom = (!isMobile && i === roomsCount - 1);
-            if (!isDarkRoom) {
+            const zCenter = -(i * roomSize); 
+            const isLastRoom = (i === roomsCount - 1);
+            const useDarkMaterials = (!isMobile && isLastRoom);
+
+            if (!useDarkMaterials) {
                 if (isMobile || isLowEnd) { const roomLight = new THREE.PointLight(0xffffff, 1.5, 25); roomLight.position.set(0, 5, zCenter); addToRoom(roomLight, i); } 
                 else { const rectLightLeft = new THREE.RectAreaLight(0xffffff, 6.0, roomSize - 2, 0.5); rectLightLeft.position.set(-8, 5.5, zCenter); rectLightLeft.lookAt(-20, 1, zCenter); addToRoom(rectLightLeft, i); const rectLightRight = new THREE.RectAreaLight(0xffffff, 6.0, roomSize - 2, 0.5); rectLightRight.position.set(8, 5.5, zCenter); rectLightRight.lookAt(20, 1, zCenter); addToRoom(rectLightRight, i); const fillLight = new THREE.PointLight(0xffffff, 2, 20); fillLight.position.set(0, 5, zCenter); addToRoom(fillLight, i); }
             }
-            createBox(-roomSize/2, roomHeight/2, zCenter, 0.5, roomHeight, roomSize, true, isDarkRoom, null, i); createBox(roomSize/2, roomHeight/2, zCenter, 0.5, roomHeight, roomSize, true, isDarkRoom, null, i); 
-            if (!isDarkRoom) { const ceiling = new THREE.Mesh(new THREE.PlaneGeometry(roomSize, roomSize), wallMat); ceiling.rotation.x = Math.PI / 2; ceiling.position.set(0, roomHeight, zCenter); addToRoom(ceiling, i); }
+            
+            createBox(-roomSize/2, roomHeight/2, zCenter, 0.5, roomHeight, roomSize, true, useDarkMaterials, null, i); 
+            createBox(roomSize/2, roomHeight/2, zCenter, 0.5, roomHeight, roomSize, true, useDarkMaterials, null, i); 
+            
+            if (!useDarkMaterials) { const ceiling = new THREE.Mesh(new THREE.PlaneGeometry(roomSize, roomSize), wallMat); ceiling.rotation.x = Math.PI / 2; ceiling.position.set(0, roomHeight, zCenter); addToRoom(ceiling, i); }
             
             // Generate basic walls
             if (i === 0) {
-                createBox(0, roomHeight/2, zCenter + roomSize/2, roomSize, roomHeight, 0.5, true, isDarkRoom, null, i); createDoorWall(zCenter - roomSize/2, roomSize, roomHeight, isDarkRoom, i);
-            } else if (isDarkRoom) {
-                createBox(0, roomHeight/2, zCenter - roomSize/2, roomSize, roomHeight, 0.5, true, isDarkRoom, null, i); const darkCeiling = new THREE.Mesh(new THREE.PlaneGeometry(roomSize, roomSize), darkWallMat); darkCeiling.rotation.x = Math.PI / 2; darkCeiling.position.set(0, roomHeight, zCenter); addToRoom(darkCeiling, i); benchPosition.set(0, 0.4, zCenter); createBox(0, 0.4, zCenter, 3.5, 0.8, 1.5, true, false, benchMat, i);
+                createBox(0, roomHeight/2, zCenter + roomSize/2, roomSize, roomHeight, 0.5, true, useDarkMaterials, null, i); createDoorWall(zCenter - roomSize/2, roomSize, roomHeight, useDarkMaterials, i);
+            } else if (isLastRoom) {
+                createBox(0, roomHeight/2, zCenter - roomSize/2, roomSize, roomHeight, 0.5, true, useDarkMaterials, null, i); 
+                if (useDarkMaterials) {
+                    const darkCeiling = new THREE.Mesh(new THREE.PlaneGeometry(roomSize, roomSize), darkWallMat); darkCeiling.rotation.x = Math.PI / 2; darkCeiling.position.set(0, roomHeight, zCenter); addToRoom(darkCeiling, i); benchPosition.set(0, 0.4, zCenter); createBox(0, 0.4, zCenter, 3.5, 0.8, 1.5, true, false, benchMat, i);
+                }
             } else {
                 createDoorWall(zCenter - roomSize/2, roomSize, roomHeight, false, i);
             }
             
             // --- MOBILE POSTER PLACEMENT (LINEAR 1-80) ---
             if (isMobile) {
-                // Distribute ~77 posters total
-                // Strategy: 6 per side wall, 4 per door wall (2 each side), 5 on last wall.
-                
-                const posterW = 1.9; const posterH = 2.5; const yPos = 2.7;
+                // Distribute ~77 posters total without repetition.
+                const posterW = 1.9; const posterH = 2.5; const yPos = 2.7; const gap = 0.22; // Increased gap by 10%
                 
                 // 1. Left Wall (6 posters)
-                // Center Z +/- 6m (12m span). Gap ~20cm.
-                // 6*1.9 + 5*0.2 = 11.4 + 1.0 = 12.4m approx. Fits in 20m with 3.8m padding each side.
-                // Start z = zCenter + 6.075
-                const sideTotalW = (6 * 1.9) + (5 * 0.2);
-                const sideStartZ = zCenter + (sideTotalW / 2) - (1.9/2);
+                const sideTotalW = (6 * posterW) + (5 * gap);
+                const sideStartZ = zCenter + (sideTotalW / 2) - (posterW/2);
                 
                 for(let k=0; k<6; k++) {
-                    const zPos = sideStartZ - (k * (1.9 + 0.2)); 
+                    const zPos = sideStartZ - (k * (posterW + gap)); 
                     addMobilePoster(-9.7, yPos, zPos, Math.PI/2, posterW, posterH, i);
                 }
                 
                 // 2. Right Wall (6 posters)
                 for(let k=0; k<6; k++) {
-                    const zPos = sideStartZ - (k * (1.9 + 0.2));
+                    const zPos = sideStartZ - (k * (posterW + gap));
                     addMobilePoster(9.7, yPos, zPos, -Math.PI/2, posterW, posterH, i);
                 }
                 
                 // 3. FRONT/BACK WALLS LOGIC
-                
+                const doorOffset = (posterW + gap) / 2; // Offset from center of door/wall section
+
                 // A) WALL FACING NEXT ROOM (The "Back" wall in camera view, zCenter - 10)
                 if (i < roomsCount - 1) {
-                    // Door Wall: 2 posters left, 2 posters right
-                    // Door is at X=0, Width=4. Edges at -2, +2.
-                    // Left Wall Part: -10 to -2. Width 8. Center -6.
-                    // 2 posters: 2*1.9 + 0.2 = 4.0m width.
-                    // Center offsets: -6 +/- (1.9 + 0.2)/2 = -6 +/- 1.05 -> -7.05, -4.95.
-                    addMobilePoster(-7.0, yPos, zCenter - roomSize/2 + 0.3, 0, posterW, posterH, i);
-                    addMobilePoster(-4.9, yPos, zCenter - roomSize/2 + 0.3, 0, posterW, posterH, i);
+                    // Door Wall: 2 posters left, 2 posters right. Center at -6 and +6.
+                    addMobilePoster(-6 - doorOffset, yPos, zCenter - roomSize/2 + 0.3, 0, posterW, posterH, i);
+                    addMobilePoster(-6 + doorOffset, yPos, zCenter - roomSize/2 + 0.3, 0, posterW, posterH, i);
                     
-                    // Right Wall Part: 2 to 10. Center 6.
-                    addMobilePoster(4.9, yPos, zCenter - roomSize/2 + 0.3, 0, posterW, posterH, i);
-                    addMobilePoster(7.0, yPos, zCenter - roomSize/2 + 0.3, 0, posterW, posterH, i);
+                    addMobilePoster(6 - doorOffset, yPos, zCenter - roomSize/2 + 0.3, 0, posterW, posterH, i);
+                    addMobilePoster(6 + doorOffset, yPos, zCenter - roomSize/2 + 0.3, 0, posterW, posterH, i);
                 } else {
-                     // Last Room (Dark Room) - SOLID WALL (No exit)
+                     // Last Room - SOLID WALL (No exit)
                      // 5 posters distributed evenly on the back wall
-                     const endTotalW = (5 * 1.9) + (4 * 0.2); // ~10.3m
-                     const endStartX = - (endTotalW / 2) + (1.9/2);
+                     const endTotalW = (5 * posterW) + (4 * gap);
+                     const endStartX = - (endTotalW / 2) + (posterW/2);
                      for(let k=0; k<5; k++) {
-                         const xPos = endStartX + (k * (1.9 + 0.2));
+                         const xPos = endStartX + (k * (posterW + gap));
                          addMobilePoster(xPos, yPos, zCenter - roomSize/2 + 0.3, 0, posterW, posterH, i);
                      }
                 }
@@ -1094,16 +1094,13 @@
                 // B) WALL FACING PREVIOUS ROOM (The "Front" wall in camera view, zCenter + 10)
                 if (i > 0) {
                      // Door Wall (Entrance from previous room)
-                    addMobilePoster(-7.0, yPos, zCenter + roomSize/2 - 0.3, Math.PI, posterW, posterH, i);
-                    addMobilePoster(-4.9, yPos, zCenter + roomSize/2 - 0.3, Math.PI, posterW, posterH, i);
+                    addMobilePoster(-6 - doorOffset, yPos, zCenter + roomSize/2 - 0.3, Math.PI, posterW, posterH, i);
+                    addMobilePoster(-6 + doorOffset, yPos, zCenter + roomSize/2 - 0.3, Math.PI, posterW, posterH, i);
                     
-                    addMobilePoster(4.9, yPos, zCenter + roomSize/2 - 0.3, Math.PI, posterW, posterH, i);
-                    addMobilePoster(7.0, yPos, zCenter + roomSize/2 - 0.3, Math.PI, posterW, posterH, i);
+                    addMobilePoster(6 - doorOffset, yPos, zCenter + roomSize/2 - 0.3, Math.PI, posterW, posterH, i);
+                    addMobilePoster(6 + doorOffset, yPos, zCenter + roomSize/2 - 0.3, Math.PI, posterW, posterH, i);
                 } else {
-                     // First Room - Solid Wall behind camera start
-                     // LEAVE EMPTY as requested if posters run out or repeat.
-                     // We used 77 posters exactly with the logic above (4 rooms).
-                     // Room 0 Back is skipped.
+                     // First Room - Solid Wall behind camera start. Left empty as requested.
                 }
 
                 // Extra TVs for mobile ambience
@@ -1112,6 +1109,7 @@
 
             } else {
                 // --- DESKTOP POSTER PLACEMENT (ORIGINAL) ---
+                const isDarkRoom = useDarkMaterials;
                 if (!isDarkRoom) {
                     if (i === 0) { if (isMobile) { addPoster( -6.0, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i); addPoster( 6.0, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i); } }
                     

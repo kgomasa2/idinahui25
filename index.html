@@ -54,6 +54,7 @@
             touch-action: none; user-select: none; -webkit-user-select: none; 
         }
         
+        /* --- ЛІНКИ --- */
         .text-link {
             color: inherit;
             text-decoration: underline;
@@ -65,6 +66,7 @@
             opacity: 0.8;
         }
         
+        /* ЗАГАЛЬНІ СТИЛІ */
         .ui-screen {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: #E6E6E6; 
@@ -218,6 +220,7 @@
         }
         @keyframes pulseBtn { 0% { transform: translateX(-50%) scale(1); } 50% { transform: translateX(-50%) scale(1.05); } 100% { transform: translateX(-50%) scale(1); } }
         
+        /* Artwork Modal */
         #artwork-modal {
             display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(10, 10, 10, 0.8); 
@@ -226,23 +229,19 @@
             text-align: center; color: white;
         }
         
-        /* FIX FOR WHITE LINE */
+        /* FIX FOR WHITE LINE: Container for image */
         #img-container {
-            display: block;
-            width: auto;
-            max-width: 95%;
-            max-height: 70vh;
-            margin: 0 auto 20px auto;
-            font-size: 0; 
             line-height: 0;
-            background: transparent;
+            font-size: 0;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: center;
+            width: 100%;
         }
 
         #modal-img { 
-            width: auto;
-            height: auto;
-            max-height: 100%; 
-            max-width: 100%; 
+            max-height: 70vh; 
+            max-width: 95%; 
             object-fit: contain;
             display: block; 
             border: none;
@@ -413,7 +412,7 @@
 
         <div class="top-content">
             <div class="title-font">“ІДІ НАХУЙ”</div>
-            <div class="director-font">
+            <div class="director-font" id="start-subtitle">
                 Керування стрілками, можна стрибати, на Shift прискорення. Для перегляду роботи клацни по ній.
             </div>
         </div>
@@ -547,13 +546,11 @@
             63: { artist: "KESER1", handle: "keser.one" },
             64: { artist: "Станіслав Калагарець", handle: "stanislaawww" },
             65: { artist: "tanchik", handle: "demishkan.t" },
-            
-            // PLACEHOLDERS FOR 66-79 (Filling gap in ID sequence)
+            // ADDED MISSING POSTERS TO PREVENT UNKNOWN
             66: { title: "Artwork #66" }, 67: { title: "Artwork #67" }, 68: { title: "Artwork #68" }, 69: { title: "Artwork #69" },
             70: { title: "Artwork #70" }, 71: { title: "Artwork #71" }, 72: { title: "Artwork #72" }, 73: { title: "Artwork #73" },
             74: { title: "Artwork #74" }, 75: { title: "Artwork #75" }, 76: { title: "Artwork #76" }, 77: { title: "Artwork #77" },
             78: { title: "Artwork #78" }, 79: { title: "Artwork #79" },
-            
             80: { artist: "Станіслав Калагарець", handle: "stanislaawww" }
         };
 
@@ -583,8 +580,7 @@
             document.getElementById('start-subtitle').innerText = "Для кращого досвіду радимо переглядати з комп’ютера";
         }
 
-        // ENABLE CACHE FOR MOBILE
-        THREE.Cache.enabled = true;
+        if (isMobile) { THREE.Cache.enabled = false; }
 
         function initGravityBackground() {
             if (isMobile || isLowEnd) return; 
@@ -683,14 +679,16 @@
         let revolvingStage = null; const animatedModels = []; const interactiveObjects = []; 
 
         let currentImageId = 1;
-        const totalImages = 79; 
+        const totalImages = 80; 
 
         function getNextImage() {
             const id = currentImageId;
-            let wallUrl, fullUrl;
+            let wallUrl;
+            let fullUrl;
             
-            // UPDATED URL LOGIC: USE 'SMALL_MOBILE' FOR WALLS
-            // USE 'SMALL' FOR CLICK
+            // UPDATED URL LOGIC: 
+            // Mobile: Preview = small_mobile, Click = small
+            // Desktop: Preview = small, Click = normal (root)
             if (isMobile) { 
                 wallUrl = `assets/small_mobile/image${id}.jpeg`; 
                 fullUrl = `assets/small/image${id}.jpeg`; 
@@ -699,16 +697,10 @@
                 fullUrl = `assets/image${id}.jpeg`; 
             }
             
-            // Skip 66 and 67 as they are missing in file list
-            if (currentImageId === 65) currentImageId = 68;
-            else currentImageId++; 
-
-            if (currentImageId > totalImages) currentImageId = 1; 
-
-            // Get metadata (if missing, use placeholder)
             const meta = ARTWORK_DB[id] || { artist: "Unknown" };
             const title = meta.title ? meta.title : ""; 
-            
+
+            currentImageId++; if (currentImageId > totalImages) currentImageId = 1; 
             return { wallUrl, fullUrl, title, id, meta };
         }
 
@@ -753,17 +745,27 @@
 
         function checkRoomLoad(currentRoom) { if (!isMobile) return; const keepLoaded = [currentRoom, currentRoom + 1]; for (let idx = 0; idx < 5; idx++) { if (!keepLoaded.includes(idx) && roomStatus[idx] === 'loaded') { unloadRoomTextures(idx); } } keepLoaded.forEach(idx => { if (idx >= 0 && idx < 5 && roomStatus[idx] !== 'loaded') { loadRoomTextures(idx); } }); }
         
-        // SIMPLE LOADER RELOADED
+        // UPDATED: Added Error Handling for 'small_mobile'
         function loadRoomTextures(roomIdx) { 
             if (!roomPosters[roomIdx]) return; 
             roomStatus[roomIdx] = 'loaded'; 
             roomPosters[roomIdx].forEach(item => { 
-                lazyLoader.load(item.url, (tex) => { 
+                const onLoad = (tex) => { 
                     tex.colorSpace = THREE.SRGBColorSpace; 
                     item.material.map = tex; 
                     item.material.color.setHex(0xffffff); 
                     item.material.needsUpdate = true; 
-                });
+                };
+                
+                // If small_mobile fails, fallback to 'small'
+                const onError = () => {
+                    if (item.url.includes('small_mobile')) {
+                        const fallbackUrl = item.url.replace('small_mobile', 'small');
+                        lazyLoader.load(fallbackUrl, onLoad);
+                    }
+                };
+
+                lazyLoader.load(item.url, onLoad, undefined, onError); 
             }); 
         }
         
@@ -1001,14 +1003,11 @@
                     if (i === 3) { createCurtain(0, zCenter - roomSize/2, i); }
                 }
                 if (!(isMobile && i === roomsCount - 1)) {
-                    // SIDE WALLS - INCREASED TO 8 TO FIT ALL IMAGES
-                    const postersPerSide = 8; 
-                    const standardW = isMobile ? 2.2 : 2.6; const standardH = isMobile ? 2.8 : 3.25; 
-                    const availableWidth = 14; const step = availableWidth / (postersPerSide - 1);
-                    
+                    // SIDE WALLS
+                    const standardW = isMobile ? 2.2 : 2.6; const standardH = isMobile ? 2.8 : 3.25; const postersPerSide = isMobile ? 6 : 6; const availableWidth = 14; const step = availableWidth / (postersPerSide - 1);
                     for (let k = 0; k < postersPerSide; k++) { const zPos = (zCenter + availableWidth/2) - (k * step); addPoster(-9.7, 2.7, zPos, Math.PI/2, standardW, standardH, i); addPoster(9.7, 2.7, zPos, -Math.PI/2, standardW, standardH, i); }
                     
-                    // NEW: DOOR WALL POSTERS (To reach 79 total count)
+                    // NEW: DOOR WALL POSTERS (To reach 65 total count)
                     // 1. Far wall (facing viewer) - present in all light rooms
                     addPoster(-6.0, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i);
                     addPoster( 6.0, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i);

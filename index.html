@@ -54,7 +54,6 @@
             touch-action: none; user-select: none; -webkit-user-select: none; 
         }
         
-        /* --- ЛІНКИ --- */
         .text-link {
             color: inherit;
             text-decoration: underline;
@@ -66,7 +65,6 @@
             opacity: 0.8;
         }
         
-        /* ЗАГАЛЬНІ СТИЛІ */
         .ui-screen {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: #E6E6E6; 
@@ -228,7 +226,7 @@
             text-align: center; color: white;
         }
         
-        /* FIX FOR WHITE LINE AND ALIGNMENT */
+        /* FIX FOR WHITE LINE */
         #img-container {
             display: block;
             width: auto;
@@ -264,7 +262,6 @@
             line-height: 1.1; 
         }
         
-        /* WHITE LINKS IN MODAL */
         #modal-title a, #modal-desc a { 
             color: white !important; 
             text-decoration: underline !important; 
@@ -551,11 +548,12 @@
             64: { artist: "Станіслав Калагарець", handle: "stanislaawww" },
             65: { artist: "tanchik", handle: "demishkan.t" },
             
-            // PLACEHOLDERS FOR 66-79
+            // PLACEHOLDERS FOR 66-79 (Filling gap in ID sequence)
             66: { title: "Artwork #66" }, 67: { title: "Artwork #67" }, 68: { title: "Artwork #68" }, 69: { title: "Artwork #69" },
             70: { title: "Artwork #70" }, 71: { title: "Artwork #71" }, 72: { title: "Artwork #72" }, 73: { title: "Artwork #73" },
             74: { title: "Artwork #74" }, 75: { title: "Artwork #75" }, 76: { title: "Artwork #76" }, 77: { title: "Artwork #77" },
             78: { title: "Artwork #78" }, 79: { title: "Artwork #79" },
+            
             80: { artist: "Станіслав Калагарець", handle: "stanislaawww" }
         };
 
@@ -691,22 +689,26 @@
             const id = currentImageId;
             let wallUrl, fullUrl;
             
-            // UPDATED URL LOGIC: USE 'SMALL' FOR EVERYTHING ON MOBILE
+            // UPDATED URL LOGIC: USE 'SMALL_MOBILE' FOR WALLS
+            // USE 'SMALL' FOR CLICK
             if (isMobile) { 
-                wallUrl = `assets/small/image${id}.jpeg`; 
+                wallUrl = `assets/small_mobile/image${id}.jpeg`; 
                 fullUrl = `assets/small/image${id}.jpeg`; 
             } else { 
                 wallUrl = `assets/small/image${id}.jpeg`; 
                 fullUrl = `assets/image${id}.jpeg`; 
             }
             
-            // STRICT SKIP for 66 and 67
-            if (currentImageId === 66) currentImageId = 68;
+            // Skip 66 and 67 as they are missing in file list
+            if (currentImageId === 65) currentImageId = 68;
+            else currentImageId++; 
 
+            if (currentImageId > totalImages) currentImageId = 1; 
+
+            // Get metadata (if missing, use placeholder)
             const meta = ARTWORK_DB[id] || { artist: "Unknown" };
             const title = meta.title ? meta.title : ""; 
-
-            currentImageId++; if (currentImageId > totalImages) currentImageId = 1; 
+            
             return { wallUrl, fullUrl, title, id, meta };
         }
 
@@ -999,8 +1001,11 @@
                     if (i === 3) { createCurtain(0, zCenter - roomSize/2, i); }
                 }
                 if (!(isMobile && i === roomsCount - 1)) {
-                    // SIDE WALLS
-                    const standardW = isMobile ? 2.2 : 2.6; const standardH = isMobile ? 2.8 : 3.25; const postersPerSide = isMobile ? 6 : 6; const availableWidth = 14; const step = availableWidth / (postersPerSide - 1);
+                    // SIDE WALLS - INCREASED TO 8 TO FIT ALL IMAGES
+                    const postersPerSide = 8; 
+                    const standardW = isMobile ? 2.2 : 2.6; const standardH = isMobile ? 2.8 : 3.25; 
+                    const availableWidth = 14; const step = availableWidth / (postersPerSide - 1);
+                    
                     for (let k = 0; k < postersPerSide; k++) { const zPos = (zCenter + availableWidth/2) - (k * step); addPoster(-9.7, 2.7, zPos, Math.PI/2, standardW, standardH, i); addPoster(9.7, 2.7, zPos, -Math.PI/2, standardW, standardH, i); }
                     
                     // NEW: DOOR WALL POSTERS (To reach 79 total count)

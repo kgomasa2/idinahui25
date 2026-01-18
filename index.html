@@ -681,21 +681,11 @@
         let currentImageId = 1;
         const totalImages = 80; 
 
+        // DESKTOP LOGIC (kept for desktop)
         function getNextImage() {
             const id = currentImageId;
-            let wallUrl;
-            let fullUrl;
-            
-            // UPDATED URL LOGIC: 
-            // Mobile: Preview = small_mobile, Click = small
-            // Desktop: Preview = small, Click = normal (root)
-            if (isMobile) { 
-                wallUrl = `assets/small_mobile/image${id}.jpeg`; 
-                fullUrl = `assets/small/image${id}.jpeg`; 
-            } else { 
-                wallUrl = `assets/small/image${id}.jpeg`; 
-                fullUrl = `assets/image${id}.jpeg`; 
-            }
+            let wallUrl = `assets/small/image${id}.jpeg`; 
+            let fullUrl = `assets/image${id}.jpeg`; 
             
             const meta = ARTWORK_DB[id] || { artist: "Unknown" };
             const title = meta.title ? meta.title : ""; 
@@ -710,18 +700,12 @@
         }
 
         function addPoster(x, y, z, ry, w, h, roomIndex) {
+            // ORIGINAL FUNCTION - USED BY DESKTOP ONLY NOW
             const data = getNextImage();
             const geo = new THREE.PlaneGeometry(w, h);
             
-            let mat;
-            if (isMobile) {
-                mat = placeholderMat.clone();
-                if (!roomPosters[roomIndex]) roomPosters[roomIndex] = [];
-                roomPosters[roomIndex].push({ mesh: null, material: mat, url: data.wallUrl });
-            } else {
-                const tex = textureLoader.load(data.wallUrl, (t) => { t.colorSpace = THREE.SRGBColorSpace; });
-                mat = new THREE.MeshStandardMaterial({ map: tex, color: 0xffffff, roughness: 0.4 });
-            }
+            const tex = textureLoader.load(data.wallUrl, (t) => { t.colorSpace = THREE.SRGBColorSpace; });
+            const mat = new THREE.MeshStandardMaterial({ map: tex, color: 0xffffff, roughness: 0.4 });
             
             const mesh = new THREE.Mesh(geo, mat);
             mesh.position.set(x, y, z); mesh.rotation.y = ry;
@@ -740,12 +724,47 @@
             addToRoom(mesh, roomIndex);
             postersArray.push(mesh);
             clickableObjects.push(mesh);
-            if (isMobile && roomPosters[roomIndex]) { roomPosters[roomIndex][roomPosters[roomIndex].length - 1].mesh = mesh; }
+        }
+
+        // --- NEW MOBILE POSTER LOGIC ---
+        let mobileImageCounter = 1;
+        function addMobilePoster(x, y, z, ry, w, h, roomIndex) {
+            if (mobileImageCounter > totalImages) return;
+
+            const id = mobileImageCounter;
+            const meta = ARTWORK_DB[id] || { artist: "" };
+            
+            // Explicit paths for mobile
+            const wallUrl = `assets/small_mobile/image${id}.jpeg`;
+            const fullUrl = `assets/small/image${id}.jpeg`;
+
+            const geo = new THREE.PlaneGeometry(w, h);
+            const mat = placeholderMat.clone();
+            
+            const mesh = new THREE.Mesh(geo, mat);
+            mesh.position.set(x, y, z); mesh.rotation.y = ry;
+            
+            mesh.userData = { 
+                type: 'poster', 
+                id: id, 
+                url: fullUrl, 
+                title: meta.title || "", 
+                artist: meta.artist,
+                handle: meta.handle,
+                extraLink: meta.extraLink,
+                customHTML: meta.customHTML
+            };
+            
+            if (!roomPosters[roomIndex]) roomPosters[roomIndex] = [];
+            roomPosters[roomIndex].push({ mesh: mesh, material: mat, url: wallUrl });
+
+            addToRoom(mesh, roomIndex);
+            clickableObjects.push(mesh);
+            mobileImageCounter++;
         }
 
         function checkRoomLoad(currentRoom) { if (!isMobile) return; const keepLoaded = [currentRoom, currentRoom + 1]; for (let idx = 0; idx < 5; idx++) { if (!keepLoaded.includes(idx) && roomStatus[idx] === 'loaded') { unloadRoomTextures(idx); } } keepLoaded.forEach(idx => { if (idx >= 0 && idx < 5 && roomStatus[idx] !== 'loaded') { loadRoomTextures(idx); } }); }
         
-        // UPDATED: Added Error Handling for 'small_mobile'
         function loadRoomTextures(roomIdx) { 
             if (!roomPosters[roomIdx]) return; 
             roomStatus[roomIdx] = 'loaded'; 
@@ -756,16 +775,7 @@
                     item.material.color.setHex(0xffffff); 
                     item.material.needsUpdate = true; 
                 };
-                
-                // If small_mobile fails, fallback to 'small'
-                const onError = () => {
-                    if (item.url.includes('small_mobile')) {
-                        const fallbackUrl = item.url.replace('small_mobile', 'small');
-                        lazyLoader.load(fallbackUrl, onLoad);
-                    }
-                };
-
-                lazyLoader.load(item.url, onLoad, undefined, onError); 
+                lazyLoader.load(item.url, onLoad, undefined, (e) => { console.log('Err loading', item.url); }); 
             }); 
         }
         
@@ -979,49 +989,76 @@
             createBox(-roomSize/2, roomHeight/2, zCenter, 0.5, roomHeight, roomSize, true, isDarkRoom, null, i); createBox(roomSize/2, roomHeight/2, zCenter, 0.5, roomHeight, roomSize, true, isDarkRoom, null, i); 
             if (!isDarkRoom) { const ceiling = new THREE.Mesh(new THREE.PlaneGeometry(roomSize, roomSize), wallMat); ceiling.rotation.x = Math.PI / 2; ceiling.position.set(0, roomHeight, zCenter); addToRoom(ceiling, i); }
             
+            // Generate basic walls
             if (i === 0) {
                 createBox(0, roomHeight/2, zCenter + roomSize/2, roomSize, roomHeight, 0.5, true, isDarkRoom, null, i); createDoorWall(zCenter - roomSize/2, roomSize, roomHeight, isDarkRoom, i);
-                if (isMobile) { addPoster( -6.0, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i); addPoster( 6.0, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i); }
             } else if (isDarkRoom) {
                 createBox(0, roomHeight/2, zCenter - roomSize/2, roomSize, roomHeight, 0.5, true, isDarkRoom, null, i); const darkCeiling = new THREE.Mesh(new THREE.PlaneGeometry(roomSize, roomSize), darkWallMat); darkCeiling.rotation.x = Math.PI / 2; darkCeiling.position.set(0, roomHeight, zCenter); addToRoom(darkCeiling, i); benchPosition.set(0, 0.4, zCenter); createBox(0, 0.4, zCenter, 3.5, 0.8, 1.5, true, false, benchMat, i);
-            } else if (isMobile && i === roomsCount - 1) {
-                createBox(0, roomHeight/2, zCenter - roomSize/2, roomSize, roomHeight, 0.5, true, false, null, i);
-                const backGap = 2.6; addPoster(-backGap * 2, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i); addPoster(-backGap, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i); addPoster(0, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i); addPoster(backGap, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i); addPoster(backGap * 2, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i); 
-                const sideCount = 5; const sideGap = 2.6; const startZ = zCenter + ((sideCount - 1) * sideGap) / 2;
-                for (let k = 0; k < sideCount; k++) { const zPos = startZ - (k * sideGap); addPoster(-9.7, 2.7, zPos, Math.PI/2, 2.2, 2.8, i); addPoster(9.7, 2.7, zPos, -Math.PI/2, 2.2, 2.8, i); }
-                createHangingTV(0, zCenter, roomHeight, 0, i);
             } else {
                 createDoorWall(zCenter - roomSize/2, roomSize, roomHeight, false, i);
-                if (isMobile) { addPoster( -6.0, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i); addPoster( 6.0, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i); addPoster( -6.0, 2.7, zCenter + roomSize/2 - 0.3, Math.PI, 2.2, 2.8, i); addPoster( 6.0, 2.7, zCenter + roomSize/2 - 0.3, Math.PI, 2.2, 2.8, i); }
             }
-            if (!isDarkRoom) {
-                if (i === 0) { createHangingTV(0, zCenter, roomHeight, 0, i); } 
-                else if (i === 1) { if (!isLowEnd) { loadAllModels(0, zCenter, i); createHangingModel7(0, zCenter, roomHeight, i); } } 
-                else if (i === 2) { createScaffoldingStructure(0, zCenter, i); if (isMobile) createHangingTV(0, zCenter, roomHeight, 0, i); } 
-                else { 
-                    let rotation = (i === 3) ? 0 : Math.random() * Math.PI; createHangingTV(0, zCenter, roomHeight, rotation, i); 
-                    if (i === 3) { createCurtain(0, zCenter - roomSize/2, i); }
+            
+            // --- MOBILE POSTER PLACEMENT (LINEAR 1-80) ---
+            if (isMobile) {
+                // Distribute ~20 posters per room to reach 80 total
+                const posterW = 2.2; const posterH = 2.8; const yPos = 2.7;
+                
+                // 1. Left Wall (8 posters)
+                for(let k=0; k<8; k++) {
+                    const zPos = (zCenter + 9) - (k * 2.5); // Spread 8 items over length
+                    addMobilePoster(-9.7, yPos, zPos, Math.PI/2, posterW, posterH, i);
                 }
-                if (!(isMobile && i === roomsCount - 1)) {
-                    // SIDE WALLS
-                    const standardW = isMobile ? 2.2 : 2.6; const standardH = isMobile ? 2.8 : 3.25; const postersPerSide = isMobile ? 6 : 6; const availableWidth = 14; const step = availableWidth / (postersPerSide - 1);
-                    for (let k = 0; k < postersPerSide; k++) { const zPos = (zCenter + availableWidth/2) - (k * step); addPoster(-9.7, 2.7, zPos, Math.PI/2, standardW, standardH, i); addPoster(9.7, 2.7, zPos, -Math.PI/2, standardW, standardH, i); }
-                    
-                    // NEW: DOOR WALL POSTERS (To reach 65 total count)
-                    // 1. Far wall (facing viewer) - present in all light rooms
-                    addPoster(-6.0, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i);
-                    addPoster( 6.0, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i);
+                // 2. Right Wall (8 posters)
+                for(let k=0; k<8; k++) {
+                    const zPos = (zCenter + 9) - (k * 2.5);
+                    addMobilePoster(9.7, yPos, zPos, -Math.PI/2, posterW, posterH, i);
+                }
+                // 3. Divider Walls (4 posters total - 2 front, 2 back of prev room)
+                // Front wall of current room (facing player)
+                addMobilePoster(-6.0, yPos, zCenter - roomSize/2 + 0.3, 0, posterW, posterH, i);
+                addMobilePoster(6.0, yPos, zCenter - roomSize/2 + 0.3, 0, posterW, posterH, i);
+                
+                // Back wall (if not first room) - facing previous room
+                if (i > 0) {
+                    addMobilePoster(-6.0, yPos, zCenter + roomSize/2 - 0.3, Math.PI, posterW, posterH, i);
+                    addMobilePoster(6.0, yPos, zCenter + roomSize/2 - 0.3, Math.PI, posterW, posterH, i);
+                } else {
+                     // In first room, put on the solid back wall
+                     addMobilePoster(-4.0, yPos, zCenter + roomSize/2 - 0.3, Math.PI, posterW, posterH, i);
+                     addMobilePoster(4.0, yPos, zCenter + roomSize/2 - 0.3, Math.PI, posterW, posterH, i);
+                }
 
-                    // 2. Near wall (facing back) - present in rooms 1, 2, 3
-                    if (i > 0) {
-                        addPoster(-6.0, 2.7, zCenter + roomSize/2 - 0.3, Math.PI, 2.2, 2.8, i);
-                        addPoster( 6.0, 2.7, zCenter + roomSize/2 - 0.3, Math.PI, 2.2, 2.8, i);
-                    }
-                }
+                // Extra TVs for mobile ambience
+                if (i === 0 || i === 2 || i === 3) createHangingTV(0, zCenter, roomHeight, 0, i);
+                if (i === 3) createHangingTV(0, zCenter, roomHeight, Math.PI, i);
+
             } else {
-                const projW = 9.0; const projH = 5.06; const wallDist = (roomSize/2) - 0.4;
-                createProjection(0, 3, zCenter - wallDist, projW, projH, 0, videoTex1, i);
-                if (!isMobile) { createProjection(-wallDist, 3, zCenter, projW, projH, Math.PI/2, videoTex1, i); createProjection(wallDist, 3, zCenter, projW, projH, -Math.PI/2, videoTex1, i); }
+                // --- DESKTOP POSTER PLACEMENT (ORIGINAL) ---
+                if (!isDarkRoom) {
+                    if (i === 0) { if (isMobile) { addPoster( -6.0, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i); addPoster( 6.0, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i); } }
+                    
+                    if (i === 0) { createHangingTV(0, zCenter, roomHeight, 0, i); } 
+                    else if (i === 1) { if (!isLowEnd) { loadAllModels(0, zCenter, i); createHangingModel7(0, zCenter, roomHeight, i); } } 
+                    else if (i === 2) { createScaffoldingStructure(0, zCenter, i); } 
+                    else { 
+                        let rotation = (i === 3) ? 0 : Math.random() * Math.PI; createHangingTV(0, zCenter, roomHeight, rotation, i); 
+                        if (i === 3) { createCurtain(0, zCenter - roomSize/2, i); }
+                    }
+                    if (!(isMobile && i === roomsCount - 1)) {
+                        const standardW = 2.6; const standardH = 3.25; const postersPerSide = 6; const availableWidth = 14; const step = availableWidth / (postersPerSide - 1);
+                        for (let k = 0; k < postersPerSide; k++) { const zPos = (zCenter + availableWidth/2) - (k * step); addPoster(-9.7, 2.7, zPos, Math.PI/2, standardW, standardH, i); addPoster(9.7, 2.7, zPos, -Math.PI/2, standardW, standardH, i); }
+                        addPoster(-6.0, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i);
+                        addPoster( 6.0, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i);
+                        if (i > 0) {
+                            addPoster(-6.0, 2.7, zCenter + roomSize/2 - 0.3, Math.PI, 2.2, 2.8, i);
+                            addPoster( 6.0, 2.7, zCenter + roomSize/2 - 0.3, Math.PI, 2.2, 2.8, i);
+                        }
+                    }
+                } else {
+                    const projW = 9.0; const projH = 5.06; const wallDist = (roomSize/2) - 0.4;
+                    createProjection(0, 3, zCenter - wallDist, projW, projH, 0, videoTex1, i);
+                    if (!isMobile) { createProjection(-wallDist, 3, zCenter, projW, projH, Math.PI/2, videoTex1, i); createProjection(wallDist, 3, zCenter, projW, projH, -Math.PI/2, videoTex1, i); }
+                }
             }
         }
 

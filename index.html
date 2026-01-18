@@ -730,13 +730,22 @@
         }
 
         // --- NEW MOBILE POSTER LOGIC ---
-        let mobileImageCounter = 1;
-        function addMobilePoster(x, y, z, ry, w, h, roomIndex) {
-            // Cycle ID if exceeded
-            let id = mobileImageCounter;
-            if (id > totalImages) {
-                id = (id - 1) % totalImages + 1;
+        // 1. Create array of VALID IDs (skip 66, 67, 78)
+        const validMobileIDs = [];
+        for(let i=1; i<=80; i++) {
+            if (i !== 66 && i !== 67 && i !== 78) {
+                validMobileIDs.push(i);
             }
+        }
+        
+        let mobilePosterIndex = 0; // Index in validMobileIDs array
+
+        function addMobilePoster(x, y, z, ry, w, h, roomIndex) {
+            // Get ID from the filtered array
+            const id = validMobileIDs[mobilePosterIndex];
+            
+            // Advance index, loop back if needed (shouldn't happen with 4 rooms, but safe)
+            mobilePosterIndex = (mobilePosterIndex + 1) % validMobileIDs.length;
 
             const meta = ARTWORK_DB[id] || { artist: "" };
             
@@ -782,7 +791,6 @@
 
             addToRoom(mesh, roomIndex);
             clickableObjects.push(mesh);
-            mobileImageCounter++;
         }
 
         function checkRoomLoad(currentRoom) { if (!isMobile) return; const keepLoaded = [currentRoom, currentRoom + 1]; for (let idx = 0; idx < 5; idx++) { if (!keepLoaded.includes(idx) && roomStatus[idx] === 'loaded') { unloadRoomTextures(idx); } } keepLoaded.forEach(idx => { if (idx >= 0 && idx < 5 && roomStatus[idx] !== 'loaded') { loadRoomTextures(idx); } }); }
@@ -1037,42 +1045,39 @@
                 // Distribute ~20 posters per room to reach 80 total
                 const posterW = 1.9; const posterH = 2.5; const yPos = 2.7;
                 
-                // 1. Left Wall (8 posters)
-                // Range zCenter+6.5 to zCenter-6.5 (13m span)
-                // Leaving 3.5m padding on each side
-                const sideStep = 13 / 7;
-                for(let k=0; k<8; k++) {
-                    const zPos = (zCenter + 6.5) - (k * sideStep); 
+                // 1. Left Wall (7 posters)
+                // Range Z-axis: Center +/- 7.5m (15m span). Padding 2.5m each side.
+                // Step = 15 / 6 = 2.5m
+                for(let k=0; k<7; k++) {
+                    const zPos = (zCenter + 7.5) - (k * 2.5); 
                     addMobilePoster(-9.7, yPos, zPos, Math.PI/2, posterW, posterH, i);
                 }
-                // 2. Right Wall (8 posters)
-                for(let k=0; k<8; k++) {
-                    const zPos = (zCenter + 6.5) - (k * sideStep);
+                // 2. Right Wall (7 posters)
+                for(let k=0; k<7; k++) {
+                    const zPos = (zCenter + 7.5) - (k * 2.5);
                     addMobilePoster(9.7, yPos, zPos, -Math.PI/2, posterW, posterH, i);
                 }
                 
                 // 3. FRONT/BACK WALLS LOGIC
-                
-                // A) Front Wall (Facing the viewer when entering room)
-                // In all rooms except Room 0 (it has an entrance door), this is a "door wall".
-                // In Room 0, it's a solid back wall (behind you when you start, but "front" in coord terms? No, wait)
-                // Let's stick to world coordinates:
-                // Z-Front (towards camera start) = zCenter + roomSize/2
-                // Z-Back (towards next room) = zCenter - roomSize/2
+                // Front = towards entrance (+Z). Back = towards next room (-Z).
                 
                 // WALL FACING NEXT ROOM (The "Back" wall in camera view, zCenter - 10)
-                // If it's not the last room, it has a door.
                 if (i < roomsCount - 1) {
                     // Door Wall: 2 posters left, 2 posters right
-                    // Left side: x = -9 to -3 (6m span). Center at -6.
+                    // Left side (-10 to -2). Center at -6.
                     addMobilePoster(-7.0, yPos, zCenter - roomSize/2 + 0.3, 0, posterW, posterH, i);
                     addMobilePoster(-4.0, yPos, zCenter - roomSize/2 + 0.3, 0, posterW, posterH, i);
-                    // Right side: x = 3 to 9
+                    // Right side (2 to 10)
                     addMobilePoster(4.0, yPos, zCenter - roomSize/2 + 0.3, 0, posterW, posterH, i);
                     addMobilePoster(7.0, yPos, zCenter - roomSize/2 + 0.3, 0, posterW, posterH, i);
                 } else {
-                     // Last Room (Dark Room) - Solid Wall
-                     // 5 posters distributed evenly
+                     // Last Room (Dark Room) - SOLID WALL (No exit)
+                     // Create the physical wall first (was created as door wall by default logic, need to override or fill hole)
+                     // The default logic created a "DoorWall" or "Box".
+                     // Logic above: `else if (isDarkRoom) { createBox... }` -> This created a wall with door hole at start, and solid at end?
+                     // Ah, `isDarkRoom` creates `createBox(0, roomHeight/2, zCenter - roomSize/2...` which IS solid. Good.
+                     
+                     // 5 posters distributed evenly on the back wall
                      const endStep = 16 / 4; // 16m usable width
                      for(let k=0; k<5; k++) {
                          const xPos = -8 + (k * endStep);

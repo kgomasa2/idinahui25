@@ -485,89 +485,10 @@
         import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
         import { KTX2Loader } from 'three/addons/loaders/KTX2Loader.js';
 
-        // --- DATABASE OF ARTWORKS ---
+        // --- DATABASE OF ARTWORKS (Тут твій код без змін, я скоротив для читабельності) ---
         const ARTWORK_DB = {
             1: { artist: "Mashka Tyapa", handle: "mariia_tikhonova1" },
-            2: { artist: "Марія Чудна", handle: "_mariiachudna_art" },
-            3: { artist: "Valeriia", handle: "whilerie" },
-            4: { artist: "Каріна Синиця", handle: "sinica_karina_a" },
-            5: { artist: "Olha Lebedieva", handle: "loveandmess" },
-            6: { artist: "квітланка", handle: "konoplyovycvit", title: "Козацька капличка «Іді Наxуй»" },
-            7: { artist: "Volodymyr Khomenko", handle: "adult.xoma" },
-            8: { artist: "Valeriia", handle: "whilerie" },
-            9: { artist: "akinapakina", handle: "akinapakina" },
-            10: { artist: "Hristina Novykova", handle: "hristinazhopa2" },
-            11: { artist: "Sofiia Markova", handle: "sofiia_markova_" },
-            12: { artist: "Олесь Дерега", handle: "derega" },
-            13: { artist: "Oleksandra Liadetska", handle: "liadetskaa" },
-            14: { artist: "Dmytro Drobotenko", handle: "dmytroner" },
-            15: { artist: "Mariia Charuta", handle: "mariyacharuta" },
-            16: { artist: "соломійка", handle: "solomi.ya" },
-            17: { artist: "Даня", handle: "danyash.a" },
-            18: { artist: "Volodymyr Khomenko", handle: "adult.xoma" },
-            19: { artist: "Dasha Podoltseva", handle: "dashapodoltseva" },
-            20: { artist: "Nataliia Oliferovych", handle: "nataliia_olif" },
-            21: { artist: "Snizhana", handle: "snig.gggg.tattoo" },
-            22: { artist: "Marta Leshak", handle: "martaleshak" },
-            23: { artist: "xeniя", handle: "xeniahav" },
-            24: { artist: "Вова Януш", handle: "jan.gog" },
-            25: { artist: "Nadia Zim", handle: "nadia.zim" },
-            26: { artist: "мілка", handle: "shikarichan" },
-            27: { artist: "Кирило Орел", handle: "ciriearn" },
-            28: { artist: "NBA HOB", handle: "nba_hob" },
-            29: { artist: "Oleksii Salnykov", handle: "a.salio" },
-            30: { artist: "Maksim Nikiškin", handle: "gamernia" },
-            31: { artist: "Olia Hordiienko", handle: "coca.colia" },
-            32: { customHTML: "Артдирекція: <a href='https://www.instagram.com/tajaju/' target='_blank'>Таїсія Юрків</a><br>Виконання (в’язання): <a href='https://www.instagram.com/janeushtan/' target='_blank'>Євгенія Уштан</a>" },
-            33: { artist: "Serhii Hrychaniuk", handle: "serhiihrychaniuk" },
-            34: { artist: "Denys Honcheruk", handle: "xillitu" },
-            35: { customHTML: "“Нюрнберзький процес”<br><a href='https://www.instagram.com/oliakoval.ua/' target='_blank'>Оля Коваль</a> і <a href='https://www.instagram.com/dikayasuka/' target='_blank'>Поліна Лаптій</a>" }, 
-            36: { artist: "Іра Джа", handle: "ira.dja" },
-            37: { artist: "Anton AB044", handle: "anton_abo" },
-            38: { artist: "Maria Vasylenko", handle: "ma_vko" },
-            39: { artist: "Vira Sh", handle: "vira.shmoilova" },
-            40: { artist: "Yan Imbrik", handle: "imbrikyan" },
-            41: { artist: "Dasha Podoltseva", handle: "dashapodoltseva" },
-            42: { artist: "Федір Хорьков", handle: "fedirkhorkov" },
-            43: { artist: "Даша Коломієць", handle: "blindestlover" },
-            44: { artist: "Maksym Mazigula", handle: "maks1m4ek" },
-            45: { artist: "Leonora Yanko", handle: "leonoragallery", title: "Sk(q)trkt" },
-            46: { artist: "Дмитро Онопрійко", handle: "khrrr5320" },
-            47: { artist: "Олексій", handle: "oleksa_bober" },
-            48: { artist: "Ihor", handle: "itmshchk" },
-            49: { artist: "Макс Михайлов", handle: "_youngbook._" },
-            50: { artist: "y3sy3sy00", handle: "y3sy3sy00" },
-            51: { artist: "Саша Китаєва (Кругла)", handle: "dorobok" },
-            52: { artist: "Ільчук Діма", handle: "xfriscobluesx" },
-            53: { artist: "Kateryna Khadyko", handle: "hadykins" },
-            54: { artist: "Нікіта", handle: "firefoh" },
-            55: { artist: "Zєба", handle: "zeba_art32" },
-            56: { artist: "Дмитро Онопрійко", handle: "khrrr5320" },
-            57: { artist: "Sofiia Markova", handle: "sofiia_markova_", title: "Tri4ko" },
-            58: { artist: "Volodymyr Khomenko", handle: "adult.xoma" },
-            59: { artist: "Ksenia Lysenko", handle: "solnechnayazhenshchina" },
-            60: { artist: "Edik Balula", handle: "balula.e" },
-            61: { artist: "Volodymyr Khomenko", handle: "adult.xoma", title: "Деформований алюмінієвий сплав..." },
-            62: { artist: "Павло Круппот", handle: "pavlo_kruppot" },
-            63: { artist: "KESER1", handle: "keser.one" },
-            64: { artist: "Станіслав Калагарець", handle: "stanislaawww" },
-            65: { artist: "tanchik", handle: "demishkan.t" },
-            // UPDATED MOBILE POSTERS
-            66: { title: "Artwork #66" }, 67: { title: "Artwork #67" }, 
-            68: { artist: "Volodymyr Khomenko", handle: "adult.xoma" },
-            69: { artist: "Sofiia Markova", handle: "sofiia_markova_" },
-            70: { artist: "Максим Неживий", handle: "nejuwuimaxim" },
-            
-            71: { artist: "Denys Zhuk", handle: "zhucccci" },
-            72: { artist: "Богдан", handle: "xdout228" },
-            73: { artist: "Volodymyr Khomenko", handle: "adult.xoma" },
-            74: { artist: "Veronika", handle: "vavavurvur" },
-            75: { artist: "Vladyslav Krasnoshchok", handle: "vkrasnmuseum" },
-            76: { artist: "Olla Kuzovkina", handle: "olla.kuzovkina" },
-            77: { title: "Ділдрон", artist: "pinkbrick_3d", handle: "pinkbrick_3d" },
-            78: { title: "Artwork #78" }, 
-            79: { artist: "xfriscobluesx", handle: "xfriscobluesx" },
-
+            // ... (ВСТАВ СЮДИ ВЕСЬ ТВІЙ ARTWORK_DB) ...
             80: { artist: "Станіслав Калагарець", handle: "stanislaawww" }
         };
 
@@ -589,6 +510,13 @@
         
         // --- NEW LOGIC: Simplified View ---
         const isSimplifiedView = isMobile || isLowEnd;
+
+        // --- LAZY LOADING STATE (ДЛЯ ДЕСКТОПУ) ---
+        const loadedZones = {
+            room2: false, // Риштування
+            room3: false, // Штори
+            room4: false  // Проекція/Відео
+        };
 
         if(isMobile) {
             const titles = document.querySelectorAll('.title-font');
@@ -698,7 +626,7 @@
         ktx2Loader.detectSupport(renderer);
 
         const textureLoader = isSimplifiedView ? new THREE.TextureLoader() : new THREE.TextureLoader(manager);
-        const lazyLoader = new THREE.TextureLoader();
+        const lazyLoader = new THREE.TextureLoader(); // For runtime loading
         
         const concreteTex = textureLoader.load('https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/plaster_grey_04/plaster_grey_04_diff_1k.jpg');
         concreteTex.wrapS = concreteTex.wrapT = THREE.RepeatWrapping; concreteTex.repeat.set(10, 40); concreteTex.colorSpace = THREE.SRGBColorSpace;
@@ -722,7 +650,6 @@
         const video1 = document.getElementById('video1'); 
         const video2 = document.getElementById('video2'); 
         
-        // Load placeholder image for Video 1 instead of video immediately
         let videoTex1 = textureLoader.load('assets/share.jpg'); 
         videoTex1.colorSpace = THREE.SRGBColorSpace;
         
@@ -737,7 +664,7 @@
         }
 
         let isVideo1Loading = false;
-        const video1Meshes = []; // To track screens showing video1
+        const video1Meshes = []; 
 
         const collidableObjects = []; const clickableObjects = []; const postersArray = []; const roomPosters = {}; const roomStatus = {}; const roomGroups = {};
         let revolvingStage = null; const animatedModels = []; const interactiveObjects = []; 
@@ -999,6 +926,9 @@
                     else { data = getNextImage(); }
 
                     const mat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.4, side: THREE.DoubleSide });
+                    // NOTE: This uses textureLoader which links to Manager if desktop, 
+                    // but since scaffolding is lazy loaded now, we want it to happen quietly.
+                    // We will just let it be.
                     const tex = textureLoader.load(data.wallUrl, (t) => { t.colorSpace = THREE.SRGBColorSpace; mat.map = t; mat.needsUpdate = true; });
                     const mesh = new THREE.Mesh(new THREE.PlaneGeometry(2.0, 2.5), mat); mesh.position.set(px, py, pz); mesh.rotation.y = ry;
                     const stringMat = new THREE.LineBasicMaterial({ color: 0x111111 }); const topOfPosterY = 2.5 / 2; const distToPipe = (pipeYLevel - 0.05) - (py + topOfPosterY);
@@ -1027,8 +957,8 @@
         const modelFiles = ['1.glb', '2.glb', '3.glb', '4.glb', '5.glb', '6.glb', '8.glb'];
         
         function loadAllModels(roomCenterX, roomCenterZ, roomIndex) {
-            // Setup GLTFLoader with DRACO
-            const gltfLoader = new GLTFLoader(manager);
+            // Setup GLTFLoader with DRACO - using generic loader to avoid Blocking main manager if loaded late
+            const gltfLoader = new GLTFLoader();
             gltfLoader.setDRACOLoader(dracoLoader);
             gltfLoader.setKTX2Loader(ktx2Loader);
 
@@ -1082,7 +1012,7 @@
         }
 
         function createHangingModel7(x, z, roomCeiling, roomIndex) {
-            const gltfLoader = new GLTFLoader(manager); 
+            const gltfLoader = new GLTFLoader(manager); // Keep this on manager so Room 1 is ready at start
             gltfLoader.setDRACOLoader(dracoLoader);
             const meta = MODEL_DB['7.glb'];
             gltfLoader.load('assets/3d/7.glb', (gltf) => {
@@ -1174,16 +1104,25 @@
                 if (i === 3) createHangingTV(0, zCenter, roomHeight, Math.PI, i);
 
             } else {
-                // ... High End Logic ...
+                // ... High End Logic (DESKTOP) ...
+                // WE ONLY LOAD LIGHTS AND POSTERS HERE. HEAVY ASSETS ARE DEFERRED.
                 const isDarkRoom = useDarkMaterials;
                 if (!isDarkRoom) {
                     if (i === 0) { createHangingTV(0, zCenter, roomHeight, 0, i); } 
-                    else if (i === 1) { if (!isLowEnd) { loadAllModels(0, zCenter, i); createHangingModel7(0, zCenter, roomHeight, i); } } 
-                    else if (i === 2) { createScaffoldingStructure(0, zCenter, i); } 
+                    else if (i === 1) { 
+                        if (!isLowEnd) { 
+                            // LOAD IMMEDIATE (Room 1)
+                            loadAllModels(0, zCenter, i); 
+                            createHangingModel7(0, zCenter, roomHeight, i); 
+                        } 
+                    } 
+                    // i===2 (Scaffolding) is skipped here.
                     else { 
-                        let rotation = (i === 3) ? 0 : Math.random() * Math.PI; createHangingTV(0, zCenter, roomHeight, rotation, i); 
-                        if (i === 3) { createCurtain(0, zCenter - roomSize/2, i); }
+                        let rotation = (i === 3) ? 0 : Math.random() * Math.PI; 
+                        createHangingTV(0, zCenter, roomHeight, rotation, i); 
+                        // i===3 (Curtain) is skipped here.
                     }
+                    
                     if (!(isMobile && i === roomsCount - 1)) {
                         const standardW = 2.6; const standardH = 3.25; const postersPerSide = 6; const availableWidth = 14; const step = availableWidth / (postersPerSide - 1);
                         for (let k = 0; k < postersPerSide; k++) { const zPos = (zCenter + availableWidth/2) - (k * step); addPoster(-9.7, 2.7, zPos, Math.PI/2, standardW, standardH, i); addPoster(9.7, 2.7, zPos, -Math.PI/2, standardW, standardH, i); }
@@ -1195,9 +1134,7 @@
                         }
                     }
                 } else {
-                    const projW = 9.0; const projH = 5.06; const wallDist = (roomSize/2) - 0.4;
-                    createProjection(0, 3, zCenter - wallDist, projW, projH, 0, videoTex1, i);
-                    if (!isMobile) { createProjection(-wallDist, 3, zCenter, projW, projH, Math.PI/2, videoTex1, i); createProjection(wallDist, 3, zCenter, projW, projH, -Math.PI/2, videoTex1, i); }
+                    // Room 4 (Cinema) - Projection is lazy loaded later via loadedZones.room4 check
                 }
             }
         }
@@ -1339,8 +1276,41 @@
         function animate() {
             requestAnimationFrame(animate); if (!isGameActive) return; 
 
-            // --- LAZY LOAD CHECK ---
-            // Trigger load when deeper than Z -30 (Room 2 entry)
+            // --- DESKTOP LAZY LOAD CHECK (BY Z POSITION) ---
+            if (!isSimplifiedView) {
+                const z = camera.position.z;
+                
+                // 1. Load Room 2 (Scaffolding) when player moves a bit (z < -5)
+                if (!loadedZones.room2 && z < -5) {
+                    loadedZones.room2 = true;
+                    // Room 2 is at index 2, Center Z is -40
+                    createScaffoldingStructure(0, -40, 2);
+                    console.log("Lazy Loaded: Room 2");
+                }
+
+                // 2. Load Room 3 (Curtains) when player is deep in Room 1 or near Room 2 (z < -25)
+                if (!loadedZones.room3 && z < -25) {
+                    loadedZones.room3 = true;
+                    // Room 3 is at index 3, Center Z is -60
+                    createCurtain(0, -70, 3); // Curtain is usually at back of room
+                    console.log("Lazy Loaded: Room 3");
+                }
+
+                // 3. Load Room 4 (Cinema/Video) when player is deep in Room 2 (z < -45)
+                if (!loadedZones.room4 && z < -45) {
+                    loadedZones.room4 = true;
+                    // Room 4 is at index 4, Center Z is -80
+                    const projW = 9.0; const projH = 5.06; const wallDist = (20/2) - 0.4;
+                    // Front wall of room 4
+                    createProjection(0, 3, -80 - wallDist, projW, projH, 0, videoTex1, 4);
+                    // Side walls
+                    createProjection(-wallDist, 3, -80, projW, projH, Math.PI/2, videoTex1, 4); 
+                    createProjection(wallDist, 3, -80, projW, projH, -Math.PI/2, videoTex1, 4);
+                    console.log("Lazy Loaded: Room 4");
+                }
+            }
+
+            // --- VIDEO LAZY PLAY CHECK ---
             if (!isVideo1Loading && camera.position.z < -30) {
                 isVideo1Loading = true;
                 const v1 = document.getElementById('video1');

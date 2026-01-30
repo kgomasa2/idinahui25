@@ -8,14 +8,15 @@
     <link rel="shortcut icon" href="assets/favicon/favicon.ico">
     <meta name="msapplication-TileColor" content="#da532c">
     <meta name="theme-color" content="#ffffff">
-
-    <link rel="preconnect" href="https://cdn.jsdelivr.net">
-    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
-    <link rel="dns-prefetch" href="https://www.googletagmanager.com">
     
-    <link rel="preload" href="assets/EquateurUA-Regular.woff2" as="font" type="font/woff2" crossorigin>
-    <link rel="preload" href="assets/DirectorUAVariableVF.woff2" as="font" type="font/woff2" crossorigin>
-    <link rel="preload" href="assets/loader.png" as="image">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-8RKB3ZJ59V"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-8RKB3ZJ59V');
+    </script>
 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -34,18 +35,17 @@
     <meta property="twitter:title" content="Віртуальна квартирна виставка артпроєкту «Іді Нахуй»">
     <meta property="twitter:description" content="Роботи від 70 українських митців, три зали, кінотеатр і скульптури.">
     <meta property="twitter:image" content="https://idinahui.art/assets/share.jpg">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
     
     <style>
-        /* FONTS: WOFF2 + SWAP */
         @font-face {
             font-family: 'EquateurUA';
-            src: url('assets/EquateurUA-Regular.woff2') format('woff2');
-            font-display: swap; 
+            src: url('assets/EquateurUA-Regular.otf') format('opentype');
         }
         @font-face {
             font-family: 'DirectorUA';
-            src: url('assets/DirectorUAVariableVF.woff2') format('woff2');
-            font-display: swap; 
+            src: url('assets/DirectorUAVariableVF.ttf') format('truetype');
         }
 
         body { 
@@ -220,7 +220,6 @@
         }
         @keyframes pulseBtn { 0% { transform: translateX(-50%) scale(1); } 50% { transform: translateX(-50%) scale(1.05); } 100% { transform: translateX(-50%) scale(1); } }
         
-        /* Artwork Modal */
         #artwork-modal {
             display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(10, 10, 10, 0.8); 
@@ -360,21 +359,19 @@
     <script type="importmap">
         {
             "imports": {
-                "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
-                "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
             }
         }
     </script>
 </head>
 <body>
     <script>
-        // --- OPTIMIZATION FLAGS ---
         window.isLowEnd = false;
         if (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4) {
             window.isLowEnd = true;
-            console.log("Low-end device detected (CPU Cores). Optimizing...");
+            console.log("Low-end device detected. Optimizing...");
         }
-        
         const isMobileCheck = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
         if(isMobileCheck) window.isLowEnd = true; 
     </script>
@@ -404,7 +401,7 @@
                 Роботи від 70 українських митців та мисткинь, три зали, кінотеатр і скульптури.
             </div>
             <div class="bottom-text">
-                Зараз заграє композиція <a href="https://www.instagram.com/alexeyshmurak/" target="_blank" class="text-link">Олексія Шмурака</a>. Виставка відбувалась у червні 2025 року у квартирній галереї <a href="https://www.instagram.com/hadykins/" target="_blank" class="text-link">Катерини Хадико</a>. Куратор: <a href="https://www.instagram.com/adult.xoma/" target="_blank" class="text-link">Володимир Хоменко</a>, менеджер: <a href="https://www.instagram.com/stanislaawww/" target="_blank" class="text-link">Станіслав Калагарець</a>. Шрифти: <a href="https://www.instagram.com/levtype/" target="_blank" class="text-link">LEVTYPE</a>. На завантаженні використано фрагмент з роботи <a href="https://www.instagram.com/sinica_karina_a/" target="_blank" class="text-link">Каріни Синиці</a>. Автор оригінального знака <a href="https://www.instagram.com/captainsimonov/" target="_blank" class="text-link">Simonov Dmitry</a>
+                Зараз заграє композиція <a href="https://www.instagram.com/alexeyshmurak/" target="_blank" class="text-link">Олексія Шмурака</a>. Виставка відбувалась у червні 2025 року у квартирній галереї <a href="https://www.instagram.com/hadykins/" target="_blank" class="text-link">Катерини Хадико</a>. Куратор: <a href="https://www.instagram.com/adult.xoma/" target="_blank" class="text-link">Володимир Хоменко</a>, менеджер: <a href="https://www.instagram.com/stanislaawww/" target="_blank" class="text-link">Станіслав Калагарець</a>. Шрифти: <a href="https://www.instagram.com/levtype/" target="_blank" class="text-link">LEVTYPE</a>. На завантаженні використано фрагмент з роботи <a href="https://www.instagram.com/sinica_karina_a/" target="_blank" class="text-link">Каріни Синиці</a>
             </div>
         </div>
     </div>
@@ -426,7 +423,7 @@
                 Роботи від 70 українських митців та мисткинь, три зали, кінотеатр і скульптури.
             </div>
             <div class="bottom-text">
-                Зараз заграє композиція <a href="https://www.instagram.com/alexeyshmurak/" target="_blank" class="text-link">Олексія Шмурака</a>. Виставка відбувалась у червні 2025 року у квартирній галереї <a href="https://www.instagram.com/hadykins/" target="_blank" class="text-link">Катерини Хадико</a>. Куратор: <a href="https://www.instagram.com/adult.xoma/" target="_blank" class="text-link">Володимир Хоменко</a>, менеджер: <a href="https://www.instagram.com/stanislaawww/" target="_blank" class="text-link">Станіслав Калагарець</a>. Шрифти: <a href="https://www.instagram.com/levtype/" target="_blank" class="text-link">LEVTYPE</a>. На завантаженні використано фрагмент з роботи <a href="https://www.instagram.com/sinica_karina_a/" target="_blank" class="text-link">Каріни Синиці</a>. Автор оригінального знака <a href="https://www.instagram.com/captainsimonov/" target="_blank" class="text-link">Simonov Dmitry</a>
+                Зараз заграє композиція <a href="https://www.instagram.com/alexeyshmurak/" target="_blank" class="text-link">Олексія Шмурака</a>. Виставка відбувалась у червні 2025 року у квартирній галереї <a href="https://www.instagram.com/hadykins/" target="_blank" class="text-link">Катерини Хадико</a>. Куратор: <a href="https://www.instagram.com/adult.xoma/" target="_blank" class="text-link">Володимир Хоменко</a>, менеджер: <a href="https://www.instagram.com/stanislaawww/" target="_blank" class="text-link">Станіслав Калагарець</a>. Шрифти: <a href="https://www.instagram.com/levtype/" target="_blank" class="text-link">LEVTYPE</a>. На завантаженні використано фрагмент з роботи <a href="https://www.instagram.com/sinica_karina_a/" target="_blank" class="text-link">Каріни Синиці</a>
             </div>
         </div>
     </div>
@@ -435,12 +432,12 @@
     <div id="mobile-sit-btn">SIT</div>
     <div id="view-btn">VIEW</div>
 
-    <audio id="bgMusic" loop preload="none">
+    <audio id="bgMusic" loop preload="auto">
         <source src="assets/song.mp3" type="audio/mpeg">
     </audio>
 
-    <video id="video1" loop crossOrigin="anonymous" playsinline style="display:none" muted preload="none">
-        <source data-src="assets/video1.mp4" type="video/mp4">
+    <video id="video1" loop crossOrigin="anonymous" playsinline style="display:none" muted preload="metadata">
+        <source src="assets/video1.mp4" type="video/mp4">
     </video>
     <video id="video2" loop crossOrigin="anonymous" playsinline style="display:none" muted preload="metadata">
         <source src="assets/video2.mp4" type="video/mp4">
@@ -462,40 +459,24 @@
         <div class="info-content">
             <h1 class="info-title">“ІДІ НАХУЙ”</h1>
             <div class="info-body-director">
-                Артпроєкт «Іді Нахуй» — це деконструкція народного мему. Ми простежуємо траєкторії цього знака від мовленнєвого акту на острові Зміїний до глобального мему, товарного бренду та інструменту внутрішньої політики.<br><br>
-                Віртуальна виставка функціонує в режимі «живого архіву». Знак втрачає персональне авторство, переходить у режим «бідного образу», циркулює в соцмережах, змінюється разом із контекстами та аудиторіями, стає засобом суспільного діалогу. Як реальність війни входить у культуру, і як ми використовуємо ці нестабільні, амбівалентні форми як спосіб колективного виживання та ствердження суб’єктності.
+                Проєкт «ІДІ НАХУЙ» — це деконструкція одного з найгучніших знаків повномасштабної війни: фрази, що стала жестом суверенної відмови, і графічної форми, яка перетворилась на образ тотальної присутності. Ми простежуємо траєкторії цього знака від мовленнєвого акту на острові Зміїний до глобального мему, товарного бренду та інструменту внутрішньої політики. Фіксуємо безперервну мутацію символу, який водночас є актом спротиву і носієм складної імперської спадщини, демонструючи, як війна перетворює мову на дію, а дію — на нескінченний цифровий тираж.<br><br>
+                Віртуальна виставка функціонує в режимі «живого архіву». Знак у цій логіці не закріплюється в статусі завершеного образу, а залишається відкритим полем напруги й конфлікту. Він втрачає персональне авторство, переходить у режим «бідного образу», циркулює в соцмережах, змінюється разом із контекстами та аудиторіями, стає засобом суспільного діалогу. Як реальність війни входить у культуру, і як ми використовуємо ці нестабільні, амбівалентні форми як спосіб колективного виживання та ствердження суб’єктності.
             </div>
             <div class="info-body-helvetica">
                 Виставка відбувалась у червні 2025 року у квартирній галереї <a href="https://www.instagram.com/hadykins/" target="_blank" class="text-link">Катерини Хадико</a>.<br>
                 Куратор: <a href="https://www.instagram.com/adult.xoma/" target="_blank" class="text-link">Володимир Хоменко</a>, менеджер: <a href="https://www.instagram.com/stanislaawww/" target="_blank" class="text-link">Станіслав Калагарець</a>. Шрифти: <a href="https://www.instagram.com/levtype/" target="_blank" class="text-link">LevType</a>.<br>
-                Зараз грає композиція <a href="https://www.instagram.com/alexeyshmurak/" target="_blank" class="text-link">Олексія Шмурака</a>. Автор оригінального знака <a href="https://www.instagram.com/captainsimonov/" target="_blank" class="text-link">Simonov Dmitry</a>
+                Зараз грає композиція <a href="https://www.instagram.com/alexeyshmurak/" target="_blank" class="text-link">Олексія Шмурака</a>
             </div>
             <a href="https://www.instagram.com/idinahui.art/" target="_blank" class="insta-btn">ІНСТАГРАМ</a>
         </div>
     </div>
 
-    <script>
-        window.addEventListener('load', function() {
-            var script = document.createElement('script');
-            script.src = 'https://www.googletagmanager.com/gtag/js?id=G-8RKB3ZJ59V';
-            script.async = true;
-            document.body.appendChild(script);
-            script.onload = function() {
-                window.dataLayer = window.dataLayer || [];
-                function gtag(){dataLayer.push(arguments);}
-                gtag('js', new Date());
-                gtag('config', 'G-8RKB3ZJ59V');
-            };
-        });
-    </script>
 
     <script type="module">
         import * as THREE from 'three';
         import { PointerLockControls } from 'three/addons/controls/PointerLockControls.js';
         import { RectAreaLightUniformsLib } from 'three/addons/lights/RectAreaLightUniformsLib.js';
         import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-        import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
-        import { KTX2Loader } from 'three/addons/loaders/KTX2Loader.js';
 
         // --- DATABASE OF ARTWORKS ---
         const ARTWORK_DB = {
@@ -559,12 +540,14 @@
             58: { artist: "Volodymyr Khomenko", handle: "adult.xoma" },
             59: { artist: "Ksenia Lysenko", handle: "solnechnayazhenshchina" },
             60: { artist: "Edik Balula", handle: "balula.e" },
-            61: { artist: "Volodymyr Khomenko", handle: "adult.xoma", title: "Деформований алюмінієвий сплав..." },
+            // UPDATED ENTRY 61
+            61: { artist: "Andrew Stepkin", handle: "dubdubdubdubdubdubdubdubdub" },
             62: { artist: "Павло Круппот", handle: "pavlo_kruppot" },
             63: { artist: "KESER1", handle: "keser.one" },
             64: { artist: "Станіслав Калагарець", handle: "stanislaawww" },
             65: { artist: "tanchik", handle: "demishkan.t" },
-            // UPDATED MOBILE POSTERS
+            
+            // UPDATED LIST 66-80
             66: { title: "Artwork #66" }, 67: { title: "Artwork #67" }, 
             68: { artist: "Volodymyr Khomenko", handle: "adult.xoma" },
             69: { artist: "Sofiia Markova", handle: "sofiia_markova_" },
@@ -597,10 +580,7 @@
         const CURTAIN_DATA = { artist: "Катя Дрозд", handle: "kkkaaattteee_ddd" };
 
         const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-        const isLowEnd = window.isLowEnd; 
-        
-        // --- NEW LOGIC: Simplified View ---
-        const isSimplifiedView = isMobile || isLowEnd;
+        const isLowEnd = window.isLowEnd;
 
         if(isMobile) {
             const titles = document.querySelectorAll('.title-font');
@@ -612,53 +592,40 @@
             document.getElementById('start-subtitle').innerText = "Для кращого досвіду радимо переглядати з комп’ютера";
         }
 
-        if (isSimplifiedView) { THREE.Cache.enabled = false; }
-
-        // OPTIMIZATION: Async loading of Matter.js
-        function loadMatterJS(callback) {
-            if (typeof Matter !== 'undefined') return callback();
-            const script = document.createElement('script');
-            script.src = 'https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js';
-            script.onload = callback;
-            document.body.appendChild(script);
-        }
+        if (isMobile) { THREE.Cache.enabled = false; }
 
         function initGravityBackground() {
-            if (isSimplifiedView) return; 
-            
-            loadMatterJS(() => {
-                const Engine = Matter.Engine, Render = Matter.Render, Runner = Matter.Runner, Bodies = Matter.Bodies, Composite = Matter.Composite, Mouse = Matter.Mouse, Events = Matter.Events;
-                const engine = Engine.create(); const world = engine.world;
-                const container = document.getElementById('physics-canvas');
-                const width = window.innerWidth; const height = window.innerHeight;
-                const render = Render.create({ element: container, engine: engine, options: { width: width, height: height, background: 'transparent', wireframes: false } });
-                const ground = Bodies.rectangle(width / 2, height + 50, width, 100, { isStatic: true, render: { visible: false } });
-                const leftWall = Bodies.rectangle(-50, height / 2, 100, height, { isStatic: true, render: { visible: false } });
-                const rightWall = Bodies.rectangle(width + 50, height / 2, 100, height, { isStatic: true, render: { visible: false } });
-                Composite.add(world, [ground, leftWall, rightWall]);
-                const items = [];
-                for (let i = 1; i <= 6; i++) {
-                    const x = Math.random() * (width - 200) + 100; const y = -Math.random() * 500 - 100; const scale = 0.75; 
-                    const item = Bodies.rectangle(x, y, 150 * scale, 150 * scale, { restitution: 0.8, frictionAir: 0.01, render: { sprite: { texture: `assets/fon${i}.png`, xScale: scale, yScale: scale } } });
-                    items.push(item);
-                }
-                Composite.add(world, items);
-                const mouse = Mouse.create(render.canvas);
-                Events.on(engine, 'beforeUpdate', function() {
-                    const mousePos = mouse.position;
-                    items.forEach(body => {
-                        const dx = body.position.x - mousePos.x; const dy = body.position.y - mousePos.y; const dist = Math.sqrt(dx*dx + dy*dy);
-                        if (dist < 120) { const forceMagnitude = 0.2; Matter.Body.applyForce(body, body.position, { x: (dx / dist) * forceMagnitude, y: (dy / dist) * forceMagnitude - 0.25 }); }
-                    });
+            if (isMobile || isLowEnd) return; 
+            const Engine = Matter.Engine, Render = Matter.Render, Runner = Matter.Runner, Bodies = Matter.Bodies, Composite = Matter.Composite, Mouse = Matter.Mouse, Events = Matter.Events;
+            const engine = Engine.create(); const world = engine.world;
+            const container = document.getElementById('physics-canvas');
+            const width = window.innerWidth; const height = window.innerHeight;
+            const render = Render.create({ element: container, engine: engine, options: { width: width, height: height, background: 'transparent', wireframes: false } });
+            const ground = Bodies.rectangle(width / 2, height + 50, width, 100, { isStatic: true, render: { visible: false } });
+            const leftWall = Bodies.rectangle(-50, height / 2, 100, height, { isStatic: true, render: { visible: false } });
+            const rightWall = Bodies.rectangle(width + 50, height / 2, 100, height, { isStatic: true, render: { visible: false } });
+            Composite.add(world, [ground, leftWall, rightWall]);
+            const items = [];
+            for (let i = 1; i <= 6; i++) {
+                const x = Math.random() * (width - 200) + 100; const y = -Math.random() * 500 - 100; const scale = 0.75; 
+                const item = Bodies.rectangle(x, y, 150 * scale, 150 * scale, { restitution: 0.8, frictionAir: 0.01, render: { sprite: { texture: `assets/fon${i}.png`, xScale: scale, yScale: scale } } });
+                items.push(item);
+            }
+            Composite.add(world, items);
+            const mouse = Mouse.create(render.canvas);
+            Events.on(engine, 'beforeUpdate', function() {
+                const mousePos = mouse.position;
+                items.forEach(body => {
+                    const dx = body.position.x - mousePos.x; const dy = body.position.y - mousePos.y; const dist = Math.sqrt(dx*dx + dy*dy);
+                    if (dist < 120) { const forceMagnitude = 0.2; Matter.Body.applyForce(body, body.position, { x: (dx / dist) * forceMagnitude, y: (dy / dist) * forceMagnitude - 0.25 }); }
                 });
-                Render.run(render); const runner = Runner.create(); Runner.run(runner, engine);
-                document.getElementById('start-btn').addEventListener('click', () => { Render.stop(render); Runner.stop(runner); container.innerHTML = ''; });
             });
+            Render.run(render); const runner = Runner.create(); Runner.run(runner, engine);
+            document.getElementById('start-btn').addEventListener('click', () => { Render.stop(render); Runner.stop(runner); container.innerHTML = ''; });
         }
 
         const loadStartTime = Date.now();
-        const minLoadTime = 1500; 
-        
+        const minLoadTime = 4000; 
         const progressFill = document.getElementById('progress-line-fill');
         const angelLoader = document.getElementById('angel-loader');
         const manager = new THREE.LoadingManager();
@@ -670,15 +637,12 @@
                 const loader = document.getElementById('loading-screen'); loader.style.opacity = 0;
                 setTimeout(() => {
                     loader.style.display = 'none'; document.getElementById('start-screen').style.display = 'flex';
-                    initGravityBackground(); 
-                    if (isSimplifiedView) {
-                        checkRoomLoad(0); 
-                    }
+                    initGravityBackground(); if (isMobile) checkRoomLoad(0);
                 }, 800); 
             }, 500);
         }
 
-        if (isSimplifiedView) {
+        if (isMobile) {
             let simPercent = 0;
             const simInterval = setInterval(() => {
                 simPercent += 3; if (simPercent > 100) simPercent = 100; updateLoaderUI(simPercent);
@@ -693,44 +657,18 @@
         RectAreaLightUniformsLib.init();
         const aspect = window.innerWidth / window.innerHeight; const initialFov = aspect < 1 ? 95 : 70;
         const camera = new THREE.PerspectiveCamera(initialFov, window.innerWidth / window.innerHeight, 0.1, 100); camera.position.set(0, 1.7, 8); camera.rotation.order = 'YXZ'; 
-        
-        const renderer = new THREE.WebGLRenderer({ 
-            antialias: !isSimplifiedView, 
-            powerPreference: "high-performance" 
-        });
-        renderer.setSize(window.innerWidth, window.innerHeight); 
-        renderer.outputColorSpace = THREE.SRGBColorSpace; 
-        renderer.toneMapping = THREE.NoToneMapping; 
-        
-        const maxPixelRatio = isLowEnd ? 1.0 : 1.5;
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio, maxPixelRatio));
-
-        if (isSimplifiedView) { 
-            renderer.shadowMap.enabled = false; 
-        } else { 
-            renderer.shadowMap.enabled = true; 
-            renderer.shadowMap.type = THREE.PCFSoftShadowMap; 
-        }
+        const renderer = new THREE.WebGLRenderer({ antialias: !isMobile && !isLowEnd, powerPreference: "high-performance" });
+        renderer.setSize(window.innerWidth, window.innerHeight); renderer.outputColorSpace = THREE.SRGBColorSpace; renderer.toneMapping = THREE.NoToneMapping; 
+        const pixelRatio = isLowEnd ? 0.75 : Math.min(window.devicePixelRatio, 1.5); renderer.setPixelRatio(pixelRatio);
+        if (isMobile || isLowEnd) { renderer.shadowMap.enabled = false; } else { renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap; }
         document.body.appendChild(renderer.domElement);
         const bgMusic = document.getElementById('bgMusic'); bgMusic.volume = 0.65;
 
-        // --- COMPRESSION LOADERS SETUP ---
-        const dracoLoader = new DRACOLoader();
-        // OPTIMIZATION: CDN
-        dracoLoader.setDecoderPath('https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/libs/draco/');
-        
-        const ktx2Loader = new KTX2Loader();
-        // OPTIMIZATION: CDN
-        ktx2Loader.setTranscoderPath('https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/libs/basis/');
-        ktx2Loader.detectSupport(renderer);
-
-        const textureLoader = isSimplifiedView ? new THREE.TextureLoader() : new THREE.TextureLoader(manager);
+        const textureLoader = isMobile ? new THREE.TextureLoader() : new THREE.TextureLoader(manager);
         const lazyLoader = new THREE.TextureLoader();
-        
         const concreteTex = textureLoader.load('https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/plaster_grey_04/plaster_grey_04_diff_1k.jpg');
         concreteTex.wrapS = concreteTex.wrapT = THREE.RepeatWrapping; concreteTex.repeat.set(10, 40); concreteTex.colorSpace = THREE.SRGBColorSpace;
         const drozdTex = textureLoader.load('assets/drozd.jpg'); drozdTex.colorSpace = THREE.SRGBColorSpace;
-        
         const wallMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.5 });
         const floorMat = new THREE.MeshStandardMaterial({ map: concreteTex, roughness: 0.8, color: 0xaaaaaa });
         const darkWallMat = new THREE.MeshStandardMaterial({ color: 0x050505, roughness: 0.9 });
@@ -745,26 +683,9 @@
         const discGeo = new THREE.CylinderGeometry(0.15, 0.15, 0.02, 32); discGeo.rotateZ(Math.PI / 2); discGeo.rotateX(Math.PI / 2);
         const ringGeo = new THREE.TorusGeometry(0.04, 0.008, 8, 16);
 
-        // --- LAZY VIDEO SETUP ---
-        const video1 = document.getElementById('video1'); 
-        const video2 = document.getElementById('video2'); 
-        
-        // Load placeholder image for Video 1 instead of video immediately
-        let videoTex1 = textureLoader.load('assets/share.jpg'); 
-        videoTex1.colorSpace = THREE.SRGBColorSpace;
-        
-        let videoTex2;
-        if (isSimplifiedView) { 
-            const tvStaticTex = textureLoader.load('assets/for tv.jpeg'); 
-            tvStaticTex.colorSpace = THREE.SRGBColorSpace; 
-            videoTex2 = tvStaticTex; 
-        } else { 
-            videoTex2 = new THREE.VideoTexture(video2); 
-            videoTex2.colorSpace = THREE.SRGBColorSpace; 
-        }
-
-        let isVideo1Loading = false;
-        const video1Meshes = []; // To track screens showing video1
+        const video1 = document.getElementById('video1'); const video2 = document.getElementById('video2'); let videoTex1, videoTex2;
+        if (isMobile || isLowEnd) { const tvStaticTex = textureLoader.load('assets/for tv.jpeg'); tvStaticTex.colorSpace = THREE.SRGBColorSpace; videoTex1 = tvStaticTex; videoTex2 = tvStaticTex; } 
+        else { videoTex1 = new THREE.VideoTexture(video1); videoTex2 = new THREE.VideoTexture(video2); videoTex1.colorSpace = THREE.SRGBColorSpace; videoTex2.colorSpace = THREE.SRGBColorSpace; }
 
         const collidableObjects = []; const clickableObjects = []; const postersArray = []; const roomPosters = {}; const roomStatus = {}; const roomGroups = {};
         let revolvingStage = null; const animatedModels = []; const interactiveObjects = []; 
@@ -772,16 +693,31 @@
         let currentImageId = 1;
         const totalImages = 80; 
 
-        // DESKTOP LOGIC (kept for desktop)
         function getNextImage() {
             const id = currentImageId;
-            let wallUrl = `assets/small/image${id}.jpeg`; 
-            let fullUrl = `assets/image${id}.jpeg`; 
+            let wallUrl, fullUrl;
             
+            // UPDATED URL LOGIC: USE 'SMALL_MOBILE' FOR WALLS
+            // USE 'SMALL' FOR CLICK
+            if (isMobile) { 
+                wallUrl = `assets/small_mobile/image${id}.jpeg`; 
+                fullUrl = `assets/small/image${id}.jpeg`; 
+            } else { 
+                wallUrl = `assets/small/image${id}.jpeg`; 
+                fullUrl = `assets/image${id}.jpeg`; 
+            }
+            
+            // SKIP 66, 67, 78 based on user instruction
+            if (currentImageId === 65) currentImageId = 68;
+            else if (currentImageId === 77) currentImageId = 79;
+            else currentImageId++; 
+
+            if (currentImageId > totalImages) currentImageId = 1; 
+
+            // Get metadata (if missing, use placeholder)
             const meta = ARTWORK_DB[id] || { artist: "Unknown" };
             const title = meta.title ? meta.title : ""; 
-
-            currentImageId++; if (currentImageId > totalImages) currentImageId = 1; 
+            
             return { wallUrl, fullUrl, title, id, meta };
         }
 
@@ -794,8 +730,15 @@
             const data = getNextImage();
             const geo = new THREE.PlaneGeometry(w, h);
             
-            const tex = textureLoader.load(data.wallUrl, (t) => { t.colorSpace = THREE.SRGBColorSpace; });
-            const mat = new THREE.MeshStandardMaterial({ map: tex, color: 0xffffff, roughness: 0.4 });
+            let mat;
+            if (isMobile) {
+                mat = placeholderMat.clone();
+                if (!roomPosters[roomIndex]) roomPosters[roomIndex] = [];
+                roomPosters[roomIndex].push({ mesh: null, material: mat, url: data.wallUrl });
+            } else {
+                const tex = textureLoader.load(data.wallUrl, (t) => { t.colorSpace = THREE.SRGBColorSpace; });
+                mat = new THREE.MeshStandardMaterial({ map: tex, color: 0xffffff, roughness: 0.4 });
+            }
             
             const mesh = new THREE.Mesh(geo, mat);
             mesh.position.set(x, y, z); mesh.rotation.y = ry;
@@ -814,111 +757,27 @@
             addToRoom(mesh, roomIndex);
             postersArray.push(mesh);
             clickableObjects.push(mesh);
+            if (isMobile && roomPosters[roomIndex]) { roomPosters[roomIndex][roomPosters[roomIndex].length - 1].mesh = mesh; }
         }
 
-        // --- MOBILE POSTER LOGIC ---
-        const validMobileIDs = [];
-        for(let i=1; i<=80; i++) {
-            if (i !== 66 && i !== 67 && i !== 78) {
-                validMobileIDs.push(i);
-            }
-        }
+        function checkRoomLoad(currentRoom) { if (!isMobile) return; const keepLoaded = [currentRoom, currentRoom + 1]; for (let idx = 0; idx < 5; idx++) { if (!keepLoaded.includes(idx) && roomStatus[idx] === 'loaded') { unloadRoomTextures(idx); } } keepLoaded.forEach(idx => { if (idx >= 0 && idx < 5 && roomStatus[idx] !== 'loaded') { loadRoomTextures(idx); } }); }
         
-        let mobilePosterIndex = 0; 
-
-        function addMobilePoster(x, y, z, ry, w, h, roomIndex) {
-            const id = validMobileIDs[mobilePosterIndex];
-            mobilePosterIndex = (mobilePosterIndex + 1) % validMobileIDs.length;
-
-            const meta = ARTWORK_DB[id] || { artist: "" };
-            
-            const wallUrl = `assets/small_mobile/image${id}.jpeg`;
-            const fullUrl = `assets/small/image${id}.jpeg`;
-
-            const geo = new THREE.PlaneGeometry(w, h);
-            const mat = placeholderMat.clone();
-            
-            const mesh = new THREE.Mesh(geo, mat);
-            mesh.position.set(x, y, z); mesh.rotation.y = ry;
-            
-            mesh.userData = { 
-                type: 'poster', 
-                id: id, 
-                url: fullUrl, 
-                title: meta.title || "", 
-                artist: meta.artist,
-                handle: meta.handle,
-                extraLink: meta.extraLink,
-                customHTML: meta.customHTML
-            };
-            
-            if (!roomPosters[roomIndex]) roomPosters[roomIndex] = [];
-            roomPosters[roomIndex].push({ mesh: mesh, material: mat, url: wallUrl });
-            
-            if (roomIndex === 0) {
-                 const onLoad = (t) => { 
-                     t.colorSpace = THREE.SRGBColorSpace; 
-                     mesh.material.map = t; 
-                     mesh.material.color.setHex(0xffffff);
-                     mesh.material.needsUpdate = true;
-                 };
-                 lazyLoader.load(wallUrl, onLoad, undefined, () => {
-                     const fallback = wallUrl.replace('small_mobile', 'small');
-                     lazyLoader.load(fallback, onLoad);
-                 });
-                 roomStatus[0] = 'loaded';
-            }
-
-            addToRoom(mesh, roomIndex);
-            clickableObjects.push(mesh);
-        }
-
-        function checkRoomLoad(currentRoom) { 
-            if (!isSimplifiedView) return; 
-            const keepLoaded = [currentRoom, currentRoom + 1]; 
-            for (let idx = 0; idx < 5; idx++) { 
-                if (!keepLoaded.includes(idx) && roomStatus[idx] === 'loaded') { unloadRoomTextures(idx); } 
-            } 
-            keepLoaded.forEach(idx => { 
-                if (idx >= 0 && idx < 5 && roomStatus[idx] !== 'loaded') { loadRoomTextures(idx); } 
-            }); 
-        }
-        
+        // SIMPLE LOADER RELOADED
         function loadRoomTextures(roomIdx) { 
             if (!roomPosters[roomIdx]) return; 
             roomStatus[roomIdx] = 'loaded'; 
             roomPosters[roomIdx].forEach(item => { 
-                if (item.material.map) return;
-                const onLoad = (tex) => { 
+                lazyLoader.load(item.url, (tex) => { 
                     tex.colorSpace = THREE.SRGBColorSpace; 
                     item.material.map = tex; 
                     item.material.color.setHex(0xffffff); 
                     item.material.needsUpdate = true; 
-                };
-                const onError = () => {
-                    if (item.url.includes('small_mobile')) {
-                        const fallbackUrl = item.url.replace('small_mobile', 'small');
-                        lazyLoader.load(fallbackUrl, onLoad);
-                    }
-                };
-                lazyLoader.load(item.url, onLoad, undefined, onError); 
+                });
             }); 
         }
         
         function unloadRoomTextures(roomIdx) { if (!roomPosters[roomIdx]) return; roomStatus[roomIdx] = 'unloaded'; roomPosters[roomIdx].forEach(item => { if (item.material.map) { item.material.map.dispose(); item.material.map = null; } item.material.color.setHex(0x888888); item.material.needsUpdate = true; }); }
-        
-        function createBox(x, y, z, w, h, d, isWall = true, isDark = false, customMat = null, roomIndex) { 
-            let mat = customMat ? customMat : (isDark ? (isWall ? darkWallMat : darkFloorMat) : (isWall ? wallMat : floorMat)); 
-            const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat); mesh.position.set(x, y, z); 
-            mesh.receiveShadow = !isSimplifiedView; 
-            if(isWall) { 
-                if (w > 1 && h > 1 && !isSimplifiedView) mesh.castShadow = true; 
-                mesh.updateMatrixWorld(); 
-                collidableObjects.push({ box: new THREE.Box3().setFromObject(mesh) }); 
-            } 
-            addToRoom(mesh, roomIndex); 
-        }
-        
+        function createBox(x, y, z, w, h, d, isWall = true, isDark = false, customMat = null, roomIndex) { let mat = customMat ? customMat : (isDark ? (isWall ? darkWallMat : darkFloorMat) : (isWall ? wallMat : floorMat)); const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat); mesh.position.set(x, y, z); mesh.receiveShadow = !isMobile && !isLowEnd; if(isWall) { if (w > 1 && h > 1 && !isMobile && !isLowEnd) mesh.castShadow = true; mesh.updateMatrixWorld(); collidableObjects.push({ box: new THREE.Box3().setFromObject(mesh) }); } addToRoom(mesh, roomIndex); }
         function createDoorWall(z, width, height, isDark = false, roomIndex) { const doorW = 4, doorH = 3.5, sideW = (width - doorW) / 2, thick = 0.5; createBox(-(width/2) + (sideW/2), height/2, z, sideW, height, thick, true, isDark, null, roomIndex); createBox((width/2) - (sideW/2), height/2, z, sideW, height, thick, true, isDark, null, roomIndex); createBox(0, doorH + (height-doorH)/2, z, doorW, height-doorH, thick, true, isDark, null, roomIndex); }
 
         function createHangingTV(x, z, ceilingHeight, rotationY = 0, roomIndex) {
@@ -941,7 +800,7 @@
             const tvTopY = tvY + (tvH / 2); const cableLen = ceilingHeight - tvTopY; const cableGeo = new THREE.CylinderGeometry(0.01, 0.01, cableLen > 0 ? cableLen : 0.1); cableGeo.translate(0, cableLen / 2, 0); 
             const c1 = new THREE.Mesh(cableGeo, cableMat); c1.position.set(-tvW*0.3, tvH/2, 0); tv.add(c1);
             const c2 = new THREE.Mesh(cableGeo, cableMat); c2.position.set(tvW*0.3, tvH/2, 0); tv.add(c2);
-            if(!isSimplifiedView) { const screenLight = new THREE.PointLight(0xffffff, 2.0, 4.0); screenLight.position.set(0, 0, 1.0); tv.add(screenLight); }
+            if(!isMobile && !isLowEnd) { const screenLight = new THREE.PointLight(0xffffff, 2.0, 4.0); screenLight.position.set(0, 0, 1.0); tv.add(screenLight); }
         }
 
         function createProjection(x, y, z, w, h, rotationY, texture, roomIndex) {
@@ -964,17 +823,11 @@
             
             addToRoom(mesh, roomIndex);
             clickableObjects.push(mesh);
-            
-            // LAZY LOAD: Track if this projection uses video1
-            if (texture === videoTex1) {
-                video1Meshes.push(mesh);
-            }
-
-            if(!isSimplifiedView) { const light = new THREE.PointLight(0xaaaaff, 30, 25); light.position.set(x + Math.sin(rotationY), y, z + Math.cos(rotationY)); addToRoom(light, roomIndex); }
+            if(!isMobile && !isLowEnd) { const light = new THREE.PointLight(0xaaaaff, 30, 25); light.position.set(x + Math.sin(rotationY), y, z + Math.cos(rotationY)); addToRoom(light, roomIndex); }
         }
         
         function createCurtain(x, z, roomIndex) {
-            if (isSimplifiedView) return; 
+            if (isMobile || isLowEnd) return; 
             const curtainGroup = new THREE.Group(); const headerHeight = 3.5; curtainGroup.position.set(x, headerHeight, z);
             const doorWidth = 4; const strands = 9; const spacing = doorWidth / strands;
             const topRingGeo = new THREE.TorusGeometry(0.04, 0.008, 8, 16); topRingGeo.rotateX(Math.PI / 2); 
@@ -1008,9 +861,9 @@
 
         function createScaffoldingStructure(x, z, roomIndex) {
             revolvingStage = new THREE.Group(); revolvingStage.position.set(x, 0, z);
-            if (!isSimplifiedView) { // Only standard desktop
+            if (!isMobile) {
                 const platform = new THREE.Mesh(new THREE.CylinderGeometry(3.5, 3.5, 0.2, 32), new THREE.MeshStandardMaterial({ color: 0x333333, roughness: 0.8, metalness: 0.5 }));
-                platform.position.y = 0.1; platform.receiveShadow = !isSimplifiedView; revolvingStage.add(platform); collidableObjects.push({ box: new THREE.Box3().setFromObject(platform) }); 
+                platform.position.y = 0.1; platform.receiveShadow = !isMobile && !isLowEnd; revolvingStage.add(platform); collidableObjects.push({ box: new THREE.Box3().setFromObject(platform) }); 
                 const structureGroup = new THREE.Group(); structureGroup.position.y = 0.2; const metalMat = new THREE.MeshStandardMaterial({ color: 0xeeeeee, roughness: 0.2, metalness: 0.8 });
                 const w = 4; const h = 3.5; const d = 4;
                 
@@ -1036,8 +889,8 @@
                         type: 'poster', 
                         url: data.fullUrl, 
                         title: data.meta.title || "", 
-                        artist: data.meta.artist, 
-                        handle: data.meta.handle, 
+                        artist: data.meta.artist,
+                        handle: data.meta.handle,
                         customHTML: data.meta.customHTML
                     };
                     revolvingStage.add(mesh); postersArray.push(mesh); clickableObjects.push(mesh); 
@@ -1049,16 +902,12 @@
             addToRoom(revolvingStage, roomIndex);
         }
 
-        function fixMaterial(object) { object.traverse((child) => { if (child.isMesh) { if (!isSimplifiedView) child.castShadow = true; child.receiveShadow = !isSimplifiedView; if (child.material) { child.material.metalness = 0; child.material.roughness = 0.8; } } }); }
+        function fixMaterial(object) { object.traverse((child) => { if (child.isMesh) { if (!isMobile && !isLowEnd) child.castShadow = true; child.receiveShadow = !isMobile && !isLowEnd; if (child.material) { child.material.metalness = 0; child.material.roughness = 0.8; } } }); }
         
         const modelFiles = ['1.glb', '2.glb', '3.glb', '4.glb', '5.glb', '6.glb', '8.glb'];
         
         function loadAllModels(roomCenterX, roomCenterZ, roomIndex) {
-            // Setup GLTFLoader with DRACO
             const gltfLoader = new GLTFLoader(manager);
-            gltfLoader.setDRACOLoader(dracoLoader);
-            gltfLoader.setKTX2Loader(ktx2Loader);
-
             modelFiles.forEach((filename, index) => {
                 const angle = (index / modelFiles.length) * Math.PI * 2;
                 const radius = 5; 
@@ -1074,7 +923,7 @@
                     object.userData = { 
                         type: 'sculpture', // type sculpture hides image
                         title: meta.title || "", 
-                        artist: meta.artist, 
+                        artist: meta.artist,
                         handle: meta.handle
                     };
                     
@@ -1095,7 +944,6 @@
                     
                     if (filename === '6.glb') {
                         const loader9 = new GLTFLoader();
-                        loader9.setDRACOLoader(dracoLoader); // Also for sub-loads
                         loader9.load('assets/3d/9.glb', (gltf9) => {
                             const obj9 = gltf9.scene; fixMaterial(obj9); obj9.userData = object.userData; 
                             const smallScale = (((1.9 / 4.0) * 1.4) / 3.0) * 1.5; obj9.scale.set(smallScale, smallScale, smallScale); obj9.rotation.set(0, 0, 0); animatedModels.push(obj9); 
@@ -1109,15 +957,13 @@
         }
 
         function createHangingModel7(x, z, roomCeiling, roomIndex) {
-            const gltfLoader = new GLTFLoader(manager); 
-            gltfLoader.setDRACOLoader(dracoLoader);
-            const meta = MODEL_DB['7.glb'];
+            const gltfLoader = new GLTFLoader(manager); const meta = MODEL_DB['7.glb'];
             gltfLoader.load('assets/3d/7.glb', (gltf) => {
                 const object = gltf.scene; fixMaterial(object); object.scale.set(1.4, 1.4, 1.4); object.rotation.set(0, 0, 0); const hangY = 3.0; object.position.set(x, hangY, z);
                 object.userData = { 
                     type: 'sculpture', 
                     title: meta.title || "", 
-                    artist: meta.artist, 
+                    artist: meta.artist,
                     handle: meta.handle
                 };
                 addToRoom(object, roomIndex); collidableObjects.push({ box: new THREE.Box3().setFromObject(object) }); clickableObjects.push(object);
@@ -1126,123 +972,79 @@
         }
 
         // --- WORLD GENERATION ---
-        const roomsCount = isSimplifiedView ? 4 : 5; 
-        const roomSize = 20; const roomHeight = 6; const whiteFloorL = roomSize * (roomsCount - (isSimplifiedView ? 0 : 1)); 
-        const floor1 = new THREE.Mesh(new THREE.PlaneGeometry(roomSize, whiteFloorL), floorMat); floor1.rotation.x = -Math.PI / 2; floor1.position.z = -whiteFloorL / 2 + roomSize / 2; floor1.receiveShadow = !isSimplifiedView; scene.add(floor1);
+        const roomsCount = isMobile ? 4 : 5; const roomSize = 20; const roomHeight = 6; const whiteFloorL = roomSize * (roomsCount - (isMobile ? 0 : 1)); 
+        const floor1 = new THREE.Mesh(new THREE.PlaneGeometry(roomSize, whiteFloorL), floorMat); floor1.rotation.x = -Math.PI / 2; floor1.position.z = -whiteFloorL / 2 + roomSize / 2; floor1.receiveShadow = !isMobile && !isLowEnd; scene.add(floor1);
         const zLastRoom = -((roomsCount - 1) * roomSize); let benchPosition = new THREE.Vector3(0, -9999, 0); 
-        if (!isSimplifiedView) { const floor2 = new THREE.Mesh(new THREE.PlaneGeometry(roomSize, roomSize), darkFloorMat); floor2.rotation.x = -Math.PI / 2; floor2.position.z = zLastRoom; scene.add(floor2); }
+        if (!isMobile) { const floor2 = new THREE.Mesh(new THREE.PlaneGeometry(roomSize, roomSize), darkFloorMat); floor2.rotation.x = -Math.PI / 2; floor2.position.z = zLastRoom; scene.add(floor2); }
 
         for (let i = 0; i < roomsCount; i++) {
-            const zCenter = -(i * roomSize); 
-            const isLastRoom = (i === roomsCount - 1);
-            const useDarkMaterials = (!isSimplifiedView && isLastRoom);
-
-            if (!useDarkMaterials) {
-                if (isSimplifiedView) { const roomLight = new THREE.PointLight(0xffffff, 1.5, 25); roomLight.position.set(0, 5, zCenter); addToRoom(roomLight, i); } 
+            const zCenter = -(i * roomSize); const isDarkRoom = (!isMobile && i === roomsCount - 1);
+            if (!isDarkRoom) {
+                if (isMobile || isLowEnd) { const roomLight = new THREE.PointLight(0xffffff, 1.5, 25); roomLight.position.set(0, 5, zCenter); addToRoom(roomLight, i); } 
                 else { const rectLightLeft = new THREE.RectAreaLight(0xffffff, 6.0, roomSize - 2, 0.5); rectLightLeft.position.set(-8, 5.5, zCenter); rectLightLeft.lookAt(-20, 1, zCenter); addToRoom(rectLightLeft, i); const rectLightRight = new THREE.RectAreaLight(0xffffff, 6.0, roomSize - 2, 0.5); rectLightRight.position.set(8, 5.5, zCenter); rectLightRight.lookAt(20, 1, zCenter); addToRoom(rectLightRight, i); const fillLight = new THREE.PointLight(0xffffff, 2, 20); fillLight.position.set(0, 5, zCenter); addToRoom(fillLight, i); }
             }
+            createBox(-roomSize/2, roomHeight/2, zCenter, 0.5, roomHeight, roomSize, true, isDarkRoom, null, i); createBox(roomSize/2, roomHeight/2, zCenter, 0.5, roomHeight, roomSize, true, isDarkRoom, null, i); 
+            if (!isDarkRoom) { const ceiling = new THREE.Mesh(new THREE.PlaneGeometry(roomSize, roomSize), wallMat); ceiling.rotation.x = Math.PI / 2; ceiling.position.set(0, roomHeight, zCenter); addToRoom(ceiling, i); }
             
-            createBox(-roomSize/2, roomHeight/2, zCenter, 0.5, roomHeight, roomSize, true, useDarkMaterials, null, i); 
-            createBox(roomSize/2, roomHeight/2, zCenter, 0.5, roomHeight, roomSize, true, useDarkMaterials, null, i); 
-            
-            if (!useDarkMaterials) { const ceiling = new THREE.Mesh(new THREE.PlaneGeometry(roomSize, roomSize), wallMat); ceiling.rotation.x = Math.PI / 2; ceiling.position.set(0, roomHeight, zCenter); addToRoom(ceiling, i); }
-            
-            // Generate basic walls
             if (i === 0) {
-                createBox(0, roomHeight/2, zCenter + roomSize/2, roomSize, roomHeight, 0.5, true, useDarkMaterials, null, i); createDoorWall(zCenter - roomSize/2, roomSize, roomHeight, useDarkMaterials, i);
-            } else if (isLastRoom) {
-                createBox(0, roomHeight/2, zCenter - roomSize/2, roomSize, roomHeight, 0.5, true, useDarkMaterials, null, i); 
-                if (useDarkMaterials) {
-                    const darkCeiling = new THREE.Mesh(new THREE.PlaneGeometry(roomSize, roomSize), darkWallMat); darkCeiling.rotation.x = Math.PI / 2; darkCeiling.position.set(0, roomHeight, zCenter); addToRoom(darkCeiling, i); benchPosition.set(0, 0.4, zCenter); createBox(0, 0.4, zCenter, 3.5, 0.8, 1.5, true, false, benchMat, i);
-                }
+                createBox(0, roomHeight/2, zCenter + roomSize/2, roomSize, roomHeight, 0.5, true, isDarkRoom, null, i); createDoorWall(zCenter - roomSize/2, roomSize, roomHeight, isDarkRoom, i);
+                if (isMobile) { addPoster( -6.0, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i); addPoster( 6.0, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i); }
+            } else if (isDarkRoom) {
+                createBox(0, roomHeight/2, zCenter - roomSize/2, roomSize, roomHeight, 0.5, true, isDarkRoom, null, i); const darkCeiling = new THREE.Mesh(new THREE.PlaneGeometry(roomSize, roomSize), darkWallMat); darkCeiling.rotation.x = Math.PI / 2; darkCeiling.position.set(0, roomHeight, zCenter); addToRoom(darkCeiling, i); benchPosition.set(0, 0.4, zCenter); createBox(0, 0.4, zCenter, 3.5, 0.8, 1.5, true, false, benchMat, i);
+            } else if (isMobile && i === roomsCount - 1) {
+                createBox(0, roomHeight/2, zCenter - roomSize/2, roomSize, roomHeight, 0.5, true, false, null, i);
+                const backGap = 2.6; addPoster(-backGap * 2, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i); addPoster(-backGap, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i); addPoster(0, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i); addPoster(backGap, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i); addPoster(backGap * 2, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i); 
+                const sideCount = 5; const sideGap = 2.6; const startZ = zCenter + ((sideCount - 1) * sideGap) / 2;
+                for (let k = 0; k < sideCount; k++) { const zPos = startZ - (k * sideGap); addPoster(-9.7, 2.7, zPos, Math.PI/2, 2.2, 2.8, i); addPoster(9.7, 2.7, zPos, -Math.PI/2, 2.2, 2.8, i); }
+                createHangingTV(0, zCenter, roomHeight, 0, i);
             } else {
                 createDoorWall(zCenter - roomSize/2, roomSize, roomHeight, false, i);
+                if (isMobile) { addPoster( -6.0, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i); addPoster( 6.0, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i); addPoster( -6.0, 2.7, zCenter + roomSize/2 - 0.3, Math.PI, 2.2, 2.8, i); addPoster( 6.0, 2.7, zCenter + roomSize/2 - 0.3, Math.PI, 2.2, 2.8, i); }
             }
-            
-            if (isSimplifiedView) {
-                // ... Simplified View Logic ...
-                const posterW = 1.9; const posterH = 2.5; const yPos = 2.7; const gap = 0.22; 
-                const sideTotalW = (6 * posterW) + (5 * gap);
-                const sideStartZ = zCenter + (sideTotalW / 2) - (posterW/2);
-                
-                for(let k=0; k<6; k++) {
-                    const zPos = sideStartZ - (k * (posterW + gap)); 
-                    addMobilePoster(-9.7, yPos, zPos, Math.PI/2, posterW, posterH, i);
+            if (!isDarkRoom) {
+                if (i === 0) { createHangingTV(0, zCenter, roomHeight, 0, i); } 
+                else if (i === 1) { if (!isLowEnd) { loadAllModels(0, zCenter, i); createHangingModel7(0, zCenter, roomHeight, i); } } 
+                else if (i === 2) { createScaffoldingStructure(0, zCenter, i); if (isMobile) createHangingTV(0, zCenter, roomHeight, 0, i); } 
+                else { 
+                    let rotation = (i === 3) ? 0 : Math.random() * Math.PI; createHangingTV(0, zCenter, roomHeight, rotation, i); 
+                    if (i === 3) { createCurtain(0, zCenter - roomSize/2, i); }
                 }
-                for(let k=0; k<6; k++) {
-                    const zPos = sideStartZ - (k * (posterW + gap));
-                    addMobilePoster(9.7, yPos, zPos, -Math.PI/2, posterW, posterH, i);
+                if (!(isMobile && i === roomsCount - 1)) {
+                    // SIDE WALLS - INCREASED TO 8 TO FIT ALL IMAGES
+                    const postersPerSide = 8; 
+                    const standardW = isMobile ? 2.2 : 2.6; const standardH = isMobile ? 2.8 : 3.25; 
+                    const availableWidth = 14; const step = availableWidth / (postersPerSide - 1);
+                    
+                    for (let k = 0; k < postersPerSide; k++) { const zPos = (zCenter + availableWidth/2) - (k * step); addPoster(-9.7, 2.7, zPos, Math.PI/2, standardW, standardH, i); addPoster(9.7, 2.7, zPos, -Math.PI/2, standardW, standardH, i); }
+                    
+                    // NEW: DOOR WALL POSTERS (To reach 79 total count)
+                    // 1. Far wall (facing viewer) - present in all light rooms
+                    addPoster(-6.0, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i);
+                    addPoster( 6.0, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i);
+
+                    // 2. Near wall (facing back) - present in rooms 1, 2, 3
+                    if (i > 0) {
+                        addPoster(-6.0, 2.7, zCenter + roomSize/2 - 0.3, Math.PI, 2.2, 2.8, i);
+                        addPoster( 6.0, 2.7, zCenter + roomSize/2 - 0.3, Math.PI, 2.2, 2.8, i);
+                    }
                 }
-                
-                const doorOffset = (posterW + gap) / 2; 
-
-                if (i < roomsCount - 1) {
-                    addMobilePoster(-6 - doorOffset, yPos, zCenter - roomSize/2 + 0.3, 0, posterW, posterH, i);
-                    addMobilePoster(-6 + doorOffset, yPos, zCenter - roomSize/2 + 0.3, 0, posterW, posterH, i);
-                    addMobilePoster(6 - doorOffset, yPos, zCenter - roomSize/2 + 0.3, 0, posterW, posterH, i);
-                    addMobilePoster(6 + doorOffset, yPos, zCenter - roomSize/2 + 0.3, 0, posterW, posterH, i);
-                } else {
-                      const endTotalW = (5 * posterW) + (4 * gap);
-                      const endStartX = - (endTotalW / 2) + (posterW/2);
-                      for(let k=0; k<5; k++) {
-                          const xPos = endStartX + (k * (posterW + gap));
-                          addMobilePoster(xPos, yPos, zCenter - roomSize/2 + 0.3, 0, posterW, posterH, i);
-                      }
-                }
-
-                if (i > 0) {
-                    addMobilePoster(-6 - doorOffset, yPos, zCenter + roomSize/2 - 0.3, Math.PI, posterW, posterH, i);
-                    addMobilePoster(-6 + doorOffset, yPos, zCenter + roomSize/2 - 0.3, Math.PI, posterW, posterH, i);
-                    addMobilePoster(6 - doorOffset, yPos, zCenter + roomSize/2 - 0.3, Math.PI, posterW, posterH, i);
-                    addMobilePoster(6 + doorOffset, yPos, zCenter + roomSize/2 - 0.3, Math.PI, posterW, posterH, i);
-                }
-
-                if (i === 0 || i === 2 || i === 3) createHangingTV(0, zCenter, roomHeight, 0, i);
-                if (i === 3) createHangingTV(0, zCenter, roomHeight, Math.PI, i);
-
             } else {
-                // ... High End Logic ...
-                const isDarkRoom = useDarkMaterials;
-                if (!isDarkRoom) {
-                    if (i === 0) { createHangingTV(0, zCenter, roomHeight, 0, i); } 
-                    else if (i === 1) { if (!isLowEnd) { loadAllModels(0, zCenter, i); createHangingModel7(0, zCenter, roomHeight, i); } } 
-                    else if (i === 2) { createScaffoldingStructure(0, zCenter, i); } 
-                    else { 
-                        let rotation = (i === 3) ? 0 : Math.random() * Math.PI; createHangingTV(0, zCenter, roomHeight, rotation, i); 
-                        if (i === 3) { createCurtain(0, zCenter - roomSize/2, i); }
-                    }
-                    if (!(isMobile && i === roomsCount - 1)) {
-                        const standardW = 2.6; const standardH = 3.25; const postersPerSide = 6; const availableWidth = 14; const step = availableWidth / (postersPerSide - 1);
-                        for (let k = 0; k < postersPerSide; k++) { const zPos = (zCenter + availableWidth/2) - (k * step); addPoster(-9.7, 2.7, zPos, Math.PI/2, standardW, standardH, i); addPoster(9.7, 2.7, zPos, -Math.PI/2, standardW, standardH, i); }
-                        addPoster(-6.0, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i);
-                        addPoster( 6.0, 2.7, zCenter - roomSize/2 + 0.3, 0, 2.2, 2.8, i);
-                        if (i > 0) {
-                            addPoster(-6.0, 2.7, zCenter + roomSize/2 - 0.3, Math.PI, 2.2, 2.8, i);
-                            addPoster( 6.0, 2.7, zCenter + roomSize/2 - 0.3, Math.PI, 2.2, 2.8, i);
-                        }
-                    }
-                } else {
-                    const projW = 9.0; const projH = 5.06; const wallDist = (roomSize/2) - 0.4;
-                    createProjection(0, 3, zCenter - wallDist, projW, projH, 0, videoTex1, i);
-                    if (!isMobile) { createProjection(-wallDist, 3, zCenter, projW, projH, Math.PI/2, videoTex1, i); createProjection(wallDist, 3, zCenter, projW, projH, -Math.PI/2, videoTex1, i); }
-                }
+                const projW = 9.0; const projH = 5.06; const wallDist = (roomSize/2) - 0.4;
+                createProjection(0, 3, zCenter - wallDist, projW, projH, 0, videoTex1, i);
+                if (!isMobile) { createProjection(-wallDist, 3, zCenter, projW, projH, Math.PI/2, videoTex1, i); createProjection(wallDist, 3, zCenter, projW, projH, -Math.PI/2, videoTex1, i); }
             }
         }
 
         // --- FOLLOWER & LIGHTS ---
         let isFollowing = true; let follower = null;
-        if (!isSimplifiedView) {
+        if (!isMobile) {
             const followerTex = textureLoader.load('assets/gerb.jpeg', undefined, undefined, (err) => console.error("Missing gerb.png")); followerTex.colorSpace = THREE.SRGBColorSpace;
             const followerGeo = new THREE.PlaneGeometry(3, 3); const followerMat = new THREE.MeshBasicMaterial({ map: followerTex, side: THREE.DoubleSide, transparent: true });
             follower = new THREE.Mesh(followerGeo, followerMat); follower.position.set(0, 2.5, 12); follower.userData = { type: 'follower', title: "Watcher", desc: "Click to toggle following" };
             scene.add(follower); interactiveObjects.push(follower); clickableObjects.push(follower);
         }
-        
-        const ambientLight = new THREE.AmbientLight(0xffffff, isSimplifiedView ? 1.6 : 0.6); scene.add(ambientLight);
-        
-        if (!isSimplifiedView) { 
-            const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 1.2); hemiLight.position.set(0, 20, 0); scene.add(hemiLight); const dirLight = new THREE.DirectionalLight(0xffffff, 1.0); dirLight.position.set(5, 10, 7); dirLight.castShadow = true; dirLight.shadow.mapSize.width = 512; dirLight.shadow.mapSize.height = 512; scene.add(dirLight); 
-        } 
+        const ambientLight = new THREE.AmbientLight(0xffffff, isMobile || isLowEnd ? 1.6 : 0.6); scene.add(ambientLight);
+        if (!isMobile && !isLowEnd) { const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 1.2); hemiLight.position.set(0, 20, 0); scene.add(hemiLight); const dirLight = new THREE.DirectionalLight(0xffffff, 1.0); dirLight.position.set(5, 10, 7); dirLight.castShadow = true; dirLight.shadow.mapSize.width = 512; dirLight.shadow.mapSize.height = 512; scene.add(dirLight); } 
         else { const dirLightMobile = new THREE.DirectionalLight(0xffffff, 0.8); dirLightMobile.position.set(5, 10, 7); scene.add(dirLightMobile); }
 
         // --- CONTROLS & UI ---
@@ -1252,24 +1054,7 @@
         const raycaster = new THREE.Raycaster(); const center = new THREE.Vector2(0, 0); const cursor = document.getElementById('cursor');
         let isModalOpen = false; let isSitting = false; let isGameActive = false; let currentTarget = null; let frameCount = 0;
 
-        function startGame(e) { 
-            e.preventDefault(); e.stopPropagation(); 
-            startScreen.style.display = 'none'; isGameActive = true; infoBtn.style.display = 'flex'; 
-            
-            if(!isMobile) controlsHint.style.display = 'block'; 
-            bgMusic.play().catch(e => console.log("Audio block", e)); 
-            
-            // Video 1 will play LATER via Lazy Load logic.
-            // Video 2 is small, play it now.
-            if(!isSimplifiedView) { 
-                video2.play().catch(e => console.log("Video2 block", e)); 
-            } 
-            
-            if (!isMobile) { controls.lock(); } 
-            
-            if (isSimplifiedView) { checkRoomLoad(0); } 
-        }
-        
+        function startGame(e) { e.preventDefault(); e.stopPropagation(); startScreen.style.display = 'none'; isGameActive = true; infoBtn.style.display = 'flex'; if(!isMobile) controlsHint.style.display = 'block'; bgMusic.play().catch(e => console.log("Audio block", e)); if(!isMobile && !isLowEnd) { video1.play().catch(e => console.log("Video1 block", e)); video2.play().catch(e => console.log("Video2 block", e)); } if (!isMobile) { controls.lock(); } else { checkRoomLoad(0); } }
         startBtn.addEventListener('click', startGame); startBtn.addEventListener('touchstart', startGame);
         modalClose.addEventListener('click', closeModal); modalClose.addEventListener('touchstart', (e) => { e.stopPropagation(); closeModal(); });
         infoBtn.addEventListener('click', openInfoModal); infoBtn.addEventListener('touchstart', (e) => { e.stopPropagation(); openInfoModal(); });
@@ -1277,10 +1062,9 @@
 
         const stickContainer = document.getElementById('stick-container'); const stickKnob = stickContainer.querySelector('.stick-knob');
         let moveTouchId = null; let lookTouchId = null; let lookStartX = 0; let lookStartY = 0; let moveVector = { x: 0, y: 0 }; let stickCenter = { x: 0, y: 0 };
-        
         if(isMobile) {
              function handleTouchStart(e) { if (!isGameActive) return; for (let i = 0; i < e.changedTouches.length; i++) { const t = e.changedTouches[i]; const halfWidth = window.innerWidth / 2; if(isModalOpen) continue; if (moveTouchId === null && t.clientX < halfWidth) { moveTouchId = t.identifier; stickContainer.style.display = 'block'; stickContainer.style.left = (t.clientX - 50) + 'px'; stickContainer.style.top = (t.clientY - 50) + 'px'; stickCenter = { x: t.clientX, y: t.clientY }; stickKnob.style.transform = `translate(-50%, -50%)`; } else if (lookTouchId === null && t.clientX > halfWidth) { if (e.target.id === 'mobile-sit-btn' || e.target.id === 'view-btn' || e.target.id === 'modal-close-btn' || e.target.id === 'info-btn' || e.target.id === 'info-close-btn' || e.target.closest('#artwork-modal') || e.target.closest('#info-modal')) continue; lookTouchId = t.identifier; lookStartX = t.clientX; lookStartY = t.clientY; } } }
-             function handleTouchMove(e) { if (!isGameActive || isModalOpen) return; e.preventDefault(); for (let i = 0; i < e.changedTouches.length; i++) { const t = e.changedTouches[i]; if (t.identifier === moveTouchId) { const maxDist = 50; let dx = t.clientX - stickCenter.x; let dy = t.clientY - stickCenter.y; const dist = Math.sqrt(dx*dx + dy*dy); if (dist > maxDist) { const ratio = maxDist / dist; dx *= ratio; dy *= ratio; } stickKnob.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`; moveVector.x = dx / maxDist; moveVector.y = dy / maxDist; } else if (t.identifier === lookTouchId) { const deltaX = (t.clientX - lookStartX) * 0.3; camera.rotation.y -= deltaX * 0.015; lookStartX = t.clientX; lookStartY = t.clientY; } } }
+             function handleTouchMove(e) { if (!isGameActive || isModalOpen) return; e.preventDefault(); for (let i = 0; i < e.changedTouches.length; i++) { const t = e.changedTouches[i]; if (t.identifier === moveTouchId) { const maxDist = 50; let dx = t.clientX - stickCenter.x; let dy = t.clientY - stickCenter.y; const dist = Math.sqrt(dx*dx + dy*dy); if (dist > maxDist) { const ratio = maxDist / dist; dx *= ratio; dy *= ratio; } stickKnob.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`; moveVector.x = dx / maxDist; moveVector.y = -(dy / maxDist); } else if (t.identifier === lookTouchId) { const deltaX = (t.clientX - lookStartX) * 0.3; camera.rotation.y -= deltaX * 0.015; lookStartX = t.clientX; lookStartY = t.clientY; } } }
              function handleTouchEnd(e) { for (let i = 0; i < e.changedTouches.length; i++) { const t = e.changedTouches[i]; if (t.identifier === moveTouchId) { moveTouchId = null; moveVector = { x: 0, y: 0 }; stickContainer.style.display = 'none'; } if (t.identifier === lookTouchId) { lookTouchId = null; } } }
              document.addEventListener('touchstart', handleTouchStart, {passive: false}); document.addEventListener('touchmove', handleTouchMove, {passive: false}); document.addEventListener('touchend', handleTouchEnd);
              document.addEventListener('click', () => { if (isModalOpen && modal.style.display === 'flex') closeModal(); });
@@ -1305,10 +1089,12 @@
             if (!isMobile) controls.unlock();
             const imgEl = document.getElementById('modal-img');
             
+            // 1. IMAGE LOGIC
             if (data.type === 'sculpture' || data.type === 'tv-link' || data.type === 'projection') {
                 imgEl.classList.add('no-image');
             } else {
                 imgEl.classList.remove('no-image');
+                // IMAGE 4 SWAP
                 if (data.id === 4) {
                     imgEl.src = 'assets/image4 3.jpeg';
                 } else if (data.url) {
@@ -1320,6 +1106,7 @@
 
             const titleEl = document.getElementById('modal-title');
             
+            // 2. TEXT LOGIC
             if (data.isMultiArtist) {
                 titleEl.innerText = ""; 
                 document.getElementById('modal-desc').innerHTML = data.desc;
@@ -1364,51 +1151,19 @@
 
         let prevTime = performance.now(); let lastRoomIndex = -1;
         function animate() {
-            requestAnimationFrame(animate); if (!isGameActive) return; 
-
-            // --- LAZY LOAD CHECK ---
-            // Trigger load when deeper than Z -30 (Room 2 entry)
-            if (!isVideo1Loading && camera.position.z < -30) {
-                isVideo1Loading = true;
-                const v1 = document.getElementById('video1');
-                const source = v1.querySelector('source');
-                if (source.dataset.src) {
-                    source.src = source.dataset.src;
-                    v1.load();
-                    v1.oncanplay = () => {
-                        v1.play().then(() => {
-                            const realVideoTex = new THREE.VideoTexture(v1);
-                            realVideoTex.colorSpace = THREE.SRGBColorSpace;
-                            video1Meshes.forEach(mesh => {
-                                mesh.material.map = realVideoTex;
-                                mesh.material.needsUpdate = true;
-                            });
-                        }).catch(e => console.log("Autoplay prevented", e));
-                    };
-                }
-            }
-
-            const time = performance.now(); const delta = Math.min((time - prevTime) / 1000, 0.1);
-            if (!isSimplifiedView) { if (revolvingStage) { revolvingStage.rotation.y += 0.1 * delta; } animatedModels.forEach(model => { model.rotation.y -= 1.0 * delta; }); } else { animatedModels.forEach(model => { model.rotation.y -= 1.0 * delta; }); }
+            requestAnimationFrame(animate); if (!isGameActive) return; const time = performance.now(); const delta = Math.min((time - prevTime) / 1000, 0.1);
+            if (!isMobile) { if (revolvingStage) { revolvingStage.rotation.y += 0.1 * delta; } animatedModels.forEach(model => { model.rotation.y -= 1.0 * delta; }); } else { animatedModels.forEach(model => { model.rotation.y -= 1.0 * delta; }); }
             if (follower && isFollowing) { follower.lookAt(camera.position); const dist = follower.position.distanceTo(camera.position); if (dist > 3.0) { const direction = new THREE.Vector3().subVectors(camera.position, follower.position).normalize(); follower.position.add(direction.multiplyScalar(3.5 * delta)); follower.position.y = 2.5 + Math.sin(time * 0.002) * 0.2; } } else if (follower && !isFollowing) { follower.position.y = 2.5 + Math.sin(time * 0.002) * 0.2; }
             if (!isSitting) {
                 const distToBench = camera.position.distanceTo(new THREE.Vector3(benchPosition.x, camera.position.y, benchPosition.z));
-                if (!isMobile && distToBench < 5.0 && !isSimplifiedView) { sitHint.style.display = 'block'; } else { sitHint.style.display = 'none'; if (isMobile) mobileSitBtn.style.display = 'none'; }
+                if (!isMobile && distToBench < 5.0) { sitHint.style.display = 'block'; } else { sitHint.style.display = 'none'; if (isMobile) mobileSitBtn.style.display = 'none'; }
                 velocity.x -= velocity.x * 10.0 * delta; velocity.z -= velocity.z * 10.0 * delta; velocity.y -= 30.0 * delta; const speed = (move.shift ? 150 : 72); const direction = new THREE.Vector3();
                 if (isMobile) { const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion); forward.y = 0; forward.normalize(); const right = new THREE.Vector3(1, 0, 0).applyQuaternion(camera.quaternion); right.y = 0; right.normalize(); if (moveVector.x !== 0 || moveVector.y !== 0) { velocity.x += (right.x * moveVector.x + forward.x * moveVector.y) * speed * delta; velocity.z += (right.z * moveVector.x + forward.z * moveVector.y) * speed * delta; } } else { direction.z = Number(move.f) - Number(move.b); direction.x = Number(move.r) - Number(move.l); direction.normalize(); if (move.f || move.b) velocity.z -= direction.z * speed * delta; if (move.l || move.r) velocity.x -= direction.x * speed * delta; controls.moveRight(-velocity.x * delta); controls.moveForward(-velocity.z * delta); }
                 if(isMobile) { camera.position.add(new THREE.Vector3(velocity.x * delta, 0, velocity.z * delta)); } camera.position.y += velocity.y * delta; if (camera.position.y < 1.7) { velocity.y = 0; camera.position.y = 1.7; canJump = true; } if (camera.position.y < -10) { camera.position.set(0, 1.7, 8); velocity.set(0, 0, 0); }
                 const pPos = camera.position; const pBox = new THREE.Box3(new THREE.Vector3(pPos.x-0.4, pPos.y-1, pPos.z-0.4), new THREE.Vector3(pPos.x+0.4, pPos.y+1, pPos.z+0.4)); let hit = false;
                 for(let obj of collidableObjects) { if (obj.box && pBox.intersectsBox(obj.box)) hit = true; if (obj.customType === 'cylinder') { const dist = Math.sqrt(Math.pow(pPos.x - obj.position.x, 2) + Math.pow(pPos.z - obj.position.z, 2)); if (dist < obj.radius && Math.abs(pPos.y - obj.position.y) < 2.0) hit = true; } }
                 if(hit) { if(isMobile) { camera.position.sub(new THREE.Vector3(velocity.x * delta, 0, velocity.z * delta)); } else { controls.moveForward(velocity.z * delta); controls.moveRight(velocity.x * delta); } }
-                
-                if (isSimplifiedView) { 
-                    const currentRoom = Math.max(0, Math.round(-camera.position.z / 20)); 
-                    if (currentRoom !== lastRoomIndex) { lastRoomIndex = currentRoom; checkRoomLoad(currentRoom); } 
-                    
-                    if (isMobile) {
-                        frameCount++; if (frameCount % 5 === 0 && !isModalOpen) checkIntersectionAndClick(); 
-                    }
-                }
+                if (isMobile) { const currentRoom = Math.max(0, Math.round(-camera.position.z / 20)); if (currentRoom !== lastRoomIndex) { lastRoomIndex = currentRoom; checkRoomLoad(currentRoom); } frameCount++; if (frameCount % 5 === 0 && !isModalOpen) checkIntersectionAndClick(); }
             } else { sitHint.style.display = 'none'; velocity.set(0,0,0); }
             if (!isMobile) { raycaster.setFromCamera(center, camera); const objectsToCheck = clickableObjects; const intersects = raycaster.intersectObjects(objectsToCheck); if (intersects.length > 0 && intersects[0].distance < 8) cursor.classList.add('hover-active'); else cursor.classList.remove('hover-active'); }
             prevTime = time; renderer.render(scene, camera);

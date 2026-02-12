@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IDINAHUI PUBLISHING</title>
+    
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Director+UA+Variable:wght@400&display=swap" />
+    <link href="https://fonts.googleapis.com/css2?family=Helvetica+Neue:wght@400;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* --- ЗАГАЛЬНІ СТИЛІ --- */
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            background-color: #E9E9E9;
+            font-family: 'Helvetica Neue', sans-serif; /* Фоллбек шрифт */
+            font-family: 'Director UA Variable', sans-serif; /* Основний */
+            color: #000;
+            overflow-x: hidden;
+        }
+
+        a { text-decoration: none; color: inherit; }
+
+        /* --- ЛЕЯУТ (СІТКА) --- */
+        .main-container {
+            display: flex;
+            min-height: 100vh;
+            flex-direction: column;
+        }
+
+        @media (min-width: 768px) {
+            .main-container {
+                flex-direction: row;
+                height: 100vh;
+                overflow: hidden; /* Щоб не було подвійного скролу */
+            }
+        }
+
+        /* --- ЛІВА КОЛОНКА (ТОВАРИ) --- */
+        .left-col {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto; /* Скрол тільки тут */
+            display: flex;
+            flex-direction: column;
+            gap: 40px;
+            align-items: center;
+            border-right: 1px solid #ccc;
+        }
+
+        /* КАРТКА ТОВАРУ */
+        .product-card {
+            width: 100%;
+            max-width: 400px;
+            background: transparent;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            position: relative;
+        }
+
+        .product-img {
+            width: 100%;
+            height: auto;
+            object-fit: contain;
+            transition: transform 0.3s ease;
+        }
+        
+        .product-card:hover .product-img {
+            transform: scale(1.02);
+        }
+
+        .product-info h2 {
+            font-size: 24px;
+            line-height: 1.1;
+            text-transform: uppercase;
+            margin: 0 0 5px 0;
+        }
+
+        .product-info p {
+            font-size: 14px;
+            color: #555;
+            margin: 0 0 15px 0;
+        }
+
+        .price-row {
+            display: flex;
+            gap: 10px;
+        }
+
+        .tag {
+            padding: 10px 15px;
+            font-size: 14px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .tag-price { background-color: #F1F1F1; }
+        .tag-status { background-color: #F1F0E4; }
+
+        /* --- ПРАВА КОЛОНКА (НАВІГАЦІЯ + КНИГА) --- */
+        .right-col {
+            flex: 1;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            background-color: #E9E9E9;
+        }
+
+        /* НАВІГАЦІЯ (СТРІЛКИ) */
+        .nav-header {
+            display: flex;
+            justify-content: flex-end;
+            gap: 0; /* Склеєні кнопки */
+            margin-bottom: 40px;
+        }
+
+        .nav-btn {
+            height: 50px;
+            padding: 0 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            text-transform: uppercase;
+            position: relative;
+            clip-path: polygon(15px 0%, 100% 0%, 100% 100%, 15px 100%, 0% 50%); /* Форма стрілки */
+            margin-left: -10px; /* Накладання */
+            transition: transform 0.2s;
+        }
+
+        .nav-btn:hover {
+            transform: translateX(-5px);
+            z-index: 10;
+        }
+
+        .btn-white {
+            background-color: #fff;
+            color: #000;
+            z-index: 1;
+        }
+
+        .btn-red {
+            background-color: #FF0000;
+            color: #000; /* Чорний текст на червоному як на макеті */
+            z-index: 2;
+        }
+
+        /* --- ЕФЕКТ КНИГИ (ANIMATED BOOK) --- */
+        .book-wrapper {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            perspective: 1500px; /* Для 3D */
+            min-height: 400px;
+        }
+
+        .book {
+            position: relative;
+            width: 400px;
+            height: 280px;
+            display: flex;
+            transform-style: preserve-3d;
+            transform: rotateX(10deg); /* Легкий нахил до глядача */
+        }
+
+        .page {
+            width: 50%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            background: linear-gradient(90deg, #e3e3e3 0%, #ffffff 10%, #ffffff 90%, #d9d9d9 100%);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            padding: 30px;
+            text-align: center;
+            border: 1px solid #ddd;
+        }
+
+        /* ЛІВА СТОРІНКА (СТАТИЧНА) */
+        .page-left {
+            left: 0;
+            border-radius: 5px 0 0 5px;
+            transform-origin: right center;
+            z-index: 1;
+            background: linear-gradient(-90deg, #ccc 0%, #fff 20%); /* Тінь корінця */
+        }
+
+        /* ПРАВА СТОРІНКА (БАЗА) */
+        .page-right {
+            right: 0;
+            border-radius: 0 5px 5px 0;
+            transform-origin: left center;
+            z-index: 1;
+            background: linear-gradient(90deg, #ccc 0%, #fff 20%); /* Тінь корінця */
+        }
+
+        /* --- АНІМОВАНІ СТОРІНКИ (ЕФЕКТ ГОРТАННЯ) --- */
+        .page-animated {
+            right: 0;
+            width: 50%;
+            height: 100%;
+            position: absolute;
+            background: linear-gradient(90deg, rgba(0,0,0,0.1) 0%, #fff 10%);
+            border-radius: 0 5px 5px 0;
+            transform-origin: left center;
+            opacity: 0.8;
+            pointer-events: none; /* Щоб не перекривало кліки */
+            border-left: 1px solid rgba(0,0,0,0.1);
+        }
+
+        /* Анімація перегортання */
+        .p1 { animation: flip 4s infinite ease-in-out; z-index: 5; }
+        .p2 { animation: flip 4s infinite ease-in-out 0.2s; z-index: 4; }
+        .p3 { animation: flip 4s infinite ease-in-out 0.4s; z-index: 3; }
+
+        @keyframes flip {
+            0%, 100% { transform: rotateY(0deg); }
+            50% { transform: rotateY(-25deg); box-shadow: -5px 5px 15px rgba(0,0,0,0.1); }
+        }
+
+        /* КОНТЕНТ КНИГИ */
+        .book-logo {
+            width: 80px;
+            height: auto;
+            margin-top: 20px;
+        }
+        
+        .book-text-small {
+            font-size: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            line-height: 1.4;
+            max-width: 120px;
+        }
+
+        .book-footer {
+            font-size: 9px;
+            margin-bottom: 10px;
+        }
+
+        /* --- МОБІЛЬНА ВЕРСІЯ --- */
+        @media (max-width: 768px) {
+            .book { transform: scale(0.7); } /* Зменшити книгу */
+            .nav-header { justify-content: center; margin-top: 20px; }
+            .left-col { order: 2; border-right: none; border-top: 1px solid #ccc; }
+            .right-col { order: 1; min-height: auto; }
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="main-container">
+        
+        <div class="left-col">
+            
+            <a href="/publishing/mama/" class="product-card">
+                <img src="./zine-mama.png" alt="Зін Мама" class="product-img">
+                <div class="product-info">
+                    <h2>Зін “МАМА”</h2>
+                    <p>Христина Новікова</p>
+                    <div class="price-row">
+                        <div class="tag tag-price">666₴</div>
+                        <div class="tag tag-status">NEW</div>
+                    </div>
+                </div>
+            </a>
+
+            <div class="product-card">
+                <img src="./spoiler.png" alt="Spoiler" class="product-img">
+                <div class="product-info">
+                    <h2>ХАХА ПОКИ <br>НЕ СКАЖЕМО</h2>
+                    <div class="price-row">
+                        <div class="tag tag-price">999₴</div>
+                        <div class="tag tag-status">SOON</div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="right-col">
+            
+            <div class="nav-header">
+                <a href="https://idinahui.art" class="nav-btn btn-white">НА ГОЛОВНУ</a>
+                <a href="/publishing/mama/" class="nav-btn btn-red">ЗІН “МАМА”</a>
+            </div>
+
+            <div class="book-wrapper">
+                <div class="book">
+                    
+                    <div class="page page-left">
+                        <img src="./logo_publishing.png" class="book-logo" alt="logo">
+                        <div class="book-text-small">
+                            Видавництво артпроєкту<br>“Іді нахуй”
+                        </div>
+                        <div class="book-footer">Київ, 2026</div>
+                    </div>
+
+                    <div class="page page-right">
+                        <img src="./logo_publishing.png" class="book-logo" alt="logo">
+                        <div class="book-text-small">
+                            Видавництво артпроєкту<br>“Іді нахуй”
+                        </div>
+                        <div class="book-footer">Київ, 2026</div>
+                    </div>
+
+                    <div class="page-animated p1"></div>
+                    <div class="page-animated p2"></div>
+                    <div class="page-animated p3"></div>
+
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+</body>
+</html>

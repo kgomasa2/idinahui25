@@ -20,7 +20,6 @@
 
         a { text-decoration: none; color: inherit; }
 
-        /* --- ГОЛОВНИЙ КОНТЕЙНЕР --- */
         .container {
             display: flex;
             width: 100%;
@@ -28,7 +27,7 @@
             position: relative;
         }
 
-        /* --- ЛІВА ЧАСТИНА (ТОВАРИ) --- */
+        /* --- ЛІВА ЧАСТИНА --- */
         .left-col {
             display: flex;
             gap: 4px; 
@@ -37,7 +36,7 @@
 
         .product-card {
             width: 324px;
-            height: 453px; /* ФІКСОВАНА ВИСОТА ПЛАШКИ */
+            height: 453px; /* Фіксована висота */
             background-color: #fff;
             position: relative;
             display: block;
@@ -56,14 +55,13 @@
         .product-img {
             width: auto;
             max-width: 85%;
-            max-height: 62%; /* Трохи зменшив, щоб дати місце тексту */
+            max-height: 62%;
             object-fit: contain;
             transition: transform 0.3s ease;
         }
         
         .product-card:hover .product-img { transform: scale(1.03); }
 
-        /* ТЕКСТ (Прибитий до низу) */
         .info-block {
             position: absolute;
             bottom: 12px;
@@ -77,10 +75,9 @@
             line-height: 1.1;
             text-transform: uppercase;
             margin-bottom: 5px;
-            /* ВИПРАВЛЕННЯ ВИРІВНЮВАННЯ: */
-            min-height: 2.2em; /* Резервуємо місце під 2 рядки */
+            min-height: 2.2em; /* Місце під 2 рядки */
             display: flex;
-            align-items: flex-start; /* Вирівнюємо текст по верху цього блоку */
+            align-items: flex-start;
         }
 
         .author {
@@ -117,7 +114,6 @@
             height: 100vh;
         }
 
-        /* НАВІГАЦІЯ */
         .nav-bar {
             position: absolute;
             top: 0;
@@ -143,14 +139,15 @@
         .btn-white { background: #fff; color: #000; }
         .btn-red { background: #FF0000; color: #000; }
 
-        /* --- АНІМОВАНА КНИГА (ВИПРАВЛЕНО) --- */
+        /* --- BOOK ENGINE --- */
         .book-container {
             position: absolute;
             top: 56px; 
             right: 20px;
             width: 375px;
             height: 278px;
-            perspective: 2000px; /* Збільшив перспективу для реалізму */
+            perspective: 2000px;
+            cursor: ew-resize; /* Курсор показує, що можна тягнути */
         }
 
         .book {
@@ -160,7 +157,6 @@
             transform-style: preserve-3d;
         }
 
-        /* Базові стилі сторінки */
         .page {
             position: absolute;
             top: 0;
@@ -172,102 +168,92 @@
             align-items: center;
             justify-content: center;
             border: 1px solid #e0e0e0;
-            backface-visibility: hidden; /* Ховаємо задню частину при повороті */
+            backface-visibility: hidden;
         }
 
-        .page-content { text-align: center; padding: 20px; }
+        .page-content { text-align: center; padding: 20px; pointer-events: none; }
         .page-logo { width: 60px; margin-bottom: 30px; }
         .page-text { font-size: 11px; line-height: 1.4; text-transform: uppercase; margin-bottom: 40px; }
         .page-footer { font-size: 11px; }
 
-        /* Ліва статична сторінка */
+        /* СТАТИКА */
         .page-left {
             left: 0;
             border-radius: 4px 0 0 4px;
-            /* М'яка тінь корінця зліва */
-            background: linear-gradient(to right, #d0d0d0 0%, #f8f8f8 15%, #fff 100%);
+            background: linear-gradient(to right, #ccc 0%, #f8f8f8 10%, #fff 100%);
             z-index: 1;
         }
-
-        /* Права статична сторінка (підкладка) */
         .page-right {
             right: 0;
             border-radius: 0 4px 4px 0;
-            background: #fff;
+            background: linear-gradient(to left, #ccc 0%, #fff 5%);
             z-index: 0;
         }
 
-        /* --- АНІМОВАНА СТОРІНКА --- */
-        .page-flip-wrapper {
+        /* АНІМОВАНІ СТОРІНКИ (ПОТІК) */
+        .flipper {
             position: absolute;
             right: 0;
             width: 50%;
             height: 100%;
             transform-origin: left center;
-            transform-style: preserve-3d; /* Важливо для 3D обертання */
-            z-index: 10;
-            animation: flip-forward 3.5s infinite ease-in-out;
+            transform-style: preserve-3d;
+            z-index: 5;
+            /* Стандартна анімація (авто) */
+            animation: infinite-flip 6s infinite linear;
         }
 
-        /* Лицьова сторона гортаючої сторінки */
-        .page-flip-front {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
+        /* Затримки для створення потоку */
+        .f1 { animation-delay: 0s; }
+        .f2 { animation-delay: 2s; }
+        .f3 { animation-delay: 4s; }
+
+        /* Коли наводимо мишку - ПАУЗА анімації, вмикається ручне керування через JS */
+        .book-container:hover .flipper {
+            animation-play-state: paused;
+            /* Ми сховаємо всі фліппери крім першого при наведенні, щоб керувати одним */
+            opacity: 0; 
+            transition: opacity 0.2s;
+        }
+        /* Перший фліппер стає "ручним" */
+        .book-container:hover .flipper.manual-control {
+            opacity: 1;
+            animation: none; /* Вимикаємо CSS анімацію */
+            transform: rotateY(var(--rotate-deg, 0deg)); /* Керування через змінну */
+        }
+
+        .flipper-front {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: #fff;
             border-radius: 0 4px 4px 0;
-            border-left: 1px solid #ccc;
             backface-visibility: hidden;
-            z-index: 2;
-            /* Градієнт, що змінюється при повороті */
-            background: linear-gradient(to left, #fff 80%, #e0e0e0 100%);
+            background: linear-gradient(to left, #fff 90%, #ddd 100%);
         }
-
-        /* Зворотний бік гортаючої сторінки (те, що ми бачимо коли вона перегорнута) */
-        .page-flip-back {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: #f0f0f0; /* Трохи темніша */
+        .flipper-back {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: #f0f0f0;
             border-radius: 4px 0 0 4px;
-            border-right: 1px solid #ccc;
             backface-visibility: hidden;
-            transform: rotateY(180deg); /* Розвернута задом наперед */
-            z-index: 1;
+            transform: rotateY(180deg);
             display: flex; align-items: center; justify-content: center;
-            background: linear-gradient(to right, #e0e0e0 0%, #f0f0f0 20%, #fff 100%);
-        }
-        
-        /* Тінь по центру під час гортання */
-        .center-shadow {
-             position: absolute;
-             left: 50%; top: 2%; width: 20px; height: 96%;
-             background: rgba(0,0,0,0.15);
-             filter: blur(10px);
-             opacity: 0;
-             z-index: 5;
-             transform: translateX(-50%);
-             animation: shadow-pulse 3.5s infinite ease-in-out;
+            background: linear-gradient(to right, #ddd 0%, #f0f0f0 100%);
         }
 
-        @keyframes flip-forward {
-            0% { transform: rotateY(0deg); }
-            15% { transform: rotateY(-20deg); } /* Легкий підйом на початку */
-            100% { transform: rotateY(-180deg); } /* Повний переверт наліво */
-        }
-        
-        @keyframes shadow-pulse {
-            0%, 100% { opacity: 0; }
-            40%, 60% { opacity: 1; } /* Тінь з'являється, коли сторінка вертикально */
+        @keyframes infinite-flip {
+            0% { transform: rotateY(0deg); z-index: 10; }
+            15% { z-index: 10; }
+            50% { transform: rotateY(-90deg); }
+            100% { transform: rotateY(-180deg); z-index: 10; }
         }
 
-
-        /* --- МОБІЛЬНА АДАПТАЦІЯ --- */
+        /* МОБІЛЬНА ВЕРСІЯ */
         @media (max-width: 768px) {
             .container { flex-direction: column; height: auto; }
             .left-col { flex-direction: column; width: 100%; gap: 0; }
             .product-card { width: 100%; height: auto; min-height: 453px; border-bottom: 4px solid #E9E9E9; }
             .img-container { height: 350px; }
             .info-block { position: relative; bottom: auto; left: auto; width: 100%; padding: 12px; }
-            .title { min-height: auto; } /* На мобі прибираємо фікс висоту */
+            .title { min-height: auto; } 
             .right-col { height: auto; min-height: 400px; padding-bottom: 50px; }
             .nav-bar { position: relative; justify-content: center; margin-top: 20px; margin-bottom: 20px; }
             .book-container { position: relative; top: 0; right: 0; margin: 0 auto; transform: scale(0.8); }
@@ -277,9 +263,7 @@
 <body>
 
     <div class="container">
-        
         <div class="left-col">
-            
             <a href="/publishing/mama/" class="product-card">
                 <div class="img-container">
                     <img src="./zine-mama.png" alt="Зін Мама" class="product-img">
@@ -299,25 +283,23 @@
                     <img src="./spoiler.png" alt="Spoiler" class="product-img">
                 </div>
                 <div class="info-block">
-                    <div class="title">ХАХА ПОКИ<br>НЕ СКАЖЕМО</div>
-                    <div class="author">&nbsp;</div>
+                    <div class="title">СКОРО АНОНС!</div>
+                    <div class="author">Книга від “Іді нахуй”</div>
                     <div class="tags">
                         <div class="tag price">999₴</div>
                         <div class="tag status">SOON</div>
                     </div>
                 </div>
             </div>
-
         </div>
 
         <div class="right-col">
-            
             <div class="nav-bar">
                 <a href="https://idinahui.art" class="nav-btn btn-white">НА ГОЛОВНУ</a>
                 <a href="/publishing/mama/" class="nav-btn btn-red">ЗІН “МАМА”</a>
             </div>
 
-            <div class="book-container">
+            <div class="book-container" id="bookArea">
                 <div class="book">
                     
                     <div class="page page-left">
@@ -327,9 +309,6 @@
                             <div class="page-footer">Київ, 2026</div>
                         </div>
                     </div>
-                    
-                    <div class="center-shadow"></div>
-
                     <div class="page page-right">
                         <div class="page-content">
                             <img src="./logo_publishing.png" class="page-logo" alt="Logo">
@@ -338,23 +317,73 @@
                         </div>
                     </div>
 
-                    <div class="page-flip-wrapper">
-                        <div class="page page-flip-front">
+                    <div class="flipper f1 manual-control" id="manualFlipper">
+                        <div class="flipper-front">
                             <div class="page-content">
                                 <img src="./logo_publishing.png" class="page-logo" alt="Logo">
                                 <div class="page-text">Видавництво артпроєкту<br>“Іді нахуй”</div>
                                 <div class="page-footer">Київ, 2026</div>
                             </div>
                         </div>
-                        <div class="page-flip-back"></div>
+                        <div class="flipper-back"></div>
+                    </div>
+
+                    <div class="flipper f2">
+                        <div class="flipper-front">
+                            <div class="page-content">
+                                <img src="./logo_publishing.png" class="page-logo" alt="Logo">
+                                <div class="page-text">Видавництво артпроєкту<br>“Іді нахуй”</div>
+                                <div class="page-footer">Київ, 2026</div>
+                            </div>
+                        </div>
+                        <div class="flipper-back"></div>
+                    </div>
+
+                    <div class="flipper f3">
+                        <div class="flipper-front">
+                            <div class="page-content">
+                                <img src="./logo_publishing.png" class="page-logo" alt="Logo">
+                                <div class="page-text">Видавництво артпроєкту<br>“Іді нахуй”</div>
+                                <div class="page-footer">Київ, 2026</div>
+                            </div>
+                        </div>
+                        <div class="flipper-back"></div>
                     </div>
 
                 </div>
             </div>
-
         </div>
-
     </div>
+
+    <script>
+        const bookArea = document.getElementById('bookArea');
+        const flipper = document.getElementById('manualFlipper');
+
+        // Логіка:
+        // 1. Поки мишка не на книзі - працює CSS анімація (по черзі 3 сторінки).
+        // 2. Коли мишка наводиться - CSS паузиться, інші сторінки зникають,
+        //    залишається одна (f1), якою ми керуємо через змінну --rotate-deg.
+
+        bookArea.addEventListener('mousemove', (e) => {
+            const rect = bookArea.getBoundingClientRect();
+            // Отримуємо позицію мишки всередині книги (від 0 до width)
+            const x = e.clientX - rect.left;
+            
+            // Нормалізуємо від 0 до 1
+            let percent = x / rect.width;
+            if (percent < 0) percent = 0;
+            if (percent > 1) percent = 1;
+
+            // Конвертуємо в градуси:
+            // Справа (1.0) -> 0deg
+            // Зліва (0.0) -> -180deg
+            // Тобто чим лівіше мишка, тим більше перегорнуто
+            const deg = -180 + (percent * 180);
+
+            // Передаємо в CSS
+            flipper.style.setProperty('--rotate-deg', `${deg}deg`);
+        });
+    </script>
 
 </body>
 </html>

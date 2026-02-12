@@ -37,34 +37,33 @@
 
         .product-card {
             width: 324px;
-            height: 453px; /* ФІКСОВАНА ВИСОТА БІЛОЇ ПЛАШКИ */
+            height: 453px; /* ФІКСОВАНА ВИСОТА ПЛАШКИ */
             background-color: #fff;
             position: relative;
             display: block;
-            overflow: hidden; /* Щоб нічого не вилазило */
+            overflow: hidden;
         }
 
-        /* Картинка */
         .img-container {
             width: 100%;
             height: 100%;
             display: flex;
-            align-items: flex-start; /* Картинка притиснута до верху */
+            align-items: flex-start;
             justify-content: center;
-            padding-top: 10px; /* Мінімальний відступ зверху */
+            padding-top: 10px;
         }
 
         .product-img {
             width: auto;
-            max-width: 85%; /* Трохи менше, щоб вліз текст знизу */
-            max-height: 65%; /* Обмеження висоти, щоб залишити місце для тексту */
+            max-width: 85%;
+            max-height: 62%; /* Трохи зменшив, щоб дати місце тексту */
             object-fit: contain;
             transition: transform 0.3s ease;
         }
         
         .product-card:hover .product-img { transform: scale(1.03); }
 
-        /* ТЕКСТ (Прибитий до низу плашки) */
+        /* ТЕКСТ (Прибитий до низу) */
         .info-block {
             position: absolute;
             bottom: 12px;
@@ -78,18 +77,22 @@
             line-height: 1.1;
             text-transform: uppercase;
             margin-bottom: 5px;
+            /* ВИПРАВЛЕННЯ ВИРІВНЮВАННЯ: */
+            min-height: 2.2em; /* Резервуємо місце під 2 рядки */
+            display: flex;
+            align-items: flex-start; /* Вирівнюємо текст по верху цього блоку */
         }
 
         .author {
             font-size: 14px;
             line-height: 1.2;
             margin-bottom: 15px;
-            min-height: 17px; /* Щоб рядки були рівні */
+            min-height: 17px;
         }
 
         .tags {
             display: flex;
-            gap: 3px; /* ВІДСТАНЬ МІЖ ТЕГАМИ 3px */
+            gap: 3px;
         }
 
         .tag {
@@ -106,7 +109,7 @@
         .status { background: #F1F0E4; }
 
 
-        /* --- ПРАВА ЧАСТИНА (НАВІГАЦІЯ + КНИГА) --- */
+        /* --- ПРАВА ЧАСТИНА --- */
         .right-col {
             flex: 1;
             position: relative;
@@ -140,14 +143,14 @@
         .btn-white { background: #fff; color: #000; }
         .btn-red { background: #FF0000; color: #000; }
 
-        /* АНІМОВАНА КНИГА */
+        /* --- АНІМОВАНА КНИГА (ВИПРАВЛЕНО) --- */
         .book-container {
             position: absolute;
             top: 56px; 
             right: 20px;
             width: 375px;
             height: 278px;
-            perspective: 1500px;
+            perspective: 2000px; /* Збільшив перспективу для реалізму */
         }
 
         .book {
@@ -157,7 +160,7 @@
             transform-style: preserve-3d;
         }
 
-        /* Стилі сторінок */
+        /* Базові стилі сторінки */
         .page {
             position: absolute;
             top: 0;
@@ -168,137 +171,107 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            border: 1px solid #ddd;
+            border: 1px solid #e0e0e0;
+            backface-visibility: hidden; /* Ховаємо задню частину при повороті */
         }
 
-        .page-content {
-            text-align: center;
-            padding: 20px;
-        }
+        .page-content { text-align: center; padding: 20px; }
         .page-logo { width: 60px; margin-bottom: 30px; }
-        .page-text {
-            font-size: 11px;
-            line-height: 1.4;
-            text-transform: uppercase;
-            margin-bottom: 40px;
-        }
+        .page-text { font-size: 11px; line-height: 1.4; text-transform: uppercase; margin-bottom: 40px; }
         .page-footer { font-size: 11px; }
 
-        /* Ліва (Нерухома) */
+        /* Ліва статична сторінка */
         .page-left {
             left: 0;
             border-radius: 4px 0 0 4px;
-            background: linear-gradient(to right, #ccc 0%, #fff 10%);
+            /* М'яка тінь корінця зліва */
+            background: linear-gradient(to right, #d0d0d0 0%, #f8f8f8 15%, #fff 100%);
             z-index: 1;
         }
 
-        /* Права (Нерухома підкладка) */
+        /* Права статична сторінка (підкладка) */
         .page-right {
             right: 0;
             border-radius: 0 4px 4px 0;
-            background: linear-gradient(to left, #ccc 0%, #fff 10%);
-            z-index: 1;
+            background: #fff;
+            z-index: 0;
         }
 
-        /* --- АНІМАЦІЯ ЧИСТО ВПЕРЕД --- */
-        .page-flip {
+        /* --- АНІМОВАНА СТОРІНКА --- */
+        .page-flip-wrapper {
             position: absolute;
             right: 0;
             width: 50%;
             height: 100%;
             transform-origin: left center;
+            transform-style: preserve-3d; /* Важливо для 3D обертання */
+            z-index: 10;
+            animation: flip-forward 3.5s infinite ease-in-out;
+        }
+
+        /* Лицьова сторона гортаючої сторінки */
+        .page-flip-front {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
             background: #fff;
             border-radius: 0 4px 4px 0;
             border-left: 1px solid #ccc;
-            z-index: 10;
-            
-            /* Анімація: 3 секунди, нескінченно, лінійно */
-            animation: flip-forward 3s infinite linear;
+            backface-visibility: hidden;
+            z-index: 2;
+            /* Градієнт, що змінюється при повороті */
+            background: linear-gradient(to left, #fff 80%, #e0e0e0 100%);
         }
 
-        /* Тінь посередині */
-        .spine-shadow {
+        /* Зворотний бік гортаючої сторінки (те, що ми бачимо коли вона перегорнута) */
+        .page-flip-back {
             position: absolute;
-            left: 50%;
-            top: 0;
-            width: 40px;
-            height: 100%;
-            background: linear-gradient(to right, rgba(0,0,0,0.1), transparent, rgba(0,0,0,0.1));
-            transform: translateX(-50%);
-            z-index: 2;
-            pointer-events: none;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: #f0f0f0; /* Трохи темніша */
+            border-radius: 4px 0 0 4px;
+            border-right: 1px solid #ccc;
+            backface-visibility: hidden;
+            transform: rotateY(180deg); /* Розвернута задом наперед */
+            z-index: 1;
+            display: flex; align-items: center; justify-content: center;
+            background: linear-gradient(to right, #e0e0e0 0%, #f0f0f0 20%, #fff 100%);
+        }
+        
+        /* Тінь по центру під час гортання */
+        .center-shadow {
+             position: absolute;
+             left: 50%; top: 2%; width: 20px; height: 96%;
+             background: rgba(0,0,0,0.15);
+             filter: blur(10px);
+             opacity: 0;
+             z-index: 5;
+             transform: translateX(-50%);
+             animation: shadow-pulse 3.5s infinite ease-in-out;
         }
 
         @keyframes flip-forward {
-            0% {
-                transform: rotateY(0deg);
-                opacity: 1;
-                background: linear-gradient(to left, #ccc 0%, #fff 10%);
-            }
-            20% {
-                background: #fff; /* Біліє при підйомі */
-            }
-            50% {
-                transform: rotateY(-90deg); /* Вертикально */
-                opacity: 1;
-            }
-            90% {
-                opacity: 1;
-            }
-            100% {
-                transform: rotateY(-180deg); /* Повний переворот вліво */
-                opacity: 0; /* Зникає в самому кінці */
-            }
+            0% { transform: rotateY(0deg); }
+            15% { transform: rotateY(-20deg); } /* Легкий підйом на початку */
+            100% { transform: rotateY(-180deg); } /* Повний переверт наліво */
+        }
+        
+        @keyframes shadow-pulse {
+            0%, 100% { opacity: 0; }
+            40%, 60% { opacity: 1; } /* Тінь з'являється, коли сторінка вертикально */
         }
 
 
         /* --- МОБІЛЬНА АДАПТАЦІЯ --- */
         @media (max-width: 768px) {
-            .container {
-                flex-direction: column;
-                height: auto;
-            }
-            .left-col {
-                flex-direction: column;
-                width: 100%;
-                gap: 0;
-            }
-            .product-card {
-                width: 100%;
-                height: auto;
-                min-height: 453px; /* На мобільному дозволяємо рости */
-                border-bottom: 4px solid #E9E9E9;
-            }
-            .img-container {
-                height: 350px; /* Картинка менша на мобі */
-            }
-            .info-block {
-                position: relative; /* На мобільному текст йде потоком */
-                bottom: auto;
-                left: auto;
-                width: 100%;
-                padding: 12px;
-            }
-            .right-col {
-                height: auto;
-                min-height: 400px;
-                padding-bottom: 50px;
-            }
-            .nav-bar {
-                position: relative;
-                justify-content: center;
-                margin-top: 20px;
-                margin-bottom: 20px;
-            }
-            .book-container {
-                position: relative;
-                top: 0;
-                right: 0;
-                margin: 0 auto;
-                transform: scale(0.8);
-            }
+            .container { flex-direction: column; height: auto; }
+            .left-col { flex-direction: column; width: 100%; gap: 0; }
+            .product-card { width: 100%; height: auto; min-height: 453px; border-bottom: 4px solid #E9E9E9; }
+            .img-container { height: 350px; }
+            .info-block { position: relative; bottom: auto; left: auto; width: 100%; padding: 12px; }
+            .title { min-height: auto; } /* На мобі прибираємо фікс висоту */
+            .right-col { height: auto; min-height: 400px; padding-bottom: 50px; }
+            .nav-bar { position: relative; justify-content: center; margin-top: 20px; margin-bottom: 20px; }
+            .book-container { position: relative; top: 0; right: 0; margin: 0 auto; transform: scale(0.8); }
         }
-
     </style>
 </head>
 <body>
@@ -354,8 +327,8 @@
                             <div class="page-footer">Київ, 2026</div>
                         </div>
                     </div>
-
-                    <div class="spine-shadow"></div>
+                    
+                    <div class="center-shadow"></div>
 
                     <div class="page page-right">
                         <div class="page-content">
@@ -365,12 +338,15 @@
                         </div>
                     </div>
 
-                    <div class="page page-flip">
-                        <div class="page-content">
-                            <img src="./logo_publishing.png" class="page-logo" alt="Logo">
-                            <div class="page-text">Видавництво артпроєкту<br>“Іді нахуй”</div>
-                            <div class="page-footer">Київ, 2026</div>
+                    <div class="page-flip-wrapper">
+                        <div class="page page-flip-front">
+                            <div class="page-content">
+                                <img src="./logo_publishing.png" class="page-logo" alt="Logo">
+                                <div class="page-text">Видавництво артпроєкту<br>“Іді нахуй”</div>
+                                <div class="page-footer">Київ, 2026</div>
+                            </div>
                         </div>
+                        <div class="page-flip-back"></div>
                     </div>
 
                 </div>

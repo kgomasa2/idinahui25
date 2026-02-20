@@ -1,334 +1,328 @@
 <!DOCTYPE html>
 <html lang="uk">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Зін «Мама» — Христина Новікова</title>
-    
-    <link rel="apple-touch-icon" sizes="180x180" href="/assets/favicon/apple-touch-icon.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon/favicon-16x16.png">
-    <link rel="shortcut icon" href="/assets/favicon/favicon.ico">
-    <meta name="theme-color" content="#FF0000">
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+   <title>Зін «Мама» — Христина Новікова</title>
+  
+   <link rel="apple-touch-icon" sizes="180x180" href="/assets/favicon/apple-touch-icon.png">
+   <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon/favicon-32x32.png">
+   <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon/favicon-16x16.png">
+   <link rel="shortcut icon" href="/assets/favicon/favicon.ico">
+   <meta name="theme-color" content="#FF0000">
 
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-8RKB3ZJ59V"></script>
-    <script>
-    const MONOBANK_LINK = 'https://send.monobank.ua/jar/YOUR_JAR_LINK'; 
 
-    async function submitOrder(source) {
-        const suffix = source === 'mob' ? '_mob' : '_desk';
-        
-        const phoneInp = document.getElementById('phone' + suffix);
-        const nameInp = document.getElementById('name' + suffix);
-        const postInp = document.getElementById('post' + suffix);
+   <script async src="https://www.googletagmanager.com/gtag/js?id=G-8RKB3ZJ59V"></script>
+   <script>
+     window.dataLayer = window.dataLayer || [];
+     function gtag(){dataLayer.push(arguments);}
+     gtag('js', new Date());
+     gtag('config', 'G-8RKB3ZJ59V');
+   </script>
 
-        const phone = phoneInp.value.trim();
-        const name = nameInp.value.trim();
-        const post = postInp.value.trim();
 
-        if(!phone || !name || !post) {
-            alert('Будь ласка, заповніть всі дані доставки');
-            return;
-        }
+   <script src="https://cdn.tailwindcss.com"></script>
+   <link href="https://fonts.googleapis.com/css2?family=Helvetica+Neue:wght@400;700&display=swap" rel="stylesheet">
 
-        alert("Тест 1: Дані зібрані. Відправляємо запит на Cloudflare...");
 
-        try {
-            const response = await fetch('/order', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name, phone, post })
-            });
-            
-            const responseText = await response.text(); 
-            
-            alert("Тест 2: Відповідь від сервера отримано.\nСтатус код: " + response.status + "\nТекст: " + responseText);
-            
-            if (response.ok) {
-                alert("Успіх! Дані пішли в ТГ. Зараз мав би бути перехід на Моно.");
-                // Поки закоментував перехід, щоб ти точно побачив повідомлення
-                // window.location.href = MONOBANK_LINK; 
-            } else {
-                alert("Помилка на стороні сервера Cloudflare.");
-            }
-            
-        } catch (error) {
-            alert("Помилка запиту (Network/JS): " + error.message);
-        }
-    }
-</script>
+   <style>
+       html, body {
+           max-width: 100vw;
+       }
+       body {
+           margin: 0;
+           font-family: 'Helvetica Neue', sans-serif;
+           background-color: #FF0000;
+           overflow-x: hidden;
+           overflow-y: auto;  
+       }
+       .text-base-custom { font-size: 13px; line-height: 103%; letter-spacing: -0.04em; }
+       .title-custom { font-size: 26px; line-height: 103%; letter-spacing: -0.04em; }
+       .price-text { font-size: 23px; font-weight: bold; line-height: 1; transform: scaleX(1.25); transform-origin: center; }
+       .label-text { font-size: 13px; letter-spacing: -0.04em; font-weight: bold; line-height: 1; margin-top: 4px; }
+       #canvas-container { width: 100%; height: 100%; display: block; outline: none; }
+      
+       .input-field {
+           width: 100%;
+           background-color: #F1F1F1;
+           border: none;
+           padding: 12px;
+           font-size: 14px;
+           font-family: 'Helvetica Neue', sans-serif;
+           margin-bottom: 5px;
+           outline: none;
+           color: black;
+           border-radius: 0;
+           -webkit-appearance: none;
+       }
+       .input-field::placeholder { color: #888; }
+       .input-error { border: 1px solid red; }
+   </style>
 
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Helvetica+Neue:wght@400;700&display=swap" rel="stylesheet">
 
-    <style>
-        html, body {
-            max-width: 100vw;
-        }
-        body { 
-            margin: 0; 
-            font-family: 'Helvetica Neue', sans-serif; 
-            background-color: #FF0000; 
-            overflow-x: hidden; 
-            overflow-y: auto;   
-        }
-        .text-base-custom { font-size: 13px; line-height: 103%; letter-spacing: -0.04em; }
-        .title-custom { font-size: 26px; line-height: 103%; letter-spacing: -0.04em; }
-        .price-text { font-size: 23px; font-weight: bold; line-height: 1; transform: scaleX(1.25); transform-origin: center; }
-        .label-text { font-size: 13px; letter-spacing: -0.04em; font-weight: bold; line-height: 1; margin-top: 4px; }
-        #canvas-container { width: 100%; height: 100%; display: block; outline: none; }
-        
-        .input-field {
-            width: 100%;
-            background-color: #F1F1F1;
-            border: none;
-            padding: 12px;
-            font-size: 14px;
-            font-family: 'Helvetica Neue', sans-serif;
-            margin-bottom: 5px;
-            outline: none;
-            color: black;
-            border-radius: 0;
-            -webkit-appearance: none;
-        }
-        .input-field::placeholder { color: #888; }
-        .input-error { border: 1px solid red; }
-    </style>
-
-    <script type="importmap">
-        {
-            "imports": {
-                "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
-                "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
-            }
-        }
-    </script>
+   <script type="importmap">
+       {
+           "imports": {
+               "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+               "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+           }
+       }
+   </script>
 </head>
 <body class="relative min-h-screen w-full max-w-[100vw] flex flex-col md:block overflow-x-hidden box-border">
 
-    <div class="book-wrapper relative z-0 w-full h-[65vh] md:absolute md:top-0 md:left-0 md:w-full md:h-full flex-shrink-0">
-        <div id="scene-container" class="w-full h-full scale-[0.90] md:scale-100"></div>
-    </div>
 
-    <div class="mobile-panel md:hidden relative w-full max-w-[100vw] bg-[#D9D9D9] flex flex-col z-10 flex-grow box-border">
-        
-        <div class="flex w-full h-[63px]">
-            <a href="https://www.idinahui.art/publishing" class="flex-1 bg-white text-black flex justify-center items-center font-bold text-[23px] tracking-[-0.04em] no-underline">ПРО НАС</a>
-            <a href="https://t.me/adultxoma" class="flex-1 bg-[#A3A3A3] text-black flex justify-center items-center font-bold text-[23px] tracking-[-0.04em] no-underline">КОНТАКТИ</a>
-        </div>
+   <div class="book-wrapper relative z-0 w-full h-[65vh] md:absolute md:top-0 md:left-0 md:w-full md:h-full flex-shrink-0">
+       <div id="scene-container" class="w-full h-full scale-[0.90] md:scale-100"></div>
+   </div>
 
-        <div class="p-[13px] flex flex-col flex-grow">
-            <h1 class="title-custom font-bold m-0 origin-left scale-x-125 w-[80%] mb-[18px]">
-              Зін «Мама»<br />
-              Христина Новікова
-            </h1>
 
-            <div class="text-base-custom font-bold mb-[18px]">
-              Дизайн та верстка: Володимир Хоменко<br />
-              Видавництво: IDINAHUI PUBLISHING<br />
-              Формат А5, 68 с.<br />
-              Київ, 2026
-            </div>
+   <div class="mobile-panel md:hidden relative w-full max-w-[100vw] bg-[#D9D9D9] flex flex-col z-10 flex-grow box-border">
+      
+       <div class="flex w-full h-[63px]">
+           <a href="https://www.idinahui.art/publishing" class="flex-1 bg-white text-black flex justify-center items-center font-bold text-[23px] tracking-[-0.04em] no-underline">ПРО НАС</a>
+           <a href="https://t.me/adultxoma" class="flex-1 bg-[#A3A3A3] text-black flex justify-center items-center font-bold text-[23px] tracking-[-0.04em] no-underline">КОНТАКТИ</a>
+       </div>
 
-            <p class="text-base-custom font-bold mb-[18px]">
-              Цей зін апропріює естетику культової пачки Marlboro Red, перетворюючи хроніку життя в окупації на візуальний об’єкт із попередженням про небезпеку. Червоний колір тривоги тут римується з агресивним брендингом, а очікування повідомлень від мами з Маріуполя (2022–2026) стає метафорою залежності, від якої неможливо відмовитися. Це документація зв’язку, де буденні поради «поїсти супу» перемішані зі звуками вибухів, а любов до рідного дому межує з фатальним ризиком там залишатися.
-            </p>
 
-            <div class="flex flex-col mb-[18px]">
-                <input type="tel" id="phone_mob" class="input-field" placeholder="Номер телефону">
-                <input type="text" id="name_mob" class="input-field" placeholder="ПІБ">
-                <input type="text" id="post_mob" class="input-field" placeholder="Місто та № відділення НП">
-                
-                <button onclick="submitOrder('mob')" class="bg-white text-black w-full h-[82px] flex justify-center items-center text-[25px] font-bold tracking-[-0.04em] hover:scale-[1.01] transition-transform cursor-pointer mt-1 border-none rounded-none">
-                    Monopay
-                </button>
-            </div>
-        </div>
+       <div class="p-[13px] flex flex-col flex-grow">
+           <h1 class="title-custom font-bold m-0 origin-left scale-x-125 w-[80%] mb-[18px]">
+             Зін «Мама»<br />
+             Христина Новікова
+           </h1>
 
-        <div class="flex w-full h-[63px]">
-            <div class="flex-1 bg-white text-black flex flex-col justify-center items-center">
-                <div class="price-text">666₴</div>
-                <div class="label-text">pre-order</div>
-            </div>
-            <div class="flex-1 bg-[#A3A3A3] text-black flex flex-col justify-center items-center">
-                <div class="price-text relative">
-                    <span class="opacity-40">777₴</span>
-                    <span class="absolute left-0 top-1/2 w-full h-[2px] bg-black opacity-40 -translate-y-1/2"></span>
-                </div>
-                <div class="label-text">full price</div>
-            </div>
-        </div>
-    </div>
 
-    <div class="desktop-panel hidden md:flex absolute top-0 right-0 flex-col z-10 w-[348px]">
-        <div class="bg-[#D9D9D9] text-black flex flex-col relative" style="height: auto; min-height: 432px;">
-          
-          <div class="flex w-full h-[63px]">
-              <a href="https://www.idinahui.art/publishing" class="flex-1 bg-white text-black flex justify-center items-center font-bold text-[23px] tracking-[-0.04em] no-underline">ПРО НАС</a>
-              <a href="https://t.me/adultxoma" class="flex-1 bg-[#A3A3A3] text-black flex justify-center items-center font-bold text-[23px] tracking-[-0.04em] no-underline">КОНТАКТИ</a>
-          </div>
+           <div class="text-base-custom font-bold mb-[18px]">
+             Дизайн та верстка: Володимир Хоменко<br />
+             Видавництво: IDINAHUI PUBLISHING<br />
+             Формат А5, 68 с.<br />
+             Київ, 2026
+           </div>
 
-          <div class="flex flex-col flex-grow" style="padding: 15px 18px 15px 14px;">
-              <h1 class="title-custom font-bold m-0 origin-left scale-x-125 w-[80%] mb-5">
-                Зін «Мама»<br />
-                Христина Новікова
-              </h1>
 
-              <div class="text-base-custom font-bold mb-3">
-                Дизайн та верстка: Володимир Хоменко<br />
-                Видавництво: IDINAHUI PUBLISHING<br />
-                Формат А5, 68 с.<br />
-                Київ, 2026
-              </div>
+           <p class="text-base-custom font-bold mb-[18px]">
+             Цей зін апропріює естетику культової пачки Marlboro Red, перетворюючи хроніку життя в окупації на візуальний об’єкт із попередженням про небезпеку. Червоний колір тривоги тут римується з агресивним брендингом, а очікування повідомлень від мами з Маріуполя (2022–2026) стає метафорою залежності, від якої неможливо відмовитися. Це документація зв’язку, де буденні поради «поїсти супу» перемішані зі звуками вибухів, а любов до рідного дому межує з фатальним ризиком там залишатися.
+           </p>
 
-              <p class="text-base-custom font-bold mb-5">
-                Цей зін апропріює естетику культової пачки Marlboro Red, перетворюючи хроніку життя в окупації на візуальний об’єкт із попередженням про небезпеку. Червоний колір тривоги тут римується з агресивним брендингом, а очікування повідомлень від мами з Маріуполя (2022–2026) стає метафорою залежності, від якої неможливо відмовитися.
-              </p>
+
+           <div class="flex flex-col mb-[18px]">
+               <input type="tel" id="phone_mob" class="input-field" placeholder="Номер телефону">
+               <input type="text" id="name_mob" class="input-field" placeholder="ПІБ">
+               <input type="text" id="post_mob" class="input-field" placeholder="Місто та № відділення НП">
               
-              <div class="mt-auto">
-                  <input type="tel" id="phone_desk" class="input-field" placeholder="Номер телефону">
-                  <input type="text" id="name_desk" class="input-field" placeholder="ПІБ">
-                  <input type="text" id="post_desk" class="input-field" placeholder="Місто та № відділення НП">
-                  
-                  <button onclick="submitOrder('desk')" class="bg-white text-black h-[82px] w-full flex justify-center items-center text-[25px] font-bold tracking-[-0.04em] hover:scale-[1.02] transition-transform mt-2 cursor-pointer border-none">
-                    Monopay
-                  </button>
-              </div>
-          </div>
-        </div>
+               <button onclick="submitOrder('mob')" class="bg-white text-black w-full h-[82px] flex justify-center items-center text-[25px] font-bold tracking-[-0.04em] hover:scale-[1.01] transition-transform cursor-pointer mt-1 border-none rounded-none">
+                   Monopay
+               </button>
+           </div>
+       </div>
+
+
+       <div class="flex w-full h-[63px]">
+           <div class="flex-1 bg-white text-black flex flex-col justify-center items-center">
+               <div class="price-text">666₴</div>
+               <div class="label-text">pre-order</div>
+           </div>
+           <div class="flex-1 bg-[#A3A3A3] text-black flex flex-col justify-center items-center">
+               <div class="price-text relative">
+                   <span class="opacity-40">777₴</span>
+                   <span class="absolute left-0 top-1/2 w-full h-[2px] bg-black opacity-40 -translate-y-1/2"></span>
+               </div>
+               <div class="label-text">full price</div>
+           </div>
+       </div>
+   </div>
+
+
+   <div class="desktop-panel hidden md:flex absolute top-0 right-0 flex-col z-10 w-[348px]">
+       <div class="bg-[#D9D9D9] text-black flex flex-col relative" style="height: auto; min-height: 432px;">
         
-        <div class="flex w-full" style="height: 63px;">
-          <div class="w-1/2 bg-white text-black flex flex-col justify-center items-center">
-             <div class="price-text">666₴</div>
-             <div class="label-text">pre-order</div>
-          </div>
-          <div class="w-1/2 bg-[#A3A3A3] text-black flex flex-col justify-center items-center">
-             <div class="price-text relative">
-                <span class="opacity-40">777₴</span>
-                <span class="absolute left-0 top-1/2 w-full h-[2px] bg-black opacity-40 -translate-y-1/2"></span>
+         <div class="flex w-full h-[63px]">
+             <a href="https://www.idinahui.art/publishing" class="flex-1 bg-white text-black flex justify-center items-center font-bold text-[23px] tracking-[-0.04em] no-underline">ПРО НАС</a>
+             <a href="https://t.me/adultxoma" class="flex-1 bg-[#A3A3A3] text-black flex justify-center items-center font-bold text-[23px] tracking-[-0.04em] no-underline">КОНТАКТИ</a>
+         </div>
+
+
+         <div class="flex flex-col flex-grow" style="padding: 15px 18px 15px 14px;">
+             <h1 class="title-custom font-bold m-0 origin-left scale-x-125 w-[80%] mb-5">
+               Зін «Мама»<br />
+               Христина Новікова
+             </h1>
+
+
+             <div class="text-base-custom font-bold mb-3">
+               Дизайн та верстка: Володимир Хоменко<br />
+               Видавництво: IDINAHUI PUBLISHING<br />
+               Формат А5, 68 с.<br />
+               Київ, 2026
              </div>
-             <div class="label-text">full price</div>
-          </div>
-        </div>
-    </div>
 
-    <script>
-        const MONOBANK_LINK = 'https://send.monobank.ua/jar/YOUR_JAR_LINK'; 
 
-        async function submitOrder(source) {
-            const suffix = source === 'mob' ? '_mob' : '_desk';
+             <p class="text-base-custom font-bold mb-5">
+               Цей зін апропріює естетику культової пачки Marlboro Red, перетворюючи хроніку життя в окупації на візуальний об’єкт із попередженням про небезпеку. Червоний колір тривоги тут римується з агресивним брендингом, а очікування повідомлень від мами з Маріуполя (2022–2026) стає метафорою залежності, від якої неможливо відмовитися.
+             </p>
             
-            const phoneInp = document.getElementById('phone' + suffix);
-            const nameInp = document.getElementById('name' + suffix);
-            const postInp = document.getElementById('post' + suffix);
-
-            const phone = phoneInp.value.trim();
-            const name = nameInp.value.trim();
-            const post = postInp.value.trim();
-
-            let isValid = true;
-            if(!phone) { phoneInp.classList.add('input-error'); isValid = false; } else { phoneInp.classList.remove('input-error'); }
-            if(!name) { nameInp.classList.add('input-error'); isValid = false; } else { nameInp.classList.remove('input-error'); }
-            if(!post) { postInp.classList.add('input-error'); isValid = false; } else { postInp.classList.remove('input-error'); }
-
-            if (!isValid) {
-                alert('Будь ласка, заповніть дані доставки');
-                return;
-            }
-
-            try {
-                await fetch('/order', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name, phone, post })
-                });
+             <div class="mt-auto">
+                 <input type="tel" id="phone_desk" class="input-field" placeholder="Номер телефону">
+                 <input type="text" id="name_desk" class="input-field" placeholder="ПІБ">
+                 <input type="text" id="post_desk" class="input-field" placeholder="Місто та № відділення НП">
                 
-                window.location.href = MONOBANK_LINK;
-                
-            } catch (error) {
-                console.error('Error:', error);
-                window.location.href = MONOBANK_LINK;
-            }
-        }
-    </script>
+                 <button onclick="submitOrder('desk')" class="bg-white text-black h-[82px] w-full flex justify-center items-center text-[25px] font-bold tracking-[-0.04em] hover:scale-[1.02] transition-transform mt-2 cursor-pointer border-none">
+                   Monopay
+                 </button>
+             </div>
+         </div>
+       </div>
+      
+       <div class="flex w-full" style="height: 63px;">
+         <div class="w-1/2 bg-white text-black flex flex-col justify-center items-center">
+            <div class="price-text">666₴</div>
+            <div class="label-text">pre-order</div>
+         </div>
+         <div class="w-1/2 bg-[#A3A3A3] text-black flex flex-col justify-center items-center">
+            <div class="price-text relative">
+               <span class="opacity-40">777₴</span>
+               <span class="absolute left-0 top-1/2 w-full h-[2px] bg-black opacity-40 -translate-y-1/2"></span>
+            </div>
+            <div class="label-text">full price</div>
+         </div>
+       </div>
+   </div>
 
-    <script type="module">
-        import * as THREE from 'three';
-        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-        const container = document.getElementById('scene-container');
-        const scene = new THREE.Scene();
-        
-        const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 1000);
-        camera.position.set(0, 0, 8);
+   <script>
+       const MONOBANK_LINK = 'https://send.monobank.ua/jar/YOUR_JAR_LINK';
 
-        const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
-        renderer.setSize(container.clientWidth, container.clientHeight);
-        renderer.setPixelRatio(window.devicePixelRatio);
-        renderer.outputColorSpace = THREE.SRGBColorSpace;
-        container.appendChild(renderer.domElement);
 
-        const ambientLight = new THREE.AmbientLight(0xffffff, 1);
-        scene.add(ambientLight);
+       async function submitOrder(source) {
+           const suffix = source === 'mob' ? '_mob' : '_desk';
+          
+           const phoneInp = document.getElementById('phone' + suffix);
+           const nameInp = document.getElementById('name' + suffix);
+           const postInp = document.getElementById('post' + suffix);
 
-        const textureLoader = new THREE.TextureLoader();
-        
-        const coverTex = textureLoader.load('./cover_zine.png');
-        const pagesTex = textureLoader.load('./A5 - 2.png');
-        
-        coverTex.colorSpace = THREE.SRGBColorSpace;
-        pagesTex.colorSpace = THREE.SRGBColorSpace;
 
-        const textureRight = pagesTex.clone();
-        textureRight.colorSpace = THREE.SRGBColorSpace;
-        textureRight.wrapS = THREE.RepeatWrapping;
-        textureRight.wrapT = THREE.RepeatWrapping;
-        textureRight.repeat.set(1, 4);
-        textureRight.needsUpdate = true;
+           const phone = phoneInp.value.trim();
+           const name = nameInp.value.trim();
+           const post = postInp.value.trim();
 
-        const textureTopBottom = pagesTex.clone();
-        textureTopBottom.colorSpace = THREE.SRGBColorSpace;
-        textureTopBottom.wrapS = THREE.RepeatWrapping;
-        textureTopBottom.wrapT = THREE.RepeatWrapping;
-        textureTopBottom.rotation = Math.PI / 2;
-        textureTopBottom.center.set(0.5, 0.5);
-        textureTopBottom.repeat.set(4, 1);
-        textureTopBottom.needsUpdate = true;
 
-        const geometry = new THREE.BoxGeometry(3, 4.2, 0.25);
-        const materials = [
-            new THREE.MeshBasicMaterial({ map: textureRight }),      
-            new THREE.MeshBasicMaterial({ color: 0xffffff }),        
-            new THREE.MeshBasicMaterial({ map: textureTopBottom }),  
-            new THREE.MeshBasicMaterial({ map: textureTopBottom }),  
-            new THREE.MeshBasicMaterial({ map: coverTex }),          
-            new THREE.MeshBasicMaterial({ map: coverTex })           
-        ];
+           let isValid = true;
+           if(!phone) { phoneInp.classList.add('input-error'); isValid = false; } else { phoneInp.classList.remove('input-error'); }
+           if(!name) { nameInp.classList.add('input-error'); isValid = false; } else { nameInp.classList.remove('input-error'); }
+           if(!post) { postInp.classList.add('input-error'); isValid = false; } else { postInp.classList.remove('input-error'); }
 
-        const book = new THREE.Mesh(geometry, materials);
-        book.rotation.set(0, -0.5, 0);
-        scene.add(book);
 
-        const controls = new OrbitControls(camera, renderer.domElement);
-        controls.enableZoom = false;
-        controls.enablePan = false;
-        controls.autoRotate = true;
-        controls.autoRotateSpeed = 2.0; 
+           if (!isValid) {
+               alert('Будь ласка, заповніть дані доставки');
+               return;
+           }
 
-        function animate() {
-            requestAnimationFrame(animate);
-            controls.update();
-            renderer.render(scene, camera);
-        }
-        animate();
 
-        window.addEventListener('resize', () => {
-            const width = container.clientWidth;
-            const height = container.clientHeight;
-            renderer.setSize(width, height);
-            camera.aspect = width / height;
-            camera.updateProjectionMatrix();
-        });
-    </script>
+           try {
+               await fetch('/order', {
+                   method: 'POST',
+                   headers: { 'Content-Type': 'application/json' },
+                   body: JSON.stringify({ name, phone, post })
+               });
+              
+               window.location.href = MONOBANK_LINK;
+              
+           } catch (error) {
+               console.error('Error:', error);
+               window.location.href = MONOBANK_LINK;
+           }
+       }
+   </script>
+
+
+   <script type="module">
+       import * as THREE from 'three';
+       import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+
+       const container = document.getElementById('scene-container');
+       const scene = new THREE.Scene();
+      
+       const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 1000);
+       camera.position.set(0, 0, 8);
+
+
+       const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+       renderer.setSize(container.clientWidth, container.clientHeight);
+       renderer.setPixelRatio(window.devicePixelRatio);
+       renderer.outputColorSpace = THREE.SRGBColorSpace;
+       container.appendChild(renderer.domElement);
+
+
+       const ambientLight = new THREE.AmbientLight(0xffffff, 1);
+       scene.add(ambientLight);
+
+
+       const textureLoader = new THREE.TextureLoader();
+      
+       const coverTex = textureLoader.load('./cover_zine.png');
+       const pagesTex = textureLoader.load('./A5 - 2.png');
+      
+       coverTex.colorSpace = THREE.SRGBColorSpace;
+       pagesTex.colorSpace = THREE.SRGBColorSpace;
+
+
+       const textureRight = pagesTex.clone();
+       textureRight.colorSpace = THREE.SRGBColorSpace;
+       textureRight.wrapS = THREE.RepeatWrapping;
+       textureRight.wrapT = THREE.RepeatWrapping;
+       textureRight.repeat.set(1, 4);
+       textureRight.needsUpdate = true;
+
+
+       const textureTopBottom = pagesTex.clone();
+       textureTopBottom.colorSpace = THREE.SRGBColorSpace;
+       textureTopBottom.wrapS = THREE.RepeatWrapping;
+       textureTopBottom.wrapT = THREE.RepeatWrapping;
+       textureTopBottom.rotation = Math.PI / 2;
+       textureTopBottom.center.set(0.5, 0.5);
+       textureTopBottom.repeat.set(4, 1);
+       textureTopBottom.needsUpdate = true;
+
+
+       const geometry = new THREE.BoxGeometry(3, 4.2, 0.25);
+       const materials = [
+           new THREE.MeshBasicMaterial({ map: textureRight }),     
+           new THREE.MeshBasicMaterial({ color: 0xffffff }),       
+           new THREE.MeshBasicMaterial({ map: textureTopBottom }), 
+           new THREE.MeshBasicMaterial({ map: textureTopBottom }), 
+           new THREE.MeshBasicMaterial({ map: coverTex }),         
+           new THREE.MeshBasicMaterial({ map: coverTex })          
+       ];
+
+
+       const book = new THREE.Mesh(geometry, materials);
+       book.rotation.set(0, -0.5, 0);
+       scene.add(book);
+
+
+       const controls = new OrbitControls(camera, renderer.domElement);
+       controls.enableZoom = false;
+       controls.enablePan = false;
+       controls.autoRotate = true;
+       controls.autoRotateSpeed = 2.0;
+
+
+       function animate() {
+           requestAnimationFrame(animate);
+           controls.update();
+           renderer.render(scene, camera);
+       }
+       animate();
+
+
+       window.addEventListener('resize', () => {
+           const width = container.clientWidth;
+           const height = container.clientHeight;
+           renderer.setSize(width, height);
+           camera.aspect = width / height;
+           camera.updateProjectionMatrix();
+       });
+   </script>
 </body>
-</html>
+</html> 

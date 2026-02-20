@@ -13,11 +13,50 @@
 
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-8RKB3ZJ59V"></script>
     <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', 'G-8RKB3ZJ59V');
-    </script>
+    const MONOBANK_LINK = 'https://send.monobank.ua/jar/YOUR_JAR_LINK'; 
+
+    async function submitOrder(source) {
+        const suffix = source === 'mob' ? '_mob' : '_desk';
+        
+        const phoneInp = document.getElementById('phone' + suffix);
+        const nameInp = document.getElementById('name' + suffix);
+        const postInp = document.getElementById('post' + suffix);
+
+        const phone = phoneInp.value.trim();
+        const name = nameInp.value.trim();
+        const post = postInp.value.trim();
+
+        if(!phone || !name || !post) {
+            alert('Будь ласка, заповніть всі дані доставки');
+            return;
+        }
+
+        alert("Тест 1: Дані зібрані. Відправляємо запит на Cloudflare...");
+
+        try {
+            const response = await fetch('/order', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, phone, post })
+            });
+            
+            const responseText = await response.text(); 
+            
+            alert("Тест 2: Відповідь від сервера отримано.\nСтатус код: " + response.status + "\nТекст: " + responseText);
+            
+            if (response.ok) {
+                alert("Успіх! Дані пішли в ТГ. Зараз мав би бути перехід на Моно.");
+                // Поки закоментував перехід, щоб ти точно побачив повідомлення
+                // window.location.href = MONOBANK_LINK; 
+            } else {
+                alert("Помилка на стороні сервера Cloudflare.");
+            }
+            
+        } catch (error) {
+            alert("Помилка запиту (Network/JS): " + error.message);
+        }
+    }
+</script>
 
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Helvetica+Neue:wght@400;700&display=swap" rel="stylesheet">

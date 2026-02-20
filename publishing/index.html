@@ -264,6 +264,21 @@
             100% { transform: rotateY(-180deg); z-index: 10; }
         }
 
+        /* ФУТЕР З ЛІНКАМИ */
+        .footer-links {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            display: flex;
+            gap: 20px;
+            font-size: 14px;
+            z-index: 100;
+        }
+
+        .footer-links a:hover {
+            text-decoration: underline;
+        }
+
         /* --- МОБІЛЬНА ВЕРСІЯ (FIXES) --- */
         @media (max-width: 768px) {
             .container { 
@@ -346,6 +361,18 @@
                 min-height: auto; 
                 display: block; 
             } 
+
+            /* ФУТЕР ДЛЯ МОБІЛЬНОЇ ВЕРСІЇ */
+            .footer-links {
+                position: relative;
+                bottom: auto;
+                left: auto;
+                padding: 20px 12px;
+                background-color: #E9E9E9;
+                flex-wrap: wrap;
+                justify-content: flex-start;
+                gap: 15px;
+            }
         }
     </style>
 </head>
@@ -436,6 +463,12 @@
                 </div>
             </div>
         </div>
+    </div>
+
+    <div class="footer-links">
+        <a href="https://www.idinahui.art/publishing/doc" target="_blank" rel="noopener noreferrer">Договір публічної оферти</a>
+        <a href="https://t.me/adultxoma" target="_blank" rel="noopener noreferrer">Телеграм</a>
+        <a href="https://www.instagram.com/idinahui.art/" target="_blank" rel="noopener noreferrer">Інстаграм</a>
     </div>
 
     <script>

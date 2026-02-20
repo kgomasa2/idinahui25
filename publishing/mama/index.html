@@ -48,7 +48,7 @@
             outline: none;
             color: black;
             border-radius: 0;
-            -webkit-appearance: none; /* Прибирає стандартні стилі iOS */
+            -webkit-appearance: none;
         }
         .input-field::placeholder { color: #888; }
         .input-error { border: 1px solid red; }
@@ -101,6 +101,8 @@
 
         <p class="text-base-custom font-bold mb-[18px]">
           Цей зін апропріює естетику культової пачки Marlboro Red, перетворюючи хроніку життя в окупації на візуальний об’єкт із попередженням про небезпеку. Червоний колір тривоги тут римується з агресивним брендингом, а очікування повідомлень від мами з Маріуполя (2022–2026) стає метафорою залежності, від якої неможливо відмовитися. Це документація зв’язку, де буденні поради «поїсти супу» перемішані зі звуками вибухів, а любов до рідного дому межує з фатальним ризиком там залишатися.
+          <br><br>
+          <a href="https://www.idinahui.art/publishing/mama/about_us" style="text-decoration: underline;">ABOUT US</a>
         </p>
 
         <div class="text-base-custom font-bold mb-5">
@@ -127,6 +129,8 @@
 
           <p class="text-base-custom font-bold mb-5">
             Цей зін апропріює естетику культової пачки Marlboro Red, перетворюючи хроніку життя в окупації на візуальний об’єкт із попередженням про небезпеку. Червоний колір тривоги тут римується з агресивним брендингом, а очікування повідомлень від мами з Маріуполя (2022–2026) стає метафорою залежності, від якої неможливо відмовитися.
+            <br><br>
+            <a href="https://www.idinahui.art/publishing/mama/about_us" style="text-decoration: underline;">ABOUT US</a>
           </p>
           
           <div class="mt-auto">
@@ -156,14 +160,10 @@
     </div>
 
     <script>
-        // --- КОНФІГУРАЦІЯ ---
-        const TELEGRAM_BOT_TOKEN = '8224878360:AAFGBRzhaHPR6PYXoSw09oTA_ub1ioLPUW8'; 
-        const TELEGRAM_CHAT_ID = '228927588'; // Твій ID
-        
-        // !!! ВСТАВ СЮДИ ЛІНК НА БАНКУ !!!
+        // ВСТАВ СЮДИ ЛІНК НА БАНКУ
         const MONOBANK_LINK = 'https://send.monobank.ua/jar/YOUR_JAR_LINK'; 
 
-        function submitOrder(source) {
+        async function submitOrder(source) {
             const suffix = source === 'mob' ? '_mob' : '_desk';
             
             const phoneInp = document.getElementById('phone' + suffix);
@@ -184,27 +184,22 @@
                 return;
             }
 
-            // Повідомлення для Telegram
-            const message = `🔥 *НОВЕ ЗАМОВЛЕННЯ (Зін Мама)*\n\n👤 Ім'я: ${name}\n📱 Тел: ${phone}\n📦 Доставка: ${post}\n\n💵 _Клієнт пішов платити..._`;
-
-            // Відправка
-            fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    chat_id: TELEGRAM_CHAT_ID,
-                    text: message,
-                    parse_mode: 'Markdown'
-                })
-            })
-            .then(() => {
+            // Шлемо дані на прихований роут Cloudflare Functions
+            try {
+                await fetch('/order', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, phone, post })
+                });
+                
+                // Перехід на оплату
                 window.location.href = MONOBANK_LINK;
-            })
-            .catch(err => {
-                console.error('Telegram Error:', err);
-                // Навіть якщо помилка, перекидаємо на оплату
+                
+            } catch (error) {
+                console.error('Error:', error);
+                // Захисний перехід на оплату у разі помилки сервера
                 window.location.href = MONOBANK_LINK;
-            });
+            }
         }
     </script>
 

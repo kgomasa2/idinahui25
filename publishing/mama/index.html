@@ -25,6 +25,7 @@
    <style>
        html, body {
            max-width: 100vw;
+           height: 100%;
        }
        body {
            margin: 0;
@@ -57,18 +58,6 @@
            text-underline-offset: 2px;
            opacity: 0.8;
        }
-
-       /* Анімація для мухи */
-       @keyframes buzz {
-           0% { transform: translate(0, 0) rotate(0deg); }
-           25% { transform: translate(1px, 1px) rotate(2deg); }
-           50% { transform: translate(-1px, -1px) rotate(-1deg); }
-           75% { transform: translate(-2px, 1px) rotate(1deg); }
-           100% { transform: translate(1px, -1px) rotate(-2deg); }
-       }
-       .fly-icon {
-           animation: buzz 0.05s infinite;
-       }
    </style>
 
    <script type="importmap">
@@ -80,13 +69,13 @@
        }
    </script>
 </head>
-<body class="relative min-h-screen w-full max-w-[100vw] flex flex-col md:block overflow-x-hidden box-border">
+<body class="relative min-h-screen w-full max-w-[100vw] flex flex-col md:block overflow-x-hidden box-border m-0 p-0">
 
    <div class="book-wrapper relative z-0 w-full h-[65vh] md:absolute md:top-0 md:left-0 md:w-full md:h-full flex-shrink-0">
        <div id="scene-container" class="w-full h-full scale-[0.90] md:scale-100"></div>
    </div>
 
-   <div class="mobile-panel md:hidden relative w-full max-w-[100vw] bg-[#D9D9D9] flex flex-col z-10 flex-grow box-border pt-[22px] px-[22px] pb-[22px]">
+   <div class="mobile-panel md:hidden relative w-full max-w-[100vw] bg-[#D9D9D9] flex flex-col z-10 flex-grow box-border pt-[22px] px-[22px] m-0">
       
        <h1 class="title-custom font-bold m-0 origin-left scale-x-125 w-[85%] mb-[24px]">
            Зін «Мама»<br />
@@ -125,7 +114,7 @@
            </div>
        </div>
 
-       <div class="flex w-full h-[63px] gap-[5px] mt-auto">
+       <div class="flex w-full h-[63px] gap-[5px] mt-auto pb-[22px]">
            <a href="https://www.idinahui.art/publishing" class="flex-1 bg-white text-black flex justify-center items-center font-bold text-[16px] tracking-[-0.04em] no-underline">
                Про нас
            </a>
@@ -188,10 +177,13 @@
        </div>
    </div>
 
+   <div id="fly-container" class="fixed top-0 left-0 w-full h-full pointer-events-none z-[9999]"></div>
+
    <script type="module">
        import * as THREE from 'three';
        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
+       // --- 1. СЦЕНА З КНИГОЮ ---
        const container = document.getElementById('scene-container');
        const scene = new THREE.Scene();
       
@@ -208,7 +200,6 @@
        scene.add(ambientLight);
 
        const textureLoader = new THREE.TextureLoader();
-      
        const coverTex = textureLoader.load('./cover_zine.png');
        const pagesTex = textureLoader.load('./A5 - 2.png');
       
@@ -251,75 +242,124 @@
        controls.autoRotate = true;
        controls.autoRotateSpeed = 2.0;
 
+       // --- 2. СЦЕНА З МУХОЮ (Окремий WebGL Canvas поверх сайту) ---
+       const flyContainer = document.getElementById('fly-container');
+       const flyScene = new THREE.Scene();
+       
+       const flyCamera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
+       flyCamera.position.set(0, 0, 10);
+
+       const flyRenderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+       flyRenderer.setSize(window.innerWidth, window.innerHeight);
+       flyRenderer.setPixelRatio(window.devicePixelRatio);
+       flyContainer.appendChild(flyRenderer.domElement);
+
+       const flyLight = new THREE.DirectionalLight(0xffffff, 3);
+       flyLight.position.set(5, 5, 5);
+       flyScene.add(flyLight);
+       flyScene.add(new THREE.AmbientLight(0x404040, 2));
+
+       // Генерація 3D моделі мухи примітивами
+       const flyGroup = new THREE.Group();
+       
+       const bodyGeo = new THREE.CapsuleGeometry(0.15, 0.3, 4, 8);
+       const bodyMat = new THREE.MeshPhongMaterial({ color: 0x111111, shininess: 100 });
+       const flyBody = new THREE.Mesh(bodyGeo, bodyMat);
+       flyBody.rotation.x = Math.PI / 2;
+       flyGroup.add(flyBody);
+
+       const eyeGeo = new THREE.SphereGeometry(0.08, 8, 8);
+       const eyeMat = new THREE.MeshPhongMaterial({ color: 0x550000, shininess: 150 });
+       const eyeR = new THREE.Mesh(eyeGeo, eyeMat);
+       eyeR.position.set(0.1, 0.05, 0.2);
+       const eyeL = new THREE.Mesh(eyeGeo, eyeMat);
+       eyeL.position.set(-0.1, 0.05, 0.2);
+       flyGroup.add(eyeR);
+       flyGroup.add(eyeL);
+
+       const wingGeo = new THREE.PlaneGeometry(0.4, 0.15);
+       const wingMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.6, side: THREE.DoubleSide });
+       const wingR = new THREE.Mesh(wingGeo, wingMat);
+       wingR.position.set(0.2, 0.1, 0);
+       const wingL = new THREE.Mesh(wingGeo, wingMat);
+       wingL.position.set(-0.2, 0.1, 0);
+       flyGroup.add(wingR);
+       flyGroup.add(wingL);
+
+       flyScene.add(flyGroup);
+
+       // Логіка польоту
+       let flyTarget = new THREE.Vector3(0, 0, 0);
+       let isResting = false;
+       let time = 0;
+
+       function getNewFlyTarget() {
+           const rangeX = (window.innerWidth / window.innerHeight) * 5;
+           const rangeY = 5;
+           
+           if (Math.random() > 0.7) {
+               // Виліт за екран
+               flyTarget.set((Math.random() > 0.5 ? 1 : -1) * (rangeX + 2), (Math.random() - 0.5) * rangeY, 2);
+               isResting = false;
+           } else {
+               // Політ по екрану
+               flyTarget.set((Math.random() - 0.5) * rangeX * 2, (Math.random() - 0.5) * rangeY * 2, (Math.random() * 3) + 1);
+               isResting = false;
+               
+               // Випадкова зупинка
+               if (Math.random() > 0.5) {
+                   setTimeout(() => { isResting = true; }, Math.random() * 1000 + 500);
+               }
+           }
+       }
+
+       setInterval(getNewFlyTarget, 2500);
+       flyGroup.position.set(10, 10, 0); // Початкова позиція за кадром
+
+       // --- ЗАГАЛЬНИЙ ЦИКЛ АНІМАЦІЇ ---
        function animate() {
            requestAnimationFrame(animate);
+           time += 0.05;
+
+           // 1. Анімація книги
            controls.update();
            renderer.render(scene, camera);
+
+           // 2. Анімація мухи
+           if (!isResting) {
+               // Рух до цілі з ефектом хаотичності
+               flyGroup.position.lerp(flyTarget, 0.05);
+               flyGroup.position.x += Math.sin(time * 10) * 0.02;
+               flyGroup.position.y += Math.cos(time * 12) * 0.02;
+               
+               // Поворот у напрямку руху
+               flyGroup.lookAt(flyTarget);
+
+               // Змах крил
+               wingR.rotation.x = Math.sin(time * 50) * 0.5;
+               wingL.rotation.x = Math.sin(time * 50 + Math.PI) * 0.5;
+           } else {
+               // Муха сидить, дрібне тремтіння крил
+               wingR.rotation.x = Math.sin(time * 5) * 0.05;
+               wingL.rotation.x = Math.sin(time * 5 + Math.PI) * 0.05;
+           }
+
+           flyRenderer.render(flyScene, flyCamera);
        }
        animate();
 
        window.addEventListener('resize', () => {
+           // Ресайз книги
            const width = container.clientWidth;
            const height = container.clientHeight;
            renderer.setSize(width, height);
            camera.aspect = width / height;
            camera.updateProjectionMatrix();
-       });
-   </script>
 
-   <script>
-       // Скрипт для анімації мухи
-       document.addEventListener("DOMContentLoaded", () => {
-           const flyContainer = document.createElement('div');
-           flyContainer.style.position = 'fixed';
-           flyContainer.style.zIndex = '9999';
-           flyContainer.style.pointerEvents = 'none';
-           flyContainer.style.fontSize = '32px';
-           flyContainer.style.transition = 'top 2s ease-in-out, left 2s ease-in-out, transform 0.3s ease';
-           flyContainer.style.top = '-50px';
-           flyContainer.style.left = '-50px';
-           
-           const fly = document.createElement('div');
-           fly.innerText = '🪰';
-           fly.className = 'fly-icon';
-           
-           flyContainer.appendChild(fly);
-           document.body.appendChild(flyContainer);
-
-           function animateFlySequence() {
-               // Заліт на екран
-               const targetY = Math.random() * (window.innerHeight - 100) + 50;
-               const targetX = Math.random() * (window.innerWidth - 100) + 50;
-               
-               flyContainer.style.top = `${targetY}px`;
-               flyContainer.style.left = `${targetX}px`;
-               
-               const angle = Math.random() * 360;
-               flyContainer.style.transform = `rotate(${angle}deg)`;
-
-               setTimeout(() => {
-                   // Виліт за межі екрану
-                   const exitY = Math.random() > 0.5 ? -100 : window.innerHeight + 100;
-                   const exitX = window.innerWidth + 100;
-                   
-                   flyContainer.style.top = `${exitY}px`;
-                   flyContainer.style.left = `${exitX}px`;
-                   
-                   setTimeout(() => {
-                       // Скидання позиції без анімації
-                       flyContainer.style.transition = 'none';
-                       flyContainer.style.left = '-100px';
-                       flyContainer.style.top = `${Math.random() * window.innerHeight}px`;
-                       flyContainer.offsetHeight; // Примусовий reflow
-                       flyContainer.style.transition = 'top 2s ease-in-out, left 2s ease-in-out, transform 0.3s ease';
-                   }, 2000);
-               }, 4500); // Час перебування на екрані
-           }
-
-           setTimeout(() => {
-               animateFlySequence();
-               setInterval(animateFlySequence, 12000); // Повтор кожні 12 секунд
-           }, 3000);
+           // Ресайз мухи
+           flyRenderer.setSize(window.innerWidth, window.innerHeight);
+           flyCamera.aspect = window.innerWidth / window.innerHeight;
+           flyCamera.updateProjectionMatrix();
        });
    </script>
 </body>

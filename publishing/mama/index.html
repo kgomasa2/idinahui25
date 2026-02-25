@@ -182,6 +182,7 @@
    <script type="module">
        import * as THREE from 'three';
        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+       import { FBXLoader } from 'three/addons/loaders/FBXLoader.js';
 
        // --- 1. СЦЕНА З КНИГОЮ ---
        const container = document.getElementById('scene-container');
@@ -200,6 +201,7 @@
        scene.add(ambientLight);
 
        const textureLoader = new THREE.TextureLoader();
+      
        const coverTex = textureLoader.load('./cover_zine.png');
        const pagesTex = textureLoader.load('./A5 - 2.png');
       
@@ -242,7 +244,7 @@
        controls.autoRotate = true;
        controls.autoRotateSpeed = 2.0;
 
-       // --- 2. СЦЕНА З МУХОЮ (Окремий WebGL Canvas поверх сайту) ---
+       // --- 2. СЦЕНА З МУХОЮ (FBX Loader) ---
        const flyContainer = document.getElementById('fly-container');
        const flyScene = new THREE.Scene();
        
@@ -259,54 +261,42 @@
        flyScene.add(flyLight);
        flyScene.add(new THREE.AmbientLight(0x404040, 2));
 
-       // Генерація 3D моделі мухи примітивами
-       const flyGroup = new THREE.Group();
-       
-       const bodyGeo = new THREE.CapsuleGeometry(0.15, 0.3, 4, 8);
-       const bodyMat = new THREE.MeshPhongMaterial({ color: 0x111111, shininess: 100 });
-       const flyBody = new THREE.Mesh(bodyGeo, bodyMat);
-       flyBody.rotation.x = Math.PI / 2;
-       flyGroup.add(flyBody);
+       let flyModel = new THREE.Group();
+       flyScene.add(flyModel);
+       let flyMixer;
 
-       const eyeGeo = new THREE.SphereGeometry(0.08, 8, 8);
-       const eyeMat = new THREE.MeshPhongMaterial({ color: 0x550000, shininess: 150 });
-       const eyeR = new THREE.Mesh(eyeGeo, eyeMat);
-       eyeR.position.set(0.1, 0.05, 0.2);
-       const eyeL = new THREE.Mesh(eyeGeo, eyeMat);
-       eyeL.position.set(-0.1, 0.05, 0.2);
-       flyGroup.add(eyeR);
-       flyGroup.add(eyeL);
+       const fbxLoader = new FBXLoader();
+       fbxLoader.load('./assets/mama/Fly_Man_Fusion_1024215757_fly.fbx', (object) => {
+           flyScene.remove(flyModel);
+           flyModel = object;
+           
+           flyModel.scale.set(0.01, 0.01, 0.01); 
+           
+           if (flyModel.animations.length > 0) {
+               flyMixer = new THREE.AnimationMixer(flyModel);
+               const action = flyMixer.clipAction(flyModel.animations[0]);
+               action.play();
+           }
+           
+           flyScene.add(flyModel);
+           flyModel.position.set(10, 10, 0); 
+       });
 
-       const wingGeo = new THREE.PlaneGeometry(0.4, 0.15);
-       const wingMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.6, side: THREE.DoubleSide });
-       const wingR = new THREE.Mesh(wingGeo, wingMat);
-       wingR.position.set(0.2, 0.1, 0);
-       const wingL = new THREE.Mesh(wingGeo, wingMat);
-       wingL.position.set(-0.2, 0.1, 0);
-       flyGroup.add(wingR);
-       flyGroup.add(wingL);
-
-       flyScene.add(flyGroup);
-
-       // Логіка польоту
        let flyTarget = new THREE.Vector3(0, 0, 0);
        let isResting = false;
-       let time = 0;
+       const clock = new THREE.Clock(); 
 
        function getNewFlyTarget() {
            const rangeX = (window.innerWidth / window.innerHeight) * 5;
            const rangeY = 5;
            
            if (Math.random() > 0.7) {
-               // Виліт за екран
                flyTarget.set((Math.random() > 0.5 ? 1 : -1) * (rangeX + 2), (Math.random() - 0.5) * rangeY, 2);
                isResting = false;
            } else {
-               // Політ по екрану
                flyTarget.set((Math.random() - 0.5) * rangeX * 2, (Math.random() - 0.5) * rangeY * 2, (Math.random() * 3) + 1);
                isResting = false;
                
-               // Випадкова зупинка
                if (Math.random() > 0.5) {
                    setTimeout(() => { isResting = true; }, Math.random() * 1000 + 500);
                }
@@ -314,34 +304,29 @@
        }
 
        setInterval(getNewFlyTarget, 2500);
-       flyGroup.position.set(10, 10, 0); // Початкова позиція за кадром
 
        // --- ЗАГАЛЬНИЙ ЦИКЛ АНІМАЦІЇ ---
        function animate() {
            requestAnimationFrame(animate);
-           time += 0.05;
+           
+           const delta = clock.getDelta();
+           const time = clock.getElapsedTime();
 
            // 1. Анімація книги
            controls.update();
            renderer.render(scene, camera);
 
-           // 2. Анімація мухи
-           if (!isResting) {
-               // Рух до цілі з ефектом хаотичності
-               flyGroup.position.lerp(flyTarget, 0.05);
-               flyGroup.position.x += Math.sin(time * 10) * 0.02;
-               flyGroup.position.y += Math.cos(time * 12) * 0.02;
-               
-               // Поворот у напрямку руху
-               flyGroup.lookAt(flyTarget);
+           // 2. Анімація FBX мухи
+           if (flyMixer) {
+               flyMixer.update(delta);
+               flyMixer.timeScale = isResting ? 0.2 : 1.5; 
+           }
 
-               // Змах крил
-               wingR.rotation.x = Math.sin(time * 50) * 0.5;
-               wingL.rotation.x = Math.sin(time * 50 + Math.PI) * 0.5;
-           } else {
-               // Муха сидить, дрібне тремтіння крил
-               wingR.rotation.x = Math.sin(time * 5) * 0.05;
-               wingL.rotation.x = Math.sin(time * 5 + Math.PI) * 0.05;
+           if (!isResting && flyModel) {
+               flyModel.position.lerp(flyTarget, 0.05);
+               flyModel.position.x += Math.sin(time * 10) * 0.02;
+               flyModel.position.y += Math.cos(time * 12) * 0.02;
+               flyModel.lookAt(flyTarget);
            }
 
            flyRenderer.render(flyScene, flyCamera);
@@ -349,14 +334,12 @@
        animate();
 
        window.addEventListener('resize', () => {
-           // Ресайз книги
            const width = container.clientWidth;
            const height = container.clientHeight;
            renderer.setSize(width, height);
            camera.aspect = width / height;
            camera.updateProjectionMatrix();
 
-           // Ресайз мухи
            flyRenderer.setSize(window.innerWidth, window.innerHeight);
            flyCamera.aspect = window.innerWidth / window.innerHeight;
            flyCamera.updateProjectionMatrix();

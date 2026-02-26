@@ -241,7 +241,64 @@
            renderer.render(scene, camera);
        }
        animate();
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { AnimationMixer } from 'three';
 
+const gltfLoader = new GLTFLoader();
+let centipede = null;
+let mixer = null;
+const centipedeClock = new THREE.Clock();
+
+gltfLoader.load('./centipede.glb', (gltf) => {
+    centipede = gltf.scene;
+    
+    // Підбери масштаб під свою сцену
+    centipede.scale.set(0.5, 0.5, 0.5);
+    
+    // Стартова позиція — за лівим краєм екрана
+    centipede.position.set(-15, -2, 2);
+    
+    // Повернути в напрямку руху
+    centipede.rotation.y = Math.PI / 2;
+    
+    scene.add(centipede);
+    
+    // Якщо модель має анімації (ходьба/повзання) — запустити
+    if (gltf.animations.length > 0) {
+        mixer = new AnimationMixer(centipede);
+        const action = mixer.clipAction(gltf.animations[0]);
+        action.play();
+    }
+});
+
+// Швидкість руху
+const crawlSpeed = 3;
+
+// Замінюємо animate на нову версію з сколопендрою
+function animateWithCentipede() {
+    requestAnimationFrame(animateWithCentipede);
+    
+    const delta = centipedeClock.getDelta();
+    
+    // Оновлення анімації моделі
+    if (mixer) mixer.update(delta);
+    
+    // Рух зліва направо
+    if (centipede) {
+        centipede.position.x += crawlSpeed * delta;
+        
+        // Коли виповзла за правий край — повернути на лівий
+        if (centipede.position.x > 15) {
+            centipede.position.x = -15;
+        }
+    }
+    
+    controls.update();
+    renderer.render(scene, camera);
+}
+
+// Зупинити старий цикл і запустити новий
+animateWithCentipede();
        window.addEventListener('resize', () => {
            const width = container.clientWidth;
            const height = container.clientHeight;

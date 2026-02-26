@@ -51,7 +51,6 @@
        
        #scene-container { width: 100%; height: 100%; display: block; outline: none; pointer-events: auto; }
        
-       /* Оверлей для таргана - поверх панелей (z-10), але під книжкою (z-100) */
        #bug-overlay {
            position: fixed;
            top: 0;
@@ -60,6 +59,7 @@
            height: 100vh;
            z-index: 50;
            pointer-events: none;
+           visibility: hidden;
        }
 
        .content-link {
@@ -253,7 +253,6 @@
        bugCamera.position.z = 10;
        
        const bugRenderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
-       bugRenderer.setSize(window.innerWidth, window.innerHeight);
        bugRenderer.setPixelRatio(window.devicePixelRatio);
        bugOverlay.appendChild(bugRenderer.domElement);
 
@@ -265,6 +264,8 @@
        let cockroach = null;
        let bugGroup = null; 
        let mixer = null;
+       let bugReady = false;
+       let bugVisible = false;
        const clock = new THREE.Clock();
 
        const movement = {
@@ -272,6 +273,22 @@
            speed: 0.032,
            rotationSpeed: 0.08
        };
+
+       // Функція оновлення розмірів bug renderer + camera
+       function resizeBug() {
+           const w = window.innerWidth;
+           const h = window.innerHeight;
+           bugRenderer.setSize(w, h);
+           const aspect = w / h;
+           bugCamera.left = -5 * aspect;
+           bugCamera.right = 5 * aspect;
+           bugCamera.top = 5;
+           bugCamera.bottom = -5;
+           bugCamera.updateProjectionMatrix();
+       }
+
+       // Ініціалізуємо розміри одразу
+       resizeBug();
 
        function setRandomTarget() {
             const aspect = window.innerWidth / window.innerHeight;
@@ -304,17 +321,27 @@
 
            bugScene.add(bugGroup);
            cockroach = bugGroup; 
+           bugReady = true;
            setRandomTarget();
        }, undefined, (err) => {
            console.error('Помилка моделі:', err);
            const geo = new THREE.SphereGeometry(0.08);
            cockroach = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color: 0x00ff00 }));
            bugScene.add(cockroach);
+           bugReady = true;
            setRandomTarget();
        });
 
+       // Показати таргана через 5 секунд
+       setTimeout(() => {
+           bugVisible = true;
+           bugOverlay.style.visibility = 'visible';
+           // Перерахувати розміри на момент показу (мобільний адресний рядок міг зникнути)
+           resizeBug();
+       }, 5000);
+
        function updateBug(delta) {
-           if (!cockroach) return;
+           if (!cockroach || !bugVisible) return;
 
            const pos = cockroach.position;
            const target = movement.target;
@@ -349,22 +376,23 @@
            controls.update();
            renderer.render(scene, camera);
            updateBug(delta);
-           bugRenderer.render(bugScene, bugCamera);
+           if (bugVisible) {
+               bugRenderer.render(bugScene, bugCamera);
+           }
        }
        animate();
 
        window.addEventListener('resize', () => {
-           const w = window.innerWidth, h = window.innerHeight;
            renderer.setSize(container.clientWidth, container.clientHeight);
            camera.aspect = container.clientWidth / container.clientHeight;
            camera.updateProjectionMatrix();
-
-           bugRenderer.setSize(w, h);
-           const aspect = w / h;
-           bugCamera.left = -5 * aspect; 
-           bugCamera.right = 5 * aspect;
-           bugCamera.updateProjectionMatrix();
+           resizeBug();
        });
+
+       // Додатково: на мобільних visualViewport може змінюватись без resize
+       if (window.visualViewport) {
+           window.visualViewport.addEventListener('resize', resizeBug);
+       }
    </script>
 </body>
 </html>

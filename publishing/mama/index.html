@@ -26,9 +26,10 @@
        html, body {
            max-width: 100vw;
            height: 100%;
+           margin: 0;
+           padding: 0;
        }
        body {
-           margin: 0;
            font-family: 'Helvetica Neue', sans-serif;
            background-color: #FF0000;
            overflow-x: hidden;
@@ -47,8 +48,21 @@
        }
 
        .label-text { font-size: 13px; letter-spacing: -0.04em; font-weight: bold; line-height: 1; margin-top: 4px; }
-       #canvas-container { width: 100%; height: 100%; display: block; outline: none; }
        
+       /* Контейнер для основної 3D сцени з книжкою */
+       #scene-container { width: 100%; height: 100%; display: block; outline: none; }
+       
+       /* Оверлей для таракана - на весь екран, поверх всього, ігнорує кліки */
+       #bug-overlay {
+           position: fixed;
+           top: 0;
+           left: 0;
+           width: 100vw;
+           height: 100vh;
+           z-index: 9999;
+           pointer-events: none;
+       }
+
        .content-link {
            color: inherit;
            text-decoration: none;
@@ -69,7 +83,10 @@
        }
    </script>
 </head>
-<body class="relative min-h-screen w-full max-w-[100vw] flex flex-col md:block overflow-x-hidden box-border m-0 p-0">
+<body class="relative min-h-screen w-full max-w-[100vw] flex flex-col md:block overflow-x-hidden box-border">
+
+   <!-- Контейнер для таракана (завжди зверху) -->
+   <div id="bug-overlay"></div>
 
    <div class="book-wrapper relative z-0 w-full h-[65vh] md:absolute md:top-0 md:left-0 md:w-full md:h-full flex-shrink-0">
        <div id="scene-container" class="w-full h-full scale-[0.90] md:scale-100"></div>
@@ -175,8 +192,11 @@
    <script type="module">
        import * as THREE from 'three';
        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+       import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
-       // ========== БАЗОВА СЦЕНА (КНИЖКА) ==========
+       // ==========================================
+       // 1. СЦЕНА З КНИЖКОЮ (ВАШ ОРИГІНАЛЬНИЙ КОД)
+       // ==========================================
        const container = document.getElementById('scene-container');
        const scene = new THREE.Scene();
        
@@ -198,6 +218,7 @@
        scene.add(dirLight2);
 
        const textureLoader = new THREE.TextureLoader();
+       // Заглушки, якщо файлів немає локально
        const coverTex = textureLoader.load('./cover_zine.png');
        const pagesTex = textureLoader.load('./A5 - 2.png');
        coverTex.colorSpace = THREE.SRGBColorSpace;
@@ -238,21 +259,175 @@
        controls.autoRotate = true;
        controls.autoRotateSpeed = 2.0;
 
-       // ========== ANIMATION LOOP ==========
+       // ==========================================
+       // 2. СЦЕНА З ТАРАКАНОМ (OVERLAY)
+       // ==========================================
+       const bugOverlay = document.getElementById('bug-overlay');
+       const bugScene = new THREE.Scene();
+       
+       // Використовуємо OrthographicCamera, щоб таракан був "пласким" відносно екрана
+       const bugAspect = window.innerWidth / window.innerHeight;
+       const bugViewSize = 10;
+       const bugCamera = new THREE.OrthographicCamera(
+           -bugViewSize * bugAspect / 2, bugViewSize * bugAspect / 2,
+           bugViewSize / 2, -bugViewSize / 2,
+           0.1, 1000
+       );
+       bugCamera.position.z = 10;
+
+       const bugRenderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+       bugRenderer.setSize(window.innerWidth, window.innerHeight);
+       bugRenderer.setPixelRatio(window.devicePixelRatio);
+       bugOverlay.appendChild(bugRenderer.domElement);
+
+       const bugLight = new THREE.AmbientLight(0xffffff, 2);
+       bugScene.add(bugLight);
+       const bugDirLight = new THREE.DirectionalLight(0xffffff, 2);
+       bugDirLight.position.set(0, 0, 10);
+       bugScene.add(bugDirLight);
+
+       let cockroach = null;
+       let mixer = null;
+       const clock = new THREE.Clock();
+
+       // Логіка руху
+       const movement = {
+           target: new THREE.Vector3(0, 0, 0),
+           velocity: new THREE.Vector3(0, 0, 0),
+           speed: 0.05,
+           isRotating: false,
+           rotationSpeed: 0.1
+       };
+
+       function setRandomTarget() {
+            const aspect = window.innerWidth / window.innerHeight;
+            const xBound = (bugViewSize * aspect / 2) * 0.8;
+            const yBound = (bugViewSize / 2) * 0.8;
+            movement.target.set(
+                (Math.random() - 0.5) * 2 * xBound,
+                (Math.random() - 0.5) * 2 * yBound,
+                0
+            );
+       }
+
+       const loader = new GLTFLoader();
+       // Шлях до моделі, який ви вказали
+       const modelPath = 'idinahui25/publishing/mama/centipede.glb.bin';
+       
+       loader.load(
+           modelPath,
+           (gltf) => {
+               cockroach = gltf.scene;
+               
+               // Масштабуємо, щоб він не був занадто великим
+               cockroach.scale.set(0.5, 0.5, 0.5);
+               
+               // Початкова позиція поза екраном
+               cockroach.position.set(-10, 0, 0);
+               
+               // Налаштування анімації
+               if (gltf.animations.length > 0) {
+                   mixer = new THREE.AnimationMixer(cockroach);
+                   const action = mixer.clipAction(gltf.animations[0]);
+                   action.play();
+               }
+
+               // Всі матеріали робимо темнішими/реалістичнішими
+               cockroach.traverse((child) => {
+                   if (child.isMesh) {
+                       child.material.metalness = 0.5;
+                       child.material.roughness = 0.2;
+                   }
+               });
+
+               bugScene.add(cockroach);
+               setRandomTarget();
+           },
+           undefined,
+           (error) => {
+               console.error('Помилка завантаження моделі:', error);
+               // Якщо модель не знайдена, можна додати спрайт або просто нічого не робити
+           }
+       );
+
+       function updateBug(delta) {
+           if (!cockroach) return;
+
+           const pos = cockroach.position;
+           const target = movement.target;
+           
+           // Вектор до цілі
+           const dir = new THREE.Vector3().subVectors(target, pos);
+           const distance = dir.length();
+
+           if (distance < 0.2) {
+               setRandomTarget();
+           } else {
+               // Плавний поворот до цілі
+               dir.normalize();
+               
+               // Розраховуємо кут (в Orthographic XY площині)
+               const targetAngle = Math.atan2(dir.y, dir.x) - Math.PI / 2;
+               
+               // Плавна інтерполяція кута повороту
+               const currentRotation = cockroach.rotation.z;
+               let angleDiff = targetAngle - currentRotation;
+               
+               // Нормалізація різниці кутів
+               while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
+               while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
+
+               cockroach.rotation.z += angleDiff * 0.05;
+
+               // Рух вперед (у локальних координатах таракана це "вгору" після корекції кута)
+               const moveX = Math.cos(cockroach.rotation.z + Math.PI / 2) * movement.speed;
+               const moveY = Math.sin(cockroach.rotation.z + Math.PI / 2) * movement.speed;
+               
+               cockroach.position.x += moveX;
+               cockroach.position.y += moveY;
+           }
+
+           if (mixer) mixer.update(delta);
+       }
+
+       // ==========================================
+       // 3. ЗАГАЛЬНИЙ ЦИКЛ АНІМАЦІЇ
+       // ==========================================
        function animate() {
            requestAnimationFrame(animate);
+           const delta = clock.getDelta();
+
+           // Оновлення книжки
            controls.update();
            renderer.render(scene, camera);
+
+           // Оновлення таракана
+           updateBug(delta);
+           bugRenderer.render(bugScene, bugCamera);
        }
        animate();
 
+       // Обробка ресайзу обох сцен
        window.addEventListener('resize', () => {
+           // Для книжки
            const w1 = container.clientWidth;
            const h1 = container.clientHeight;
            renderer.setSize(w1, h1);
            camera.aspect = w1 / h1;
            camera.updateProjectionMatrix();
+
+           // Для таракана
+           const w2 = window.innerWidth;
+           const h2 = window.innerHeight;
+           bugRenderer.setSize(w2, h2);
+           const aspect = w2 / h2;
+           bugCamera.left = -bugViewSize * aspect / 2;
+           bugCamera.right = bugViewSize * aspect / 2;
+           bugCamera.top = bugViewSize / 2;
+           bugCamera.bottom = -bugViewSize / 2;
+           bugCamera.updateProjectionMatrix();
        });
+
    </script>
 </body>
 </html>

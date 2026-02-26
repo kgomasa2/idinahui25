@@ -329,7 +329,7 @@
                return;
            }
 
-           const targetAngle = Math.atan2(dir.y, dir.x) - Math.PI / 2;
+           const targetAngle = Math.atan2(dir.y, dir.x) + Math.PI / 2;
            
            let diff = targetAngle - cockroach.rotation.z;
            while (diff < -Math.PI) diff += Math.PI * 2;

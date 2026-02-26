@@ -104,7 +104,7 @@
 
        <div class="flex flex-col gap-5 mb-[24px]">
            <p class="m-0 text-[16px] leading-[103%] tracking-[-0.04em] font-bold">
-               Цей зін апропріює естетику культової пачки Marlboro Red, перетворюючи хроніку життя в окупації на візуальний об’єкт із попередженням про небезпеку. Червоний колір тривоги тут римується з агресивним брендингом, а очікування повідомлень від мами з Маріуполя (2022–2026) стає метафорою залежності, від якої неможливо відмовитися. Це документація зв’язку, де буденні поради «поїсти супу» перемішані зі звуками вибухів, а любов до рідного дому межує з фатальним ризиком там залишатися.
+               Цей зін апропріює естетику культової пачки Marlboro Red, перетворюючи хроніку життя в окупації на візуальний об'єкт із попередженням про небезпеку. Червоний колір тривоги тут римується з агресивним брендингом, а очікування повідомлень від мами з Маріуполя (2022–2026) стає метафорою залежності, від якої неможливо відмовитися. Це документація зв'язку, де буденні поради «поїсти супу» перемішані зі звуками вибухів, а любов до рідного дому межує з фатальним ризиком там залишатися.
            </p>
            <div class="m-0 text-[16px] leading-[103%] tracking-[-0.04em] font-bold">
                Дизайн та верстка: <a href="https://www.instagram.com/adult.xoma/" target="_blank" class="content-link">Володимир Хоменко</a><br />
@@ -142,7 +142,7 @@
            </h1>
 
            <p class="text-[16px] leading-[110%] tracking-[-0.04em] font-bold m-0 mb-[24px] pr-[10px]">
-               Цей зін апропріює естетику культової пачки Marlboro Red, перетворюючи хроніку життя в окупації на візуальний об’єкт із попередженням про небезпеку. Червоний колір тривоги тут римується з агресивним брендингом, а очікування повідомлень від мами з Маріуполя (2022–2026) стає метафорою залежності, від якої неможливо відмовитися. Це документація зв’язку, де буденні поради «поїсти супу» перемішані зі звуками вибухів, а любов до рідного дому межує з фатальним ризиком там залишатися.
+               Цей зін апропріює естетику культової пачки Marlboro Red, перетворюючи хроніку життя в окупації на візуальний об'єкт із попередженням про небезпеку. Червоний колір тривоги тут римується з агресивним брендингом, а очікування повідомлень від мами з Маріуполя (2022–2026) стає метафорою залежності, від якої неможливо відмовитися. Це документація зв'язку, де буденні поради «поїсти супу» перемішані зі звуками вибухів, а любов до рідного дому межує з фатальним ризиком там залишатися.
            </p>
 
            <div class="text-[16px] leading-[110%] tracking-[-0.04em] font-bold m-0 mb-[30px]">
@@ -175,6 +175,7 @@
    <script type="module">
        import * as THREE from 'three';
        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+       import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
        const container = document.getElementById('scene-container');
        const scene = new THREE.Scene();
@@ -188,8 +189,12 @@
        renderer.outputColorSpace = THREE.SRGBColorSpace;
        container.appendChild(renderer.domElement);
 
-       const ambientLight = new THREE.AmbientLight(0xffffff, 1);
+       const ambientLight = new THREE.AmbientLight(0xffffff, 1.5);
        scene.add(ambientLight);
+
+       const dirLight = new THREE.DirectionalLight(0xffffff, 1.0);
+       dirLight.position.set(5, 5, 5);
+       scene.add(dirLight);
 
        const textureLoader = new THREE.TextureLoader();
       
@@ -235,70 +240,71 @@
        controls.autoRotate = true;
        controls.autoRotateSpeed = 2.0;
 
+       // ========== СКОЛОПЕНДРА ==========
+       let centipede = null;
+       let mixer = null;
+       const clock = new THREE.Clock();
+       const crawlSpeed = 2.5;
+
+       const gltfLoader = new GLTFLoader();
+       gltfLoader.load('./centipede.glb', (gltf) => {
+           centipede = gltf.scene;
+           
+           // Масштаб — підбери під свій смак
+           centipede.scale.set(1.5, 1.5, 1.5);
+           
+           // Стартова позиція — за лівим краєм
+           centipede.position.set(-12, -3, 3);
+           
+           // Повернути вбік руху (вправо)
+           centipede.rotation.y = -Math.PI / 2;
+           
+           scene.add(centipede);
+           
+           // Запустити анімацію моделі, якщо є
+           if (gltf.animations && gltf.animations.length > 0) {
+               mixer = new THREE.AnimationMixer(centipede);
+               // Програти всі анімації
+               gltf.animations.forEach((clip) => {
+                   const action = mixer.clipAction(clip);
+                   action.play();
+               });
+           }
+           
+           console.log('Centipede loaded!', centipede);
+           console.log('Animations:', gltf.animations.length);
+       }, 
+       (progress) => {
+           console.log('Loading centipede...', (progress.loaded / progress.total * 100).toFixed(0) + '%');
+       },
+       (error) => {
+           console.error('Error loading centipede:', error);
+       });
+
+       // ========== ЄДИНИЙ ANIMATION LOOP ==========
        function animate() {
            requestAnimationFrame(animate);
+           
+           const delta = clock.getDelta();
+           
+           // Оновити анімацію сколопендри
+           if (mixer) mixer.update(delta);
+           
+           // Рух сколопендри зліва направо
+           if (centipede) {
+               centipede.position.x += crawlSpeed * delta;
+               
+               // Коли вийшла за правий край — телепортувати на лівий
+               if (centipede.position.x > 12) {
+                   centipede.position.x = -12;
+               }
+           }
+           
            controls.update();
            renderer.render(scene, camera);
        }
        animate();
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import { AnimationMixer } from 'three';
 
-const gltfLoader = new GLTFLoader();
-let centipede = null;
-let mixer = null;
-const centipedeClock = new THREE.Clock();
-
-gltfLoader.load('./centipede.glb', (gltf) => {
-    centipede = gltf.scene;
-    
-    // Підбери масштаб під свою сцену
-    centipede.scale.set(0.5, 0.5, 0.5);
-    
-    // Стартова позиція — за лівим краєм екрана
-    centipede.position.set(-15, -2, 2);
-    
-    // Повернути в напрямку руху
-    centipede.rotation.y = Math.PI / 2;
-    
-    scene.add(centipede);
-    
-    // Якщо модель має анімації (ходьба/повзання) — запустити
-    if (gltf.animations.length > 0) {
-        mixer = new AnimationMixer(centipede);
-        const action = mixer.clipAction(gltf.animations[0]);
-        action.play();
-    }
-});
-
-// Швидкість руху
-const crawlSpeed = 3;
-
-// Замінюємо animate на нову версію з сколопендрою
-function animateWithCentipede() {
-    requestAnimationFrame(animateWithCentipede);
-    
-    const delta = centipedeClock.getDelta();
-    
-    // Оновлення анімації моделі
-    if (mixer) mixer.update(delta);
-    
-    // Рух зліва направо
-    if (centipede) {
-        centipede.position.x += crawlSpeed * delta;
-        
-        // Коли виповзла за правий край — повернути на лівий
-        if (centipede.position.x > 15) {
-            centipede.position.x = -15;
-        }
-    }
-    
-    controls.update();
-    renderer.render(scene, camera);
-}
-
-// Зупинити старий цикл і запустити новий
-animateWithCentipede();
        window.addEventListener('resize', () => {
            const width = container.clientWidth;
            const height = container.clientHeight;

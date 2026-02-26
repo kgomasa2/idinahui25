@@ -291,15 +291,15 @@
        resizeBug();
 
        function setRandomTarget() {
-            const aspect = window.innerWidth / window.innerHeight;
-            const xBound = (bugViewSize * aspect / 2) * 0.85;
-            const yBound = (bugViewSize / 2) * 0.85;
-            movement.target.set(
-                (Math.random() - 0.5) * 2 * xBound,
-                (Math.random() - 0.5) * 2 * yBound,
-                0
-            );
-       }
+     const aspect = window.innerWidth / window.innerHeight;
+     const xBound = (bugViewSize * aspect / 2) * 1.15;
+     const yBound = (bugViewSize / 2) * 1.15;
+     movement.target.set(
+         (Math.random() - 0.5) * 2 * xBound,
+         (Math.random() - 0.5) * 2 * yBound,
+         0
+     );
+}
 
        const loader = new GLTFLoader();
        const modelPath = './centipede.glb.bin';
@@ -311,7 +311,7 @@
            model.rotation.x = Math.PI / 2; 
            model.rotation.z = Math.PI; 
            
-           model.scale.set(0.23, 0.23, 0.23);
+           model.scale.set(0.265, 0.265, 0.265);
            bugGroup.add(model);
            
            if (gltf.animations.length > 0) {

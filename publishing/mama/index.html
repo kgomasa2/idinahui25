@@ -58,6 +58,23 @@
            text-underline-offset: 2px;
            opacity: 0.8;
        }
+
+       #debug-panel {
+           position: fixed;
+           bottom: 10px;
+           left: 10px;
+           background: rgba(0,0,0,0.85);
+           color: #0f0;
+           font-family: monospace;
+           font-size: 11px;
+           padding: 8px 12px;
+           z-index: 9999;
+           border-radius: 4px;
+           max-width: 400px;
+           max-height: 200px;
+           overflow-y: auto;
+           pointer-events: none;
+       }
    </style>
 
    <script type="importmap">
@@ -70,6 +87,9 @@
    </script>
 </head>
 <body class="relative min-h-screen w-full max-w-[100vw] flex flex-col md:block overflow-x-hidden box-border m-0 p-0">
+
+   <!-- DEBUG — видали цей div після тестування -->
+   <div id="debug-panel">🐛 Debug:</div>
 
    <div class="book-wrapper relative z-0 w-full h-[65vh] md:absolute md:top-0 md:left-0 md:w-full md:h-full flex-shrink-0">
        <div id="scene-container" class="w-full h-full scale-[0.90] md:scale-100"></div>
@@ -176,7 +196,19 @@
        import * as THREE from 'three';
        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
        import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+       import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 
+       // ========== DEBUG ==========
+       const debugEl = document.getElementById('debug-panel');
+       function debug(msg) {
+           console.log('[DEBUG]', msg);
+           debugEl.innerHTML += '<br>' + msg;
+           debugEl.scrollTop = debugEl.scrollHeight;
+       }
+
+       debug('🟢 Script started');
+
+       // ========== SCENE SETUP ==========
        const container = document.getElementById('scene-container');
        const scene = new THREE.Scene();
       
@@ -189,18 +221,19 @@
        renderer.outputColorSpace = THREE.SRGBColorSpace;
        container.appendChild(renderer.domElement);
 
-       const ambientLight = new THREE.AmbientLight(0xffffff, 1.5);
-       scene.add(ambientLight);
+       // Багато світла щоб точно було видно
+       scene.add(new THREE.AmbientLight(0xffffff, 2.5));
+       const dirLight1 = new THREE.DirectionalLight(0xffffff, 1.5);
+       dirLight1.position.set(5, 10, 7);
+       scene.add(dirLight1);
+       const dirLight2 = new THREE.DirectionalLight(0xffffff, 1.0);
+       dirLight2.position.set(-5, -3, 5);
+       scene.add(dirLight2);
 
-       const dirLight = new THREE.DirectionalLight(0xffffff, 1.0);
-       dirLight.position.set(5, 5, 5);
-       scene.add(dirLight);
-
+       // ========== КНИГА ==========
        const textureLoader = new THREE.TextureLoader();
-      
        const coverTex = textureLoader.load('./cover_zine.png');
        const pagesTex = textureLoader.load('./A5 - 2.png');
-      
        coverTex.colorSpace = THREE.SRGBColorSpace;
        pagesTex.colorSpace = THREE.SRGBColorSpace;
 
@@ -220,17 +253,16 @@
        textureTopBottom.repeat.set(4, 1);
        textureTopBottom.needsUpdate = true;
 
-       const geometry = new THREE.BoxGeometry(3, 4.2, 0.25);
-       const materials = [
-           new THREE.MeshBasicMaterial({ map: textureRight }),     
-           new THREE.MeshBasicMaterial({ color: 0xffffff }),       
-           new THREE.MeshBasicMaterial({ map: textureTopBottom }), 
-           new THREE.MeshBasicMaterial({ map: textureTopBottom }), 
-           new THREE.MeshBasicMaterial({ map: coverTex }),         
-           new THREE.MeshBasicMaterial({ map: coverTex })          
+       const bookGeo = new THREE.BoxGeometry(3, 4.2, 0.25);
+       const bookMats = [
+           new THREE.MeshBasicMaterial({ map: textureRight }),
+           new THREE.MeshBasicMaterial({ color: 0xffffff }),
+           new THREE.MeshBasicMaterial({ map: textureTopBottom }),
+           new THREE.MeshBasicMaterial({ map: textureTopBottom }),
+           new THREE.MeshBasicMaterial({ map: coverTex }),
+           new THREE.MeshBasicMaterial({ map: coverTex })
        ];
-
-       const book = new THREE.Mesh(geometry, materials);
+       const book = new THREE.Mesh(bookGeo, bookMats);
        book.rotation.set(0, -0.5, 0);
        scene.add(book);
 
@@ -245,58 +277,101 @@
        let mixer = null;
        const clock = new THREE.Clock();
        const crawlSpeed = 2.5;
+       const DESIRED_SIZE = 3.0;
 
+       const dracoLoader = new DRACOLoader();
+       dracoLoader.setDecoderPath('https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/libs/draco/');
+       
        const gltfLoader = new GLTFLoader();
-       gltfLoader.load('./centipede.glb', (gltf) => {
-           centipede = gltf.scene;
-           
-           // Масштаб — підбери під свій смак
-           centipede.scale.set(1.5, 1.5, 1.5);
-           
-           // Стартова позиція — за лівим краєм
-           centipede.position.set(-12, -3, 3);
-           
-           // Повернути вбік руху (вправо)
-           centipede.rotation.y = -Math.PI / 2;
-           
-           scene.add(centipede);
-           
-           // Запустити анімацію моделі, якщо є
-           if (gltf.animations && gltf.animations.length > 0) {
-               mixer = new THREE.AnimationMixer(centipede);
-               // Програти всі анімації
-               gltf.animations.forEach((clip) => {
-                   const action = mixer.clipAction(clip);
-                   action.play();
-               });
-           }
-           
-           console.log('Centipede loaded!', centipede);
-           console.log('Animations:', gltf.animations.length);
-       }, 
-       (progress) => {
-           console.log('Loading centipede...', (progress.loaded / progress.total * 100).toFixed(0) + '%');
-       },
-       (error) => {
-           console.error('Error loading centipede:', error);
-       });
+       gltfLoader.setDRACOLoader(dracoLoader);
 
-       // ========== ЄДИНИЙ ANIMATION LOOP ==========
+       debug('📂 Loading centipede.glb ...');
+
+       gltfLoader.load(
+           './centipede.glb',
+           
+           // SUCCESS
+           (gltf) => {
+               debug('✅ File loaded OK');
+               debug('Animations found: ' + gltf.animations.length);
+               
+               centipede = gltf.scene;
+               
+               // Визначити реальний розмір
+               const box = new THREE.Box3().setFromObject(centipede);
+               const size = new THREE.Vector3();
+               box.getSize(size);
+               debug('Size: ' + size.x.toFixed(2) + ' × ' + size.y.toFixed(2) + ' × ' + size.z.toFixed(2));
+               
+               // Автомасштабування
+               const maxDim = Math.max(size.x, size.y, size.z);
+               if (maxDim > 0) {
+                   const s = DESIRED_SIZE / maxDim;
+                   centipede.scale.set(s, s, s);
+                   debug('Scale: ' + s.toFixed(4));
+               }
+               
+               // Стартова позиція
+               centipede.position.set(-10, -2.5, 2);
+               centipede.rotation.y = -Math.PI / 2;
+               
+               // Переконатися що все видиме
+               let meshCount = 0;
+               centipede.traverse((child) => {
+                   if (child.isMesh) {
+                       meshCount++;
+                       child.frustumCulled = false;
+                       child.visible = true;
+                       if (child.material) {
+                           child.material.side = THREE.DoubleSide;
+                           child.material.transparent = false;
+                           child.material.opacity = 1;
+                       }
+                   }
+               });
+               debug('Meshes: ' + meshCount);
+               
+               scene.add(centipede);
+               debug('🐛 Added to scene');
+               
+               // Анімації
+               if (gltf.animations.length > 0) {
+                   mixer = new THREE.AnimationMixer(centipede);
+                   gltf.animations.forEach((clip, i) => {
+                       debug('Anim ' + i + ': ' + clip.name + ' (' + clip.duration.toFixed(1) + 's)');
+                       mixer.clipAction(clip).play();
+                   });
+               }
+           },
+           
+           // PROGRESS
+           (xhr) => {
+               if (xhr.total > 0) {
+                   debug('⏳ ' + (xhr.loaded / xhr.total * 100).toFixed(0) + '%');
+               } else {
+                   debug('⏳ loaded ' + (xhr.loaded / 1024).toFixed(0) + 'KB');
+               }
+           },
+           
+           // ERROR
+           (error) => {
+               debug('❌ LOAD ERROR');
+               debug(error.message || String(error));
+               console.error('GLB load error:', error);
+           }
+       );
+
+       // ========== ANIMATION LOOP ==========
        function animate() {
            requestAnimationFrame(animate);
-           
            const delta = clock.getDelta();
            
-           // Оновити анімацію сколопендри
            if (mixer) mixer.update(delta);
            
-           // Рух сколопендри зліва направо
            if (centipede) {
                centipede.position.x += crawlSpeed * delta;
-               
-               // Коли вийшла за правий край — телепортувати на лівий
-               if (centipede.position.x > 12) {
-                   centipede.position.x = -12;
+               if (centipede.position.x > 10) {
+                   centipede.position.x = -10;
                }
            }
            
@@ -304,12 +379,13 @@
            renderer.render(scene, camera);
        }
        animate();
+       debug('🔄 Render loop started');
 
        window.addEventListener('resize', () => {
-           const width = container.clientWidth;
-           const height = container.clientHeight;
-           renderer.setSize(width, height);
-           camera.aspect = width / height;
+           const w = container.clientWidth;
+           const h = container.clientHeight;
+           renderer.setSize(w, h);
+           camera.aspect = w / h;
            camera.updateProjectionMatrix();
        });
    </script>

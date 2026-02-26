@@ -241,12 +241,30 @@
        controls.autoRotateSpeed = 2.0;
 
        // ========== СКОЛОПЕНДРА ==========
-       let centipede = null;
        let mixer = null;
+       let centipedeModel = null;
        const clock = new THREE.Clock();
-       const crawlSpeed = 1.8;
-       // 15% менше ніж було (3.0 * 0.85)
-       const DESIRED_SIZE = 2.55;
+       const DESIRED_SIZE = 2.55; // 15% менше від 3.0
+
+       // Група для руху — анімація моделі не впливає на позицію групи
+       const centipedeGroup = new THREE.Group();
+       scene.add(centipedeGroup);
+
+       // Орієнтація — окрема група, щоб ізолювати від анімації
+       const orientationGroup = new THREE.Group();
+       centipedeGroup.add(orientationGroup);
+
+       // Шлях: з нижнього лівого кута за книжкою до верхнього правого
+       // z = -1 → позаду книжки (книжка на z ≈ 0)
+       const startPos = new THREE.Vector3(-8, -4, -1);
+       const endPos = new THREE.Vector3(8, 4, -1);
+       const pathDirection = new THREE.Vector3().subVectors(endPos, startPos);
+       const totalPathLength = pathDirection.length();
+       const moveAngle = Math.atan2(pathDirection.y, pathDirection.x);
+       pathDirection.normalize();
+
+       const crawlSpeed = 1.2; // повільно повзе
+       let crawlDistance = -3; // починає за межею екрана
 
        const dracoLoader = new DRACOLoader();
        dracoLoader.setDecoderPath('https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/libs/draco/');
@@ -256,37 +274,34 @@
        gltfLoader.load(
            './centipede.glb.bin',
            (gltf) => {
-               centipede = gltf.scene;
-               
-               // Порахувати розмір
-               const box = new THREE.Box3().setFromObject(centipede);
+               centipedeModel = gltf.scene;
+
+               // Автомасштабування
+               const box = new THREE.Box3().setFromObject(centipedeModel);
                const size = new THREE.Vector3();
                box.getSize(size);
-               
-               // Автомасштабування
                const maxDim = Math.max(size.x, size.y, size.z);
                if (maxDim > 0) {
                    const s = DESIRED_SIZE / maxDim;
-                   centipede.scale.set(s, s, s);
+                   centipedeModel.scale.set(s, s, s);
                }
-               
-               // Повернути так, щоб вид був зверху — «повзе по екрану»
-               // X-вісь = вправо, Y-вісь = вгору (до глядача), Z-вісь = вниз екрану
-               centipede.rotation.set(
-                   -Math.PI / 2,   // нахилити «обличчям» до камери (лежить на площині екрана)
-                   0,
-                   Math.PI / 2     // повернути в напрямку руху (вправо)
-               );
-               
-               // Стартова позиція — лівий край, внизу сцени, ближче до камери
-               centipede.position.set(-10, -3, 4);
-               
-               // Перефарбувати всі меші в чорний
-               centipede.traverse((child) => {
+
+               // Центрувати модель відносно свого центру
+               const centeredBox = new THREE.Box3().setFromObject(centipedeModel);
+               const center = new THREE.Vector3();
+               centeredBox.getCenter(center);
+               centipedeModel.position.sub(center);
+
+               // Додати в орієнтаційну групу
+               orientationGroup.add(centipedeModel);
+
+               // Вид зверху (лежить плоско) + повернута в напрямку руху
+               orientationGroup.rotation.set(-Math.PI / 2, 0, moveAngle);
+
+               // Перефарбувати в чорний
+               centipedeModel.traverse((child) => {
                    if (child.isMesh) {
                        child.frustumCulled = false;
-                       child.visible = true;
-                       // Замінити матеріал на чорний
                        child.material = new THREE.MeshStandardMaterial({
                            color: 0x111111,
                            roughness: 0.4,
@@ -295,38 +310,67 @@
                        });
                    }
                });
-               
-               scene.add(centipede);
-               
-               // Анімація
+
+               // Запустити анімацію, але видалити треки кореневого руху
                if (gltf.animations.length > 0) {
-                   mixer = new THREE.AnimationMixer(centipede);
+                   mixer = new THREE.AnimationMixer(centipedeModel);
                    gltf.animations.forEach((clip) => {
-                       mixer.clipAction(clip).play();
+                       // Прибрати треки позиції/обертання кореневих об'єктів
+                       // (залишити тільки деформацію скелету — повзання)
+                       clip.tracks = clip.tracks.filter(track => {
+                           const name = track.name.toLowerCase();
+                           // Прибрати рух кореня сцени і арматури
+                           const isRootMotion =
+                               (name.includes('.position') || name.includes('.quaternion')) &&
+                               (name.split('.')[0] === '' ||
+                                name.startsWith('scene') ||
+                                name.startsWith('armature.') && !name.includes('/'));
+                           return !isRootMotion;
+                       });
+                       if (clip.tracks.length > 0) {
+                           const action = mixer.clipAction(clip);
+                           action.play();
+                       }
                    });
                }
            },
            undefined,
-           (error) => {
-               console.error('Centipede load error:', error);
-           }
+           (error) => console.error('Centipede load error:', error)
        );
+
+       // Зберігаємо початкові трансформи для скидання після mixer.update
+       let savedModelPos = null;
+       let savedModelQuat = null;
 
        // ========== ANIMATION LOOP ==========
        function animate() {
            requestAnimationFrame(animate);
            const delta = clock.getDelta();
-           
-           if (mixer) mixer.update(delta);
-           
-           // Плавний рух зліва направо
-           if (centipede) {
-               centipede.position.x += crawlSpeed * delta;
-               if (centipede.position.x > 10) {
-                   centipede.position.x = -10;
+
+           // Оновити скелетну анімацію
+           if (mixer) {
+               // Зберегти позицію до оновлення
+               if (centipedeModel && !savedModelPos) {
+                   savedModelPos = centipedeModel.position.clone();
+                   savedModelQuat = centipedeModel.quaternion.clone();
+               }
+
+               mixer.update(delta);
+
+               // Примусово повернути модель на місце (скасувати root motion)
+               if (centipedeModel && savedModelPos) {
+                   centipedeModel.position.copy(savedModelPos);
+                   centipedeModel.quaternion.copy(savedModelQuat);
                }
            }
-           
+
+           // Рух групи по діагоналі
+           crawlDistance += crawlSpeed * delta;
+           if (crawlDistance > totalPathLength + 3) {
+               crawlDistance = -3; // почати знову за межею
+           }
+           centipedeGroup.position.copy(startPos).addScaledVector(pathDirection, crawlDistance);
+
            controls.update();
            renderer.render(scene, camera);
        }

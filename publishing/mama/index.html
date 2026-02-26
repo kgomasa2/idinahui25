@@ -284,7 +284,7 @@
        gltfLoader.setDRACOLoader(dracoLoader);
 
        gltfLoader.load(
-           './centipede.glb.bin?v=4',
+           './centipede.glb.bin?v=5',
            (gltf) => {
                const baseModel = gltf.scene;
 
@@ -384,7 +384,10 @@
 
                            this.group.position.set(startX, startY, 0);
                            this.angle = Math.atan2(targetY - startY, targetX - startX);
-                           this.orientGroup.rotation.set(Math.PI / 2, 0, this.angle + Math.PI);
+                           
+                           // Коригування орієнтації: розворот спиною вгору (-Math.PI / 2) та головою вперед по вектору руху (this.angle - Math.PI / 2)
+                           // Якщо тарган повзе задом наперед, змініть - Math.PI / 2 на + Math.PI / 2
+                           this.orientGroup.rotation.set(-Math.PI / 2, 0, this.angle - Math.PI / 2);
                            
                            this.speed = 1.5 + Math.random() * 2.5;
                            this.state = 'walk';
@@ -393,7 +396,6 @@
                        update: function(delta) {
                            this.stateTimer -= delta;
                            
-                           // Органічна зміна стану (зупинки та відхилення)
                            if (this.stateTimer <= 0) {
                                if (this.state === 'walk') {
                                    if (Math.random() > 0.6) {
@@ -401,7 +403,7 @@
                                        this.stateTimer = 0.2 + Math.random() * 1.0;
                                    } else {
                                        this.angle += (Math.random() - 0.5) * 0.5;
-                                       this.orientGroup.rotation.set(Math.PI / 2, 0, this.angle + Math.PI);
+                                       this.orientGroup.rotation.set(-Math.PI / 2, 0, this.angle - Math.PI / 2);
                                        this.stateTimer = 1 + Math.random() * 2;
                                    }
                                } else {
@@ -430,7 +432,6 @@
                        }
                    };
 
-                   // Десинхронізація анімацій та початкових позицій
                    bug.mixer.update(Math.random() * 10);
                    bug.reset();
                    const currentAspect = window.innerWidth / window.innerHeight;

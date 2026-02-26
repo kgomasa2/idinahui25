@@ -293,7 +293,8 @@
            
            // ВАЖЛИВО: Корекція орієнтації
            model.rotation.x = Math.PI / 2; 
-        
+           // Розвертаємо модель на 180 градусів відносно групи, щоб голова дивилася вперед
+           model.rotation.z = Math.PI; 
            
            // Робимо втричі меншим
            model.scale.set(0.23, 0.23, 0.23);
@@ -337,8 +338,8 @@
            cockroach.rotation.z += diff * movement.rotationSpeed;
 
            // Рух вперед за поглядом
-          const moveX = Math.sin(cockroach.rotation.z) * movement.speed;
-const moveY = -Math.cos(cockroach.rotation.z) * movement.speed;
+           const moveX = Math.sin(cockroach.rotation.z) * movement.speed;
+           const moveY = -Math.cos(cockroach.rotation.z) * movement.speed;
            
            cockroach.position.x += moveX;
            cockroach.position.y += moveY;

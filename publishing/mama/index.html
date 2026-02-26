@@ -177,6 +177,7 @@
        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
        import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
        import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
+       import * as SkeletonUtils from 'three/addons/utils/SkeletonUtils.js';
 
        // ========== БАЗОВА СЦЕНА (КНИЖКА) ==========
        const container = document.getElementById('scene-container');
@@ -240,14 +241,14 @@
        controls.autoRotate = true;
        controls.autoRotateSpeed = 2.0;
 
-       // ========== ОВЕРЛЕЙ-СЦЕНА (СКАЛОПЕНДРА ПОВЕРХ УСЬОГО) ==========
+       // ========== ОВЕРЛЕЙ-СЦЕНА (СКАЛОПЕНДРИ / ТАРАКАНИ ПОВЕРХ УСЬОГО) ==========
        const overlayCanvas = document.createElement('canvas');
        overlayCanvas.style.position = 'fixed';
        overlayCanvas.style.top = '0';
        overlayCanvas.style.left = '0';
        overlayCanvas.style.width = '100vw';
        overlayCanvas.style.height = '100vh';
-       overlayCanvas.style.pointerEvents = 'none'; // Пропускає кліки до кнопок і книжки
+       overlayCanvas.style.pointerEvents = 'none';
        overlayCanvas.style.zIndex = '9999';
        overlayCanvas.style.background = 'transparent';
        document.body.appendChild(overlayCanvas);
@@ -263,8 +264,7 @@
        cDirLight.position.set(5, 10, 7);
        centipedeScene.add(cDirLight);
 
-       // Ортографічна камера для абсолютно плаского (2D) відображення поверх екрану
-       const viewSize = 6.62; // Видимий розмір адаптований до попереднього скейлу
+       const viewSize = 6.62; 
        const aspect = window.innerWidth / window.innerHeight;
        const centipedeCamera = new THREE.OrthographicCamera(
            -viewSize * aspect / 2, viewSize * aspect / 2,
@@ -273,31 +273,10 @@
        );
        centipedeCamera.position.set(0, 0, 8);
 
-       let mixer = null;
-       let centipedeModel = null;
        const clock = new THREE.Clock();
        const DESIRED_SIZE = 0.85;
-
-       const centipedeGroup = new THREE.Group();
-       centipedeScene.add(centipedeGroup);
-
-       const orientationGroup = new THREE.Group();
-       centipedeGroup.add(orientationGroup);
-
-       const curvePoints = [
-           new THREE.Vector3(-15, -10, 0), 
-           new THREE.Vector3(-4, -2, 0),   
-           new THREE.Vector3(-9, 8, 0),    
-           new THREE.Vector3(-20, 15, 0),  
-           new THREE.Vector3(14, 10, 0),   
-           new THREE.Vector3(2, 0, 0),     
-           new THREE.Vector3(8, -10, 0),   
-           new THREE.Vector3(0, -18, 0)    
-       ];
-       const curve = new THREE.CatmullRomCurve3(curvePoints, true, 'centripetal', 0.5);
-
-       const pathSpeed = 0.015; // Зменшено швидкість переміщення по кривій
-       let pathProgress = 0; 
+       const BUG_COUNT = 15;
+       const bugs = [];
 
        const dracoLoader = new DRACOLoader();
        dracoLoader.setDecoderPath('https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/libs/draco/');
@@ -305,114 +284,188 @@
        gltfLoader.setDRACOLoader(dracoLoader);
 
        gltfLoader.load(
-           './centipede.glb.bin?v=3',
+           './centipede.glb.bin?v=4',
            (gltf) => {
-               centipedeModel = gltf.scene;
+               const baseModel = gltf.scene;
 
-               const box = new THREE.Box3().setFromObject(centipedeModel);
+               const box = new THREE.Box3().setFromObject(baseModel);
                const size = new THREE.Vector3();
                box.getSize(size);
                const maxDim = Math.max(size.x, size.y, size.z);
                if (maxDim > 0) {
                    const s = DESIRED_SIZE / maxDim;
-                   centipedeModel.scale.set(s, s, s);
+                   baseModel.scale.set(s, s, s);
                }
 
-               const centeredBox = new THREE.Box3().setFromObject(centipedeModel);
+               const centeredBox = new THREE.Box3().setFromObject(baseModel);
                const center = new THREE.Vector3();
                centeredBox.getCenter(center);
-               centipedeModel.position.sub(center);
+               baseModel.position.sub(center);
 
-               orientationGroup.add(centipedeModel);
-
-               centipedeModel.traverse((child) => {
-                   if (child.isMesh) {
-                       child.frustumCulled = false;
-                       child.material = new THREE.MeshStandardMaterial({
-                           color: 0x111111,
-                           roughness: 0.4,
-                           metalness: 0.3,
-                           side: THREE.DoubleSide
-                       });
-                   }
+               // Очищення треків анімації від кореневого зміщення один раз для всіх
+               const cleanAnimations = gltf.animations.map(clip => {
+                   const newClip = clip.clone();
+                   newClip.tracks = newClip.tracks.filter(track => {
+                       const name = track.name.toLowerCase();
+                       return !((name.includes('.position') || name.includes('.quaternion')) &&
+                                (name.split('.')[0] === '' || name.startsWith('scene') || (name.startsWith('armature.') && !name.includes('/'))));
+                   });
+                   return newClip;
                });
 
-               if (gltf.animations.length > 0) {
-                   mixer = new THREE.AnimationMixer(centipedeModel);
-                   gltf.animations.forEach((clip) => {
-                       clip.tracks = clip.tracks.filter(track => {
-                           const name = track.name.toLowerCase();
-                           const isRootMotion =
-                               (name.includes('.position') || name.includes('.quaternion')) &&
-                               (name.split('.')[0] === '' ||
-                                name.startsWith('scene') ||
-                                name.startsWith('armature.') && !name.includes('/'));
-                           return !isRootMotion;
-                       });
-                       if (clip.tracks.length > 0) {
-                           const action = mixer.clipAction(clip);
-                           action.setLoop(THREE.LoopRepeat, Infinity);
-                           action.clampWhenFinished = false;
-                           action.play();
+               for (let i = 0; i < BUG_COUNT; i++) {
+                   const model = SkeletonUtils.clone(baseModel);
+
+                   model.traverse((child) => {
+                       if (child.isMesh) {
+                           child.frustumCulled = false;
+                           child.material = new THREE.MeshStandardMaterial({
+                               color: 0x111111,
+                               roughness: 0.4,
+                               metalness: 0.3,
+                               side: THREE.DoubleSide
+                           });
                        }
                    });
+
+                   const mixer = new THREE.AnimationMixer(model);
+                   if (cleanAnimations.length > 0) {
+                       const action = mixer.clipAction(cleanAnimations[0]);
+                       action.setLoop(THREE.LoopRepeat, Infinity);
+                       action.play();
+                   }
+
+                   const orientGroup = new THREE.Group();
+                   orientGroup.add(model);
+                   const group = new THREE.Group();
+                   group.add(orientGroup);
+                   centipedeScene.add(group);
+
+                   const bug = {
+                       group: group,
+                       orientGroup: orientGroup,
+                       mixer: mixer,
+                       speed: 0,
+                       angle: 0,
+                       animSpeed: 0.8 + Math.random() * 0.5,
+                       state: 'walk',
+                       stateTimer: 0,
+                       reset: function() {
+                           const currentAspect = window.innerWidth / window.innerHeight;
+                           const w = viewSize * currentAspect;
+                           const h = viewSize;
+
+                           const edge = Math.floor(Math.random() * 4);
+                           const margin = 2;
+
+                           let startX, startY, targetX, targetY;
+
+                           if (edge === 0) { // верх
+                               startX = (Math.random() - 0.5) * w;
+                               startY = h / 2 + margin;
+                               targetX = startX + (Math.random() - 0.5) * (w / 2);
+                               targetY = -h / 2 - margin;
+                           } else if (edge === 1) { // право
+                               startX = w / 2 + margin;
+                               startY = (Math.random() - 0.5) * h;
+                               targetX = -w / 2 - margin;
+                               targetY = startY + (Math.random() - 0.5) * (h / 2);
+                           } else if (edge === 2) { // низ
+                               startX = (Math.random() - 0.5) * w;
+                               startY = -h / 2 - margin;
+                               targetX = startX + (Math.random() - 0.5) * (w / 2);
+                               targetY = h / 2 + margin;
+                           } else { // ліво
+                               startX = -w / 2 - margin;
+                               startY = (Math.random() - 0.5) * h;
+                               targetX = w / 2 + margin;
+                               targetY = startY + (Math.random() - 0.5) * (h / 2);
+                           }
+
+                           this.group.position.set(startX, startY, 0);
+                           this.angle = Math.atan2(targetY - startY, targetX - startX);
+                           this.orientGroup.rotation.set(Math.PI / 2, 0, this.angle + Math.PI);
+                           
+                           this.speed = 1.5 + Math.random() * 2.5;
+                           this.state = 'walk';
+                           this.stateTimer = 1 + Math.random() * 3;
+                       },
+                       update: function(delta) {
+                           this.stateTimer -= delta;
+                           
+                           // Органічна зміна стану (зупинки та відхилення)
+                           if (this.stateTimer <= 0) {
+                               if (this.state === 'walk') {
+                                   if (Math.random() > 0.6) {
+                                       this.state = 'pause';
+                                       this.stateTimer = 0.2 + Math.random() * 1.0;
+                                   } else {
+                                       this.angle += (Math.random() - 0.5) * 0.5;
+                                       this.orientGroup.rotation.set(Math.PI / 2, 0, this.angle + Math.PI);
+                                       this.stateTimer = 1 + Math.random() * 2;
+                                   }
+                               } else {
+                                   this.state = 'walk';
+                                   this.stateTimer = 1 + Math.random() * 3;
+                               }
+                           }
+
+                           if (this.state === 'walk') {
+                               this.mixer.update(delta * this.animSpeed);
+                               this.group.position.x += Math.cos(this.angle) * this.speed * delta;
+                               this.group.position.y += Math.sin(this.angle) * this.speed * delta;
+                           } else {
+                               this.mixer.update(delta * this.animSpeed * 0.1);
+                           }
+
+                           const currentAspect = window.innerWidth / window.innerHeight;
+                           const w = viewSize * currentAspect;
+                           const h = viewSize;
+                           const margin = 3;
+
+                           if (this.group.position.x > w/2 + margin || this.group.position.x < -w/2 - margin ||
+                               this.group.position.y > h/2 + margin || this.group.position.y < -h/2 - margin) {
+                               this.reset();
+                           }
+                       }
+                   };
+
+                   // Десинхронізація анімацій та початкових позицій
+                   bug.mixer.update(Math.random() * 10);
+                   bug.reset();
+                   const currentAspect = window.innerWidth / window.innerHeight;
+                   const initialWalk = Math.random() * (viewSize * currentAspect + viewSize);
+                   bug.group.position.x += Math.cos(bug.angle) * initialWalk;
+                   bug.group.position.y += Math.sin(bug.angle) * initialWalk;
+
+                   bugs.push(bug);
                }
            }
        );
-
-       let savedModelPos = null;
-       let savedModelQuat = null;
 
        // ========== ANIMATION LOOP ==========
        function animate() {
            requestAnimationFrame(animate);
            const delta = clock.getDelta();
 
-           if (mixer) {
-               if (centipedeModel && !savedModelPos) {
-                   savedModelPos = centipedeModel.position.clone();
-                   savedModelQuat = centipedeModel.quaternion.clone();
-               }
-
-               // Зменшено швидкість анімації кінцівок
-               mixer.update(delta * 0.4);
-
-               if (centipedeModel && savedModelPos) {
-                   centipedeModel.position.copy(savedModelPos);
-                   centipedeModel.quaternion.copy(savedModelQuat);
-               }
+           for (let i = 0; i < bugs.length; i++) {
+               bugs[i].update(delta);
            }
-
-           pathProgress += pathSpeed * delta;
-           if (pathProgress > 1) {
-               pathProgress -= 1; 
-           }
-
-           const pos = curve.getPointAt(pathProgress);
-           const tangent = curve.getTangentAt(pathProgress).normalize();
-           const angle = Math.atan2(tangent.y, tangent.x);
-
-           centipedeGroup.position.copy(pos);
-           // Примусова фіксація орієнтації моделі паралельно до площини екрану
-           orientationGroup.rotation.set(Math.PI / 2, 0, angle + Math.PI);
 
            controls.update();
            
-           // Рендер обох сцен
            renderer.render(scene, camera);
            centipedeRenderer.render(centipedeScene, centipedeCamera);
        }
        animate();
 
        window.addEventListener('resize', () => {
-           // Оновлення базової сцени
            const w1 = container.clientWidth;
            const h1 = container.clientHeight;
            renderer.setSize(w1, h1);
            camera.aspect = w1 / h1;
            camera.updateProjectionMatrix();
 
-           // Оновлення оверлей-сцени з урахуванням ортографічної камери
            const w2 = window.innerWidth;
            const h2 = window.innerHeight;
            centipedeRenderer.setSize(w2, h2);

@@ -263,8 +263,14 @@
        cDirLight.position.set(5, 10, 7);
        centipedeScene.add(cDirLight);
 
-       // Статична камера для рівного руху
-       const centipedeCamera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+       // Ортографічна камера для абсолютно плаского (2D) відображення поверх екрану
+       const viewSize = 6.62; // Видимий розмір адаптований до попереднього скейлу
+       const aspect = window.innerWidth / window.innerHeight;
+       const centipedeCamera = new THREE.OrthographicCamera(
+           -viewSize * aspect / 2, viewSize * aspect / 2,
+           viewSize / 2, -viewSize / 2,
+           0.1, 1000
+       );
        centipedeCamera.position.set(0, 0, 8);
 
        let mixer = null;
@@ -290,7 +296,7 @@
        ];
        const curve = new THREE.CatmullRomCurve3(curvePoints, true, 'centripetal', 0.5);
 
-       const pathSpeed = 0.05; 
+       const pathSpeed = 0.015; // Зменшено швидкість переміщення по кривій
        let pathProgress = 0; 
 
        const dracoLoader = new DRACOLoader();
@@ -345,7 +351,6 @@
                        });
                        if (clip.tracks.length > 0) {
                            const action = mixer.clipAction(clip);
-                           // Примусовий луп анімації лапок
                            action.setLoop(THREE.LoopRepeat, Infinity);
                            action.clampWhenFinished = false;
                            action.play();
@@ -369,7 +374,8 @@
                    savedModelQuat = centipedeModel.quaternion.clone();
                }
 
-               mixer.update(delta);
+               // Зменшено швидкість анімації кінцівок
+               mixer.update(delta * 0.4);
 
                if (centipedeModel && savedModelPos) {
                    centipedeModel.position.copy(savedModelPos);
@@ -387,6 +393,7 @@
            const angle = Math.atan2(tangent.y, tangent.x);
 
            centipedeGroup.position.copy(pos);
+           // Примусова фіксація орієнтації моделі паралельно до площини екрану
            orientationGroup.rotation.set(Math.PI / 2, 0, angle + Math.PI);
 
            controls.update();
@@ -405,11 +412,16 @@
            camera.aspect = w1 / h1;
            camera.updateProjectionMatrix();
 
-           // Оновлення оверлей-сцени
+           // Оновлення оверлей-сцени з урахуванням ортографічної камери
            const w2 = window.innerWidth;
            const h2 = window.innerHeight;
            centipedeRenderer.setSize(w2, h2);
-           centipedeCamera.aspect = w2 / h2;
+           
+           const aspect2 = w2 / h2;
+           centipedeCamera.left = -viewSize * aspect2 / 2;
+           centipedeCamera.right = viewSize * aspect2 / 2;
+           centipedeCamera.top = viewSize / 2;
+           centipedeCamera.bottom = -viewSize / 2;
            centipedeCamera.updateProjectionMatrix();
        });
    </script>

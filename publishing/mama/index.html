@@ -51,6 +51,7 @@
        
        #scene-container { width: 100%; height: 100%; display: block; outline: none; }
        
+       /* Оверлей для таргана - на весь екран, поверх всього */
        #bug-overlay {
            position: fixed;
            top: 0;
@@ -89,12 +90,19 @@
        <div id="scene-container" class="w-full h-full scale-[0.90] md:scale-100"></div>
    </div>
 
+   <!-- Mobile Panel -->
    <div class="mobile-panel md:hidden relative w-full max-w-[100vw] bg-[#D9D9D9] flex flex-col z-10 flex-grow box-border pt-[22px] px-[22px] pb-[22px] m-0">
-       <h1 class="title-custom font-bold m-0 origin-left scale-x-125 w-[85%] mb-[24px]">Зін «Мама»<br />Христина Новікова</h1>
+      
+       <h1 class="title-custom font-bold m-0 origin-left scale-x-125 w-[85%] mb-[24px]">
+           Зін «Мама»<br />
+           Христина Новікова
+       </h1>
+
        <div class="flex flex-col gap-[5px] mb-[24px]">
            <a href="https://secure.wayforpay.com/button/b6b9d60b66bca" class="bg-white text-black w-full h-[70px] flex justify-center items-center hover:scale-[1.01] transition-transform cursor-pointer border-none no-underline">
                <span class="font-bold text-[26px] tracking-[-0.04em] scale-x-125 origin-center inline-block leading-none -mt-[3px]">Придбати</span>
            </a>
+
            <div class="flex w-full h-[63px] gap-[5px]">
                <div class="flex-1 bg-white text-black flex flex-col justify-center items-center">
                    <div class="distorted-text">666₴</div>
@@ -109,15 +117,76 @@
                </div>
            </div>
        </div>
+
        <div class="flex flex-col gap-5 mb-[24px]">
-           <p class="m-0 text-[16px] leading-[103%] tracking-[-0.04em] font-bold">Цей зін апропріює естетику Marlboro Red...</p>
+           <p class="m-0 text-[16px] leading-[103%] tracking-[-0.04em] font-bold">
+               Цей зін апропріює естетику культової пачки Marlboro Red, перетворюючи хроніку життя в окупації на візуальний об'єкт із попередженням про небезпеку. Червоний колір тривоги тут римується з агресивним брендингом, а очікування повідомлень від мами з Маріуполя (2022–2026) стає метафорою залежності, від якої неможливо відмовитися. Це документація зв'язку, де буденні поради «поїсти супу» перемішані зі звуками вибухів, а любов до рідного дому межує з фатальним ризиком там залишатися.
+           </p>
+           <div class="m-0 text-[16px] leading-[103%] tracking-[-0.04em] font-bold">
+               Дизайн та верстка: <a href="https://www.instagram.com/adult.xoma/" target="_blank" class="content-link">Володимир Хоменко</a><br />
+               Видавництво: <a href="https://www.instagram.com/idinahui.art/" target="_blank" class="content-link">IDINAHUI PUBLISHING</a><br />
+               Формат А5, 68 с.<br />
+               Київ, 2026
+           </div>
+       </div>
+
+       <div class="flex w-full gap-[5px] mt-auto">
+           <a href="https://www.idinahui.art/publishing" class="flex-1 h-[63px] bg-white text-black flex justify-center items-center font-bold text-[16px] tracking-[-0.04em] no-underline">
+               Про нас
+           </a>
+           <a href="https://www.instagram.com/idinahui.art/" target="_blank" class="flex-1 h-[63px] bg-[#A3A3A3] text-black flex justify-center items-center font-bold text-[16px] tracking-[-0.04em] no-underline">
+               Контакти
+           </a>
        </div>
    </div>
 
+   <!-- Desktop Panel -->
    <div class="desktop-panel hidden md:flex absolute top-0 right-0 flex-col z-10 w-[350px]">
-       <div class="bg-[#D9D9D9] text-black flex flex-col pt-[14px] px-[14px] pb-0 w-full" style="height: 543px;">
-           <h1 class="font-bold m-0 origin-left scale-x-125 leading-[110%] tracking-[-0.04em] text-[26px] mb-[12px] w-[80%]">Зін «Мама»<br />Христина Новікова</h1>
+       
+       <div class="flex w-full h-[54px]">
+           <a href="https://www.idinahui.art/publishing" class="w-[175px] bg-white text-black flex justify-center items-center font-bold text-[16px] tracking-[-0.04em] uppercase no-underline">
+               ПРО НАС
+           </a>
+           <a href="https://www.instagram.com/idinahui.art/" target="_blank" class="w-[175px] bg-[#ACACAC] text-black flex justify-center items-center font-bold text-[16px] tracking-[-0.04em] uppercase no-underline">
+               КОНТАКТИ
+           </a>
        </div>
+
+       <div class="bg-[#D9D9D9] text-black flex flex-col pt-[14px] px-[14px] pb-0 w-full" style="height: 543px;">
+           <h1 class="font-bold m-0 origin-left scale-x-125 leading-[110%] tracking-[-0.04em] text-[26px] mb-[12px] w-[80%]">
+               Зін «Мама»<br />
+               Христина Новікова
+           </h1>
+
+           <p class="text-[16px] leading-[110%] tracking-[-0.04em] font-bold m-0 mb-[24px] pr-[10px]">
+               Цей зін апропріює естетику культової пачки Marlboro Red, перетворюючи хроніку життя в окупації на візуальний об'єкт із попередженням про небезпеку. Червоний колір тривоги тут римується з агресивним брендингом, а очікування повідомлень від мами з Маріуполя (2022–2026) стає метафорою залежності, від якої неможливо відмовитися. Це документація зв'язку, де буденні поради «поїсти супу» перемішані зі звуками вибухів, а любов до рідного дому межує з фатальним ризиком там залишатися.
+           </p>
+
+           <div class="text-[16px] leading-[110%] tracking-[-0.04em] font-bold m-0 mb-[30px]">
+               Дизайн та верстка: <a href="https://www.instagram.com/adult.xoma/" target="_blank" class="content-link">Володимир Хоменко</a><br />
+               Видавництво: <a href="https://www.instagram.com/idinahui.art/" target="_blank" class="content-link">IDINAHUI PUBLISHING</a><br />
+               Формат А5, 68 с.<br />
+               Київ, 2026
+           </div>
+          
+           <div class="mt-auto mb-[11px] flex justify-center w-full">
+               <a href="https://secure.wayforpay.com/button/b6b9d60b66bca" class="bg-white text-black w-[328px] h-[82px] flex justify-center items-center hover:scale-[1.02] transition-transform cursor-pointer border-none no-underline">
+                   <span class="font-bold text-[26px] tracking-[-0.04em] scale-x-125 origin-center inline-block leading-[103%] -mt-[3px]">Придбати</span>
+               </a>
+           </div>
+       </div>
+      
+       <div class="flex w-full h-[63px]">
+           <div class="w-[175px] bg-white text-black flex flex-col justify-center items-center">
+               <div class="font-bold text-[18px] tracking-[-0.04em] leading-[110%]">666₴</div>
+               <div class="font-bold text-[11px] tracking-[-0.04em] leading-[110%] mt-[1px]">передплата</div>
+           </div>
+           <div class="w-[175px] bg-[#ACACAC] text-[#757575] flex flex-col justify-center items-center">
+               <div class="font-bold text-[18px] tracking-[-0.04em] leading-[110%] line-through">777₴</div>
+               <div class="font-bold text-[#757575] text-[11px] tracking-[-0.04em] leading-[110%] mt-[1px]">повна ціна</div>
+           </div>
+       </div>
+
    </div>
 
    <script type="module">
@@ -134,39 +203,80 @@
        renderer.setSize(container.clientWidth, container.clientHeight);
        renderer.outputColorSpace = THREE.SRGBColorSpace;
        container.appendChild(renderer.domElement);
+
        scene.add(new THREE.AmbientLight(0xffffff, 2.5));
-       const book = new THREE.Mesh(new THREE.BoxGeometry(3, 4.2, 0.25), new THREE.MeshBasicMaterial({ color: 0xffffff }));
+       const dirLight = new THREE.DirectionalLight(0xffffff, 1.5);
+       dirLight.position.set(5, 10, 7);
+       scene.add(dirLight);
+
+       const textureLoader = new THREE.TextureLoader();
+       const coverTex = textureLoader.load('./cover_zine.png');
+       const pagesTex = textureLoader.load('./A5 - 2.png');
+       coverTex.colorSpace = THREE.SRGBColorSpace;
+       pagesTex.colorSpace = THREE.SRGBColorSpace;
+
+       const textureRight = pagesTex.clone();
+       textureRight.wrapS = THREE.RepeatWrapping;
+       textureRight.wrapT = THREE.RepeatWrapping;
+       textureRight.repeat.set(1, 4);
+
+       const textureTopBottom = pagesTex.clone();
+       textureTopBottom.wrapS = THREE.RepeatWrapping;
+       textureTopBottom.wrapT = THREE.RepeatWrapping;
+       textureTopBottom.rotation = Math.PI / 2;
+       textureTopBottom.center.set(0.5, 0.5);
+       textureTopBottom.repeat.set(4, 1);
+
+       const bookGeo = new THREE.BoxGeometry(3, 4.2, 0.25);
+       const bookMats = [
+           new THREE.MeshBasicMaterial({ map: textureRight }),
+           new THREE.MeshBasicMaterial({ color: 0xffffff }),
+           new THREE.MeshBasicMaterial({ map: textureTopBottom }),
+           new THREE.MeshBasicMaterial({ map: textureTopBottom }),
+           new THREE.MeshBasicMaterial({ map: coverTex }),
+           new THREE.MeshBasicMaterial({ map: coverTex })
+       ];
+       const book = new THREE.Mesh(bookGeo, bookMats);
+       book.rotation.set(0, -0.5, 0);
        scene.add(book);
+
        const controls = new OrbitControls(camera, renderer.domElement);
+       controls.enableZoom = false;
        controls.autoRotate = true;
 
        // --- 2. ТАРАКАН (OVERLAY) ---
        const bugOverlay = document.getElementById('bug-overlay');
        const bugScene = new THREE.Scene();
        const bugViewSize = 10;
+       
        const bugCamera = new THREE.OrthographicCamera(-5, 5, 5, -5, 0.1, 1000);
        bugCamera.position.z = 10;
+       
        const bugRenderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
        bugRenderer.setSize(window.innerWidth, window.innerHeight);
+       bugRenderer.setPixelRatio(window.devicePixelRatio);
        bugOverlay.appendChild(bugRenderer.domElement);
+
        bugScene.add(new THREE.AmbientLight(0xffffff, 3));
+       const bugLight = new THREE.PointLight(0xffffff, 5);
+       bugLight.position.set(0, 0, 10);
+       bugScene.add(bugLight);
 
        let cockroach = null;
+       let bugGroup = null; // Контейнер для корекції орієнтації моделі
        let mixer = null;
        const clock = new THREE.Clock();
 
        const movement = {
            target: new THREE.Vector3(0, 0, 0),
-           speed: 0.05,
-           rotationSpeed: 0.06,
-           lerpAngle: 0
+           speed: 0.06,
+           rotationSpeed: 0.08
        };
 
        function setRandomTarget() {
             const aspect = window.innerWidth / window.innerHeight;
             const xBound = (bugViewSize * aspect / 2) * 0.85;
             const yBound = (bugViewSize / 2) * 0.85;
-            // Обираємо точку подалі, щоб він біг через весь екран
             movement.target.set(
                 (Math.random() - 0.5) * 2 * xBound,
                 (Math.random() - 0.5) * 2 * yBound,
@@ -178,15 +288,23 @@
        const modelPath = './centipede.glb.bin';
 
        loader.load(modelPath, (gltf) => {
-           cockroach = gltf.scene;
-           cockroach.scale.set(0.8, 0.8, 0.8); // Менший масштаб для реалістичності
-           cockroach.position.set(-3, -3, 0);
+           bugGroup = new THREE.Group();
+           const model = gltf.scene;
+           
+           // ВАЖЛИВО: Корекція орієнтації, щоб бачити спину паралельно екрану
+           // Більшість моделей GLB стоять на XY, тому треба нахилити, щоб "лягли" на скло
+           model.rotation.x = Math.PI / 2; 
+           
+           model.scale.set(0.7, 0.7, 0.7);
+           bugGroup.add(model);
            
            if (gltf.animations.length > 0) {
-               mixer = new THREE.AnimationMixer(cockroach);
+               mixer = new THREE.AnimationMixer(model);
                mixer.clipAction(gltf.animations[0]).play();
            }
-           bugScene.add(cockroach);
+
+           bugScene.add(bugGroup);
+           cockroach = bugGroup; // Тепер ми керуємо групою
            setRandomTarget();
        }, undefined, (err) => {
            console.error('Помилка моделі:', err);
@@ -204,24 +322,22 @@
            const dir = new THREE.Vector3().subVectors(target, pos);
            const dist = dir.length();
 
-           // 1. Якщо добігли до цілі - нову ціль
            if (dist < 0.6) {
                setRandomTarget();
                return;
            }
 
-           // 2. Вираховуємо кут до цілі (0 = North/Up)
+           // Обчислюємо кут до цілі
            const targetAngle = Math.atan2(dir.y, dir.x) - Math.PI / 2;
            
-           // 3. Плавно повертаємо до цілі
+           // Плавний поворот
            let diff = targetAngle - cockroach.rotation.z;
            while (diff < -Math.PI) diff += Math.PI * 2;
            while (diff > Math.PI) diff -= Math.PI * 2;
            
            cockroach.rotation.z += diff * movement.rotationSpeed;
 
-           // 4. Рухаємося ВПЕРЕД відповідно до поточного повороту
-           // Жук завжди біжить туди, куди дивиться голова
+           // Рух вперед за поглядом
            const moveX = -Math.sin(cockroach.rotation.z) * movement.speed;
            const moveY = Math.cos(cockroach.rotation.z) * movement.speed;
            
@@ -244,9 +360,13 @@
        window.addEventListener('resize', () => {
            const w = window.innerWidth, h = window.innerHeight;
            renderer.setSize(container.clientWidth, container.clientHeight);
+           camera.aspect = container.clientWidth / container.clientHeight;
+           camera.updateProjectionMatrix();
+
            bugRenderer.setSize(w, h);
            const aspect = w / h;
-           bugCamera.left = -5 * aspect; bugCamera.right = 5 * aspect;
+           bugCamera.left = -5 * aspect; 
+           bugCamera.right = 5 * aspect;
            bugCamera.updateProjectionMatrix();
        });
    </script>

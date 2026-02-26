@@ -270,7 +270,7 @@
        let mixer = null;
        let centipedeModel = null;
        const clock = new THREE.Clock();
-       const DESIRED_SIZE = 2.55;
+       const DESIRED_SIZE = 0.85;
 
        const centipedeGroup = new THREE.Group();
        centipedeScene.add(centipedeGroup);
@@ -278,17 +278,20 @@
        const orientationGroup = new THREE.Group();
        centipedeGroup.add(orientationGroup);
 
-       // Шлях по діагоналі: наближено до центру для швидкої появи
-       const startPos = new THREE.Vector3(-7, -4.5, 0);
-       const endPos = new THREE.Vector3(7, 4.5, 0);
-       const pathDirection = new THREE.Vector3().subVectors(endPos, startPos);
-       const totalPathLength = pathDirection.length();
-       const moveAngle = Math.atan2(pathDirection.y, pathDirection.x);
-       pathDirection.normalize();
+       const curvePoints = [
+           new THREE.Vector3(-15, -10, 0), 
+           new THREE.Vector3(-4, -2, 0),   
+           new THREE.Vector3(-9, 8, 0),    
+           new THREE.Vector3(-20, 15, 0),  
+           new THREE.Vector3(14, 10, 0),   
+           new THREE.Vector3(2, 0, 0),     
+           new THREE.Vector3(8, -10, 0),   
+           new THREE.Vector3(0, -18, 0)    
+       ];
+       const curve = new THREE.CatmullRomCurve3(curvePoints, true, 'centripetal', 0.5);
 
-       // Оптимізована швидкість переміщення
-       const crawlSpeed = 1.2; 
-       let crawlDistance = 0; 
+       const pathSpeed = 0.05; 
+       let pathProgress = 0; 
 
        const dracoLoader = new DRACOLoader();
        dracoLoader.setDecoderPath('https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/libs/draco/');
@@ -296,7 +299,7 @@
        gltfLoader.setDRACOLoader(dracoLoader);
 
        gltfLoader.load(
-           './centipede.glb.bin',
+           './centipede.glb.bin?v=3',
            (gltf) => {
                centipedeModel = gltf.scene;
 
@@ -315,7 +318,6 @@
                centipedeModel.position.sub(center);
 
                orientationGroup.add(centipedeModel);
-               orientationGroup.rotation.set(-Math.PI / 2, 0, moveAngle);
 
                centipedeModel.traverse((child) => {
                    if (child.isMesh) {
@@ -375,11 +377,17 @@
                }
            }
 
-           crawlDistance += crawlSpeed * delta;
-           if (crawlDistance > totalPathLength + 3) {
-               crawlDistance = -3; 
+           pathProgress += pathSpeed * delta;
+           if (pathProgress > 1) {
+               pathProgress -= 1; 
            }
-           centipedeGroup.position.copy(startPos).addScaledVector(pathDirection, crawlDistance);
+
+           const pos = curve.getPointAt(pathProgress);
+           const tangent = curve.getTangentAt(pathProgress).normalize();
+           const angle = Math.atan2(tangent.y, tangent.x);
+
+           centipedeGroup.position.copy(pos);
+           orientationGroup.rotation.set(Math.PI / 2, 0, angle + Math.PI);
 
            controls.update();
            

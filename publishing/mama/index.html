@@ -172,7 +172,8 @@
 
    </div>
 
-   import * as THREE from 'three';
+   <script type="module">
+       import * as THREE from 'three';
        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
        import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
        import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
@@ -248,6 +249,7 @@
        overlayCanvas.style.height = '100vh';
        overlayCanvas.style.pointerEvents = 'none'; // Пропускає кліки до кнопок і книжки
        overlayCanvas.style.zIndex = '9999';
+       overlayCanvas.style.background = 'transparent';
        document.body.appendChild(overlayCanvas);
 
        const centipedeRenderer = new THREE.WebGLRenderer({ canvas: overlayCanvas, alpha: true, antialias: true });

@@ -263,7 +263,7 @@
        bugScene.add(bugLight);
 
        let cockroach = null;
-       let bugGroup = null; // Контейнер для корекції орієнтації моделі
+       let bugGroup = null; 
        let mixer = null;
        const clock = new THREE.Clock();
 
@@ -291,11 +291,12 @@
            bugGroup = new THREE.Group();
            const model = gltf.scene;
            
-           // ВАЖЛИВО: Корекція орієнтації, щоб бачити спину паралельно екрану
-           // Більшість моделей GLB стоять на XY, тому треба нахилити, щоб "лягли" на скло
+           // ВАЖЛИВО: Корекція орієнтації
            model.rotation.x = Math.PI / 2; 
+           model.rotation.z = Math.PI; // Розвертаємо на 180 градусів, щоб біг головою вперед
            
-           model.scale.set(0.7, 0.7, 0.7);
+           // Робимо втричі меншим (було 0.7, тепер ~0.23)
+           model.scale.set(0.23, 0.23, 0.23);
            bugGroup.add(model);
            
            if (gltf.animations.length > 0) {
@@ -304,11 +305,11 @@
            }
 
            bugScene.add(bugGroup);
-           cockroach = bugGroup; // Тепер ми керуємо групою
+           cockroach = bugGroup; 
            setRandomTarget();
        }, undefined, (err) => {
            console.error('Помилка моделі:', err);
-           const geo = new THREE.SphereGeometry(0.2);
+           const geo = new THREE.SphereGeometry(0.1);
            cockroach = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color: 0x00ff00 }));
            bugScene.add(cockroach);
            setRandomTarget();
@@ -327,17 +328,14 @@
                return;
            }
 
-           // Обчислюємо кут до цілі
            const targetAngle = Math.atan2(dir.y, dir.x) - Math.PI / 2;
            
-           // Плавний поворот
            let diff = targetAngle - cockroach.rotation.z;
            while (diff < -Math.PI) diff += Math.PI * 2;
            while (diff > Math.PI) diff -= Math.PI * 2;
            
            cockroach.rotation.z += diff * movement.rotationSpeed;
 
-           // Рух вперед за поглядом
            const moveX = -Math.sin(cockroach.rotation.z) * movement.speed;
            const moveY = Math.cos(cockroach.rotation.z) * movement.speed;
            

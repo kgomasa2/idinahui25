@@ -175,9 +175,6 @@
    <script type="module">
        import * as THREE from 'three';
        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-       import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-       import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
-       import * as SkeletonUtils from 'three/addons/utils/SkeletonUtils.js';
 
        // ========== БАЗОВА СЦЕНА (КНИЖКА) ==========
        const container = document.getElementById('scene-container');
@@ -241,222 +238,11 @@
        controls.autoRotate = true;
        controls.autoRotateSpeed = 2.0;
 
-       // ========== ОВЕРЛЕЙ-СЦЕНА (СКАЛОПЕНДРИ / ТАРАКАНИ ПОВЕРХ УСЬОГО) ==========
-       const overlayCanvas = document.createElement('canvas');
-       overlayCanvas.style.position = 'fixed';
-       overlayCanvas.style.top = '0';
-       overlayCanvas.style.left = '0';
-       overlayCanvas.style.width = '100vw';
-       overlayCanvas.style.height = '100vh';
-       overlayCanvas.style.pointerEvents = 'none';
-       overlayCanvas.style.zIndex = '9999';
-       overlayCanvas.style.background = 'transparent';
-       document.body.appendChild(overlayCanvas);
-
-       const centipedeRenderer = new THREE.WebGLRenderer({ canvas: overlayCanvas, alpha: true, antialias: true });
-       centipedeRenderer.setSize(window.innerWidth, window.innerHeight);
-       centipedeRenderer.setPixelRatio(window.devicePixelRatio);
-       centipedeRenderer.outputColorSpace = THREE.SRGBColorSpace;
-
-       const centipedeScene = new THREE.Scene();
-       centipedeScene.add(new THREE.AmbientLight(0xffffff, 2.5));
-       const cDirLight = new THREE.DirectionalLight(0xffffff, 1.5);
-       cDirLight.position.set(5, 10, 7);
-       centipedeScene.add(cDirLight);
-
-       const viewSize = 6.62; 
-       const aspect = window.innerWidth / window.innerHeight;
-       const centipedeCamera = new THREE.OrthographicCamera(
-           -viewSize * aspect / 2, viewSize * aspect / 2,
-           viewSize / 2, -viewSize / 2,
-           0.1, 1000
-       );
-       centipedeCamera.position.set(0, 0, 8);
-
-       const clock = new THREE.Clock();
-       const DESIRED_SIZE = 0.85;
-       const BUG_COUNT = 15;
-       const bugs = [];
-
-       const dracoLoader = new DRACOLoader();
-       dracoLoader.setDecoderPath('https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/libs/draco/');
-       const gltfLoader = new GLTFLoader();
-       gltfLoader.setDRACOLoader(dracoLoader);
-
-       gltfLoader.load(
-           './centipede.glb.bin?v=5',
-           (gltf) => {
-               const baseModel = gltf.scene;
-
-               const box = new THREE.Box3().setFromObject(baseModel);
-               const size = new THREE.Vector3();
-               box.getSize(size);
-               const maxDim = Math.max(size.x, size.y, size.z);
-               if (maxDim > 0) {
-                   const s = DESIRED_SIZE / maxDim;
-                   baseModel.scale.set(s, s, s);
-               }
-
-               const centeredBox = new THREE.Box3().setFromObject(baseModel);
-               const center = new THREE.Vector3();
-               centeredBox.getCenter(center);
-               baseModel.position.sub(center);
-
-               // Очищення треків анімації від кореневого зміщення один раз для всіх
-               const cleanAnimations = gltf.animations.map(clip => {
-                   const newClip = clip.clone();
-                   newClip.tracks = newClip.tracks.filter(track => {
-                       const name = track.name.toLowerCase();
-                       return !((name.includes('.position') || name.includes('.quaternion')) &&
-                                (name.split('.')[0] === '' || name.startsWith('scene') || (name.startsWith('armature.') && !name.includes('/'))));
-                   });
-                   return newClip;
-               });
-
-               for (let i = 0; i < BUG_COUNT; i++) {
-                   const model = SkeletonUtils.clone(baseModel);
-
-                   model.traverse((child) => {
-                       if (child.isMesh) {
-                           child.frustumCulled = false;
-                           child.material = new THREE.MeshStandardMaterial({
-                               color: 0x111111,
-                               roughness: 0.4,
-                               metalness: 0.3,
-                               side: THREE.DoubleSide
-                           });
-                       }
-                   });
-
-                   const mixer = new THREE.AnimationMixer(model);
-                   if (cleanAnimations.length > 0) {
-                       const action = mixer.clipAction(cleanAnimations[0]);
-                       action.setLoop(THREE.LoopRepeat, Infinity);
-                       action.play();
-                   }
-
-                   const orientGroup = new THREE.Group();
-                   orientGroup.add(model);
-                   const group = new THREE.Group();
-                   group.add(orientGroup);
-                   centipedeScene.add(group);
-
-                   const bug = {
-                       group: group,
-                       orientGroup: orientGroup,
-                       mixer: mixer,
-                       speed: 0,
-                       angle: 0,
-                       animSpeed: 0.8 + Math.random() * 0.5,
-                       state: 'walk',
-                       stateTimer: 0,
-                       reset: function() {
-                           const currentAspect = window.innerWidth / window.innerHeight;
-                           const w = viewSize * currentAspect;
-                           const h = viewSize;
-
-                           const edge = Math.floor(Math.random() * 4);
-                           const margin = 2;
-
-                           let startX, startY, targetX, targetY;
-
-                           if (edge === 0) { // верх
-                               startX = (Math.random() - 0.5) * w;
-                               startY = h / 2 + margin;
-                               targetX = startX + (Math.random() - 0.5) * (w / 2);
-                               targetY = -h / 2 - margin;
-                           } else if (edge === 1) { // право
-                               startX = w / 2 + margin;
-                               startY = (Math.random() - 0.5) * h;
-                               targetX = -w / 2 - margin;
-                               targetY = startY + (Math.random() - 0.5) * (h / 2);
-                           } else if (edge === 2) { // низ
-                               startX = (Math.random() - 0.5) * w;
-                               startY = -h / 2 - margin;
-                               targetX = startX + (Math.random() - 0.5) * (w / 2);
-                               targetY = h / 2 + margin;
-                           } else { // ліво
-                               startX = -w / 2 - margin;
-                               startY = (Math.random() - 0.5) * h;
-                               targetX = w / 2 + margin;
-                               targetY = startY + (Math.random() - 0.5) * (h / 2);
-                           }
-
-                           this.group.position.set(startX, startY, 0);
-                           this.angle = Math.atan2(targetY - startY, targetX - startX);
-                           
-                           // Коригування орієнтації: розворот спиною вгору (-Math.PI / 2) та головою вперед по вектору руху (this.angle - Math.PI / 2)
-                           // Якщо тарган повзе задом наперед, змініть - Math.PI / 2 на + Math.PI / 2
-                           this.orientGroup.rotation.set(-Math.PI / 2, 0, this.angle - Math.PI / 2);
-                           
-                           this.speed = 1.5 + Math.random() * 2.5;
-                           this.state = 'walk';
-                           this.stateTimer = 1 + Math.random() * 3;
-                       },
-                       update: function(delta) {
-                           this.stateTimer -= delta;
-                           
-                           if (this.stateTimer <= 0) {
-                               if (this.state === 'walk') {
-                                   if (Math.random() > 0.6) {
-                                       this.state = 'pause';
-                                       this.stateTimer = 0.2 + Math.random() * 1.0;
-                                   } else {
-                                       this.angle += (Math.random() - 0.5) * 0.5;
-                                       this.orientGroup.rotation.set(-Math.PI / 2, 0, this.angle - Math.PI / 2);
-                                       this.stateTimer = 1 + Math.random() * 2;
-                                   }
-                               } else {
-                                   this.state = 'walk';
-                                   this.stateTimer = 1 + Math.random() * 3;
-                               }
-                           }
-
-                           if (this.state === 'walk') {
-                               this.mixer.update(delta * this.animSpeed);
-                               this.group.position.x += Math.cos(this.angle) * this.speed * delta;
-                               this.group.position.y += Math.sin(this.angle) * this.speed * delta;
-                           } else {
-                               this.mixer.update(delta * this.animSpeed * 0.1);
-                           }
-
-                           const currentAspect = window.innerWidth / window.innerHeight;
-                           const w = viewSize * currentAspect;
-                           const h = viewSize;
-                           const margin = 3;
-
-                           if (this.group.position.x > w/2 + margin || this.group.position.x < -w/2 - margin ||
-                               this.group.position.y > h/2 + margin || this.group.position.y < -h/2 - margin) {
-                               this.reset();
-                           }
-                       }
-                   };
-
-                   bug.mixer.update(Math.random() * 10);
-                   bug.reset();
-                   const currentAspect = window.innerWidth / window.innerHeight;
-                   const initialWalk = Math.random() * (viewSize * currentAspect + viewSize);
-                   bug.group.position.x += Math.cos(bug.angle) * initialWalk;
-                   bug.group.position.y += Math.sin(bug.angle) * initialWalk;
-
-                   bugs.push(bug);
-               }
-           }
-       );
-
        // ========== ANIMATION LOOP ==========
        function animate() {
            requestAnimationFrame(animate);
-           const delta = clock.getDelta();
-
-           for (let i = 0; i < bugs.length; i++) {
-               bugs[i].update(delta);
-           }
-
            controls.update();
-           
            renderer.render(scene, camera);
-           centipedeRenderer.render(centipedeScene, centipedeCamera);
        }
        animate();
 
@@ -466,17 +252,6 @@
            renderer.setSize(w1, h1);
            camera.aspect = w1 / h1;
            camera.updateProjectionMatrix();
-
-           const w2 = window.innerWidth;
-           const h2 = window.innerHeight;
-           centipedeRenderer.setSize(w2, h2);
-           
-           const aspect2 = w2 / h2;
-           centipedeCamera.left = -viewSize * aspect2 / 2;
-           centipedeCamera.right = viewSize * aspect2 / 2;
-           centipedeCamera.top = viewSize / 2;
-           centipedeCamera.bottom = -viewSize / 2;
-           centipedeCamera.updateProjectionMatrix();
        });
    </script>
 </body>

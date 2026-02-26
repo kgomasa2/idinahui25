@@ -58,23 +58,6 @@
            text-underline-offset: 2px;
            opacity: 0.8;
        }
-
-       #debug-panel {
-           position: fixed;
-           bottom: 10px;
-           left: 10px;
-           background: rgba(0,0,0,0.85);
-           color: #0f0;
-           font-family: monospace;
-           font-size: 11px;
-           padding: 8px 12px;
-           z-index: 9999;
-           border-radius: 4px;
-           max-width: 400px;
-           max-height: 200px;
-           overflow-y: auto;
-           pointer-events: none;
-       }
    </style>
 
    <script type="importmap">
@@ -87,9 +70,6 @@
    </script>
 </head>
 <body class="relative min-h-screen w-full max-w-[100vw] flex flex-col md:block overflow-x-hidden box-border m-0 p-0">
-
-   <!-- DEBUG — видали цей div після тестування -->
-   <div id="debug-panel">🐛 Debug:</div>
 
    <div class="book-wrapper relative z-0 w-full h-[65vh] md:absolute md:top-0 md:left-0 md:w-full md:h-full flex-shrink-0">
        <div id="scene-container" class="w-full h-full scale-[0.90] md:scale-100"></div>
@@ -198,17 +178,6 @@
        import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
        import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 
-       // ========== DEBUG ==========
-       const debugEl = document.getElementById('debug-panel');
-       function debug(msg) {
-           console.log('[DEBUG]', msg);
-           debugEl.innerHTML += '<br>' + msg;
-           debugEl.scrollTop = debugEl.scrollHeight;
-       }
-
-       debug('🟢 Script started');
-
-       // ========== SCENE SETUP ==========
        const container = document.getElementById('scene-container');
        const scene = new THREE.Scene();
       
@@ -221,7 +190,6 @@
        renderer.outputColorSpace = THREE.SRGBColorSpace;
        container.appendChild(renderer.domElement);
 
-       // Багато світла щоб точно було видно
        scene.add(new THREE.AmbientLight(0xffffff, 2.5));
        const dirLight1 = new THREE.DirectionalLight(0xffffff, 1.5);
        dirLight1.position.set(5, 10, 7);
@@ -276,88 +244,71 @@
        let centipede = null;
        let mixer = null;
        const clock = new THREE.Clock();
-       const crawlSpeed = 2.5;
-       const DESIRED_SIZE = 3.0;
+       const crawlSpeed = 1.8;
+       // 15% менше ніж було (3.0 * 0.85)
+       const DESIRED_SIZE = 2.55;
 
        const dracoLoader = new DRACOLoader();
        dracoLoader.setDecoderPath('https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/libs/draco/');
-       
        const gltfLoader = new GLTFLoader();
        gltfLoader.setDRACOLoader(dracoLoader);
 
-       debug('📂 Loading centipede.glb.bin ...');
-
        gltfLoader.load(
            './centipede.glb.bin',
-           
-           // SUCCESS
            (gltf) => {
-               debug('✅ File loaded OK');
-               debug('Animations found: ' + gltf.animations.length);
-               
                centipede = gltf.scene;
                
-               // Визначити реальний розмір
+               // Порахувати розмір
                const box = new THREE.Box3().setFromObject(centipede);
                const size = new THREE.Vector3();
                box.getSize(size);
-               debug('Size: ' + size.x.toFixed(2) + ' × ' + size.y.toFixed(2) + ' × ' + size.z.toFixed(2));
                
                // Автомасштабування
                const maxDim = Math.max(size.x, size.y, size.z);
                if (maxDim > 0) {
                    const s = DESIRED_SIZE / maxDim;
                    centipede.scale.set(s, s, s);
-                   debug('Scale: ' + s.toFixed(4));
                }
                
-               // Стартова позиція
-               centipede.position.set(-10, -2.5, 2);
-               centipede.rotation.y = -Math.PI / 2;
+               // Повернути так, щоб вид був зверху — «повзе по екрану»
+               // X-вісь = вправо, Y-вісь = вгору (до глядача), Z-вісь = вниз екрану
+               centipede.rotation.set(
+                   -Math.PI / 2,   // нахилити «обличчям» до камери (лежить на площині екрана)
+                   0,
+                   Math.PI / 2     // повернути в напрямку руху (вправо)
+               );
                
-               // Переконатися що все видиме
-               let meshCount = 0;
+               // Стартова позиція — лівий край, внизу сцени, ближче до камери
+               centipede.position.set(-10, -3, 4);
+               
+               // Перефарбувати всі меші в чорний
                centipede.traverse((child) => {
                    if (child.isMesh) {
-                       meshCount++;
                        child.frustumCulled = false;
                        child.visible = true;
-                       if (child.material) {
-                           child.material.side = THREE.DoubleSide;
-                           child.material.transparent = false;
-                           child.material.opacity = 1;
-                       }
+                       // Замінити матеріал на чорний
+                       child.material = new THREE.MeshStandardMaterial({
+                           color: 0x111111,
+                           roughness: 0.4,
+                           metalness: 0.3,
+                           side: THREE.DoubleSide
+                       });
                    }
                });
-               debug('Meshes: ' + meshCount);
                
                scene.add(centipede);
-               debug('🐛 Added to scene');
                
-               // Анімації
+               // Анімація
                if (gltf.animations.length > 0) {
                    mixer = new THREE.AnimationMixer(centipede);
-                   gltf.animations.forEach((clip, i) => {
-                       debug('Anim ' + i + ': ' + clip.name + ' (' + clip.duration.toFixed(1) + 's)');
+                   gltf.animations.forEach((clip) => {
                        mixer.clipAction(clip).play();
                    });
                }
            },
-           
-           // PROGRESS
-           (xhr) => {
-               if (xhr.total > 0) {
-                   debug('⏳ ' + (xhr.loaded / xhr.total * 100).toFixed(0) + '%');
-               } else {
-                   debug('⏳ loaded ' + (xhr.loaded / 1024).toFixed(0) + 'KB');
-               }
-           },
-           
-           // ERROR
+           undefined,
            (error) => {
-               debug('❌ LOAD ERROR');
-               debug(error.message || String(error));
-               console.error('GLB load error:', error);
+               console.error('Centipede load error:', error);
            }
        );
 
@@ -368,6 +319,7 @@
            
            if (mixer) mixer.update(delta);
            
+           // Плавний рух зліва направо
            if (centipede) {
                centipede.position.x += crawlSpeed * delta;
                if (centipede.position.x > 10) {
@@ -379,7 +331,6 @@
            renderer.render(scene, camera);
        }
        animate();
-       debug('🔄 Render loop started');
 
        window.addEventListener('resize', () => {
            const w = container.clientWidth;

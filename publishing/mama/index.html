@@ -64,12 +64,19 @@
 
        .content-link {
            color: inherit;
-           text-decoration: none;
-       }
-       .content-link:hover {
            text-decoration: underline;
            text-underline-offset: 2px;
+       }
+       .content-link:hover {
            opacity: 0.8;
+       }
+
+       .hide-scrollbar {
+           -ms-overflow-style: none;  /* IE та Edge */
+           scrollbar-width: none;  /* Firefox */
+       }
+       .hide-scrollbar::-webkit-scrollbar {
+           display: none; /* Chrome, Safari та Opera */
        }
    </style>
 
@@ -90,7 +97,6 @@
        <div id="scene-container" class="w-full h-full scale-[0.90] md:scale-100"></div>
    </div>
 
-   <!-- Mobile Panel -->
    <div class="mobile-panel md:hidden relative w-full max-w-[100vw] bg-[#D9D9D9] flex flex-col z-10 flex-grow box-border pt-[22px] px-[22px] pb-[22px] m-0">
       
        <h1 class="title-custom font-bold m-0 origin-left scale-x-125 w-[85%] mb-[24px]">
@@ -98,7 +104,7 @@
            Христина Новікова
        </h1>
 
-       <div class="flex flex-col gap-[5px] mb-[24px]">
+       <div class="flex flex-col gap-[5px] mb-[24px] shrink-0">
            <a href="https://secure.wayforpay.com/button/b6b9d60b66bca" class="bg-white text-black w-full h-[70px] flex justify-center items-center hover:scale-[1.01] transition-transform cursor-pointer border-none no-underline">
                <span class="font-bold text-[26px] tracking-[-0.04em] scale-x-125 origin-center inline-block leading-none -mt-[3px]">Купити</span>
            </a>
@@ -118,19 +124,37 @@
            </div>
        </div>
 
-       <div class="flex flex-col gap-5 mb-[24px]">
-           <p class="m-0 text-[16px] leading-[103%] tracking-[-0.04em] font-bold">
-               Цей зін апропріює естетику культової пачки Marlboro Red, перетворюючи хроніку життя в окупації на візуальний об'єкт із попередженням про небезпеку. Червоний колір тривоги тут римується з агресивним брендингом, а очікування повідомлень від мами з Маріуполя (2022–2026) стає метафорою залежності, від якої неможливо відмовитися. Це документація зв'язку, де буденні поради «поїсти супу» перемішані зі звуками вибухів, а любов до рідного дому межує з фатальним ризиком там залишатися.
-           </p>
-           <div class="m-0 text-[16px] leading-[103%] tracking-[-0.04em] font-bold">
-               Дизайн та верстка: <a href="https://www.instagram.com/adult.xoma/" target="_blank" class="content-link">Володимир Хоменко</a><br />
-               Видавництво: <a href="https://www.instagram.com/idinahui.art/" target="_blank" class="content-link">IDINAHUI PUBLISHING</a><br />
-               Формат А5, 68 с.<br />
-               Київ, 2026
+       <div class="relative w-full h-[35vh] min-h-[250px] mb-[24px]">
+           <div class="h-full overflow-y-auto hide-scrollbar pb-[40px]">
+               <div class="text-[16px] leading-[103%] tracking-[-0.04em] font-bold m-0 flex flex-col gap-[14px]">
+                   <div>
+                       Авторка ідеї: <a href="https://www.instagram.com/hristinazhopa2/" target="_blank" class="content-link">Христина Новикова</a><br />
+                       Дизайн та розробка: <a href="https://www.instagram.com/adult.xoma/" target="_blank" class="content-link">Володимир Хоменко</a><br />
+                       Текст: <a href="https://www.instagram.com/oxanaozarchuk/" target="_blank" class="content-link">Оксана Озарчук</a><br />
+                       Видавництво: <a href="https://www.instagram.com/idinahui.art/" target="_blank" class="content-link">IDINAHUI PUBLISHING</a><br />
+                       Київ, 2026 рік
+                   </div>
+                   
+                   <p class="m-0">IDINAHUI PUBLISHING представляє перший та можливо єдиний свій зін «Мама». Авторами зіну стали фотохудожниця Христина Жопа* та графічний дизайнер Володимир Хоменко**. Зін розповідає про маму Христини через її особисті фотографії та щемкі, і водночас побутові повідомлення, які мама відправляє з окупованого Маріуполя. Багато з них охоплює хвилювання матері за дитину, особливо на початку повномасштабного вторгнення.</p>
+                   
+                   <p class="m-0">Видавництво «IDINAHUI PUBLISHING» є дитинним проєктом «Іді Нахуй», курований Володимиром Хоменко. На дебютній виставці, у квартирі Каті Хадико, була представлена неймовірна кількість арт-об’єктів усіх можливих мистецьких практик, що працюють з кемповістю та ідентичністю народного мему. Серед секс-ляльок та зв’язаного спицями панно «Іді Нахуй» були селфі мами Христини. Ці фото вже були показані як частина фотопроєкту «Pepsi/Cola», що розповідає про розлучених батьків Христини, які зовсім різні, а найбільше їх відрізняє те, що батько любить колу, а мама – пепсі. На цих фото мама Альона вдома, на роботі в продуктовому магазині, іноді в новому пеньюарі, іноді без зубів. З матеріальних потреб бути з новими зубами та питань, чи жива Христина і чи є в неї гроші складається здебільшого переписка з Христиною. Що не скажеш про її стосунки з батьком. Не домовляючись з «Іді Нахуй», Балконна галерея представила напередодні частину «Cola», адже саме з батьком у Христини міцний ментальний зв’язок, де можна довіритись повністю та все розказати. Навіть, якщо батько – русофіл.</p>
+                   
+                   <p class="m-0">Батьки Христини довго не могли розлучитися, проте, коли зробили це, влаштували свято та замовили піцу. Опісля їх стосунки можна описати цитатою Альони: «Бачила цього ідіота, тобто, твого батька». Вже довгий час в Альони є партнер, який працює далекобійником. На відміну від нього, Альона не може від’їжджати кудись далеко і її постійно тягне в Маріуполь. Через два місяці опісля смертельної тиші, мама вийшла на зв’язок та повідомила, що вона та їхня домівка цілі. Христина вивезла маму в Італію, де тоді навчалась. Мама зловживала алкоголем та хотіла додому. Мама також пожила у Львові. Наскільки б місце не було безпечним, вона завжди хотіла у Маріуполь, навіть, якщо від нього майже нічого не залишилось.</p>
+                   
+                   <p class="m-0">Особистість мами складається з її широкого спектру хобі та вподобань. Окрім того, що вона мама, яка хвилюється за доньку та пише про це, вона ще розмірковує про самотність, про свою долю та як вона зараз складається в Маріуполі. Все це вона транслює у текстових повідомленнях в переписці з Христиною. В мами є купа ескапічних вподобань, особливо вони стосуються догляду за собою та простору, де вона живе: шугаринг, засмагання, прибирання квартири по декілька разів на день та перегляд романтичних серіалів у чистій домівці. Про це вона пише або звітує фотографіями: особистими, інколи гламурними та безглуздими.</p>
+                   
+                   <p class="m-0">Зін «Мама» продовжує впізнаваний народний дискурс «Іді Нахуй» – персональні фото репрезентують глобальні проблеми як відстань між батьками та дітьми та проживання на окупованих територіях. Для цього вони використовують особисте, яке стає народним. Роблять це не тільки без драматизму, а ще й з іронією.</p>
+                   
+                   <div class="m-0 text-[14px]">
+                       * Христина Новикова (більш відома як Христина Жопа) – фотохудожниця та театральна режисерка з Маріуполя. Провідні теми у творчості Христини – тілесність, сексуальність, дівочість та ментальні проблеми.<br /><br />
+                       ** Володимир Хоменко – графічний дизайнер та куратор артпроєкту ІдіНахуй. Працює з темами як сучасний народний міф та цифрова іронія.
+                   </div>
+               </div>
            </div>
+           <div class="absolute bottom-0 left-0 w-full h-[50px] bg-gradient-to-t from-[#D9D9D9] to-transparent pointer-events-none"></div>
        </div>
 
-       <div class="flex w-full gap-[5px] mt-auto">
+       <div class="flex w-full gap-[5px] mt-auto shrink-0">
            <a href="https://www.idinahui.art/publishing" class="flex-1 h-[63px] bg-white text-black flex justify-center items-center font-bold text-[16px] tracking-[-0.04em] no-underline">
                Про нас
            </a>
@@ -140,10 +164,9 @@
        </div>
    </div>
 
-   <!-- Desktop Panel -->
    <div class="desktop-panel hidden md:flex absolute top-0 right-0 flex-col z-10 w-[350px]">
        
-       <div class="flex w-full h-[54px]">
+       <div class="flex w-full h-[54px] shrink-0">
            <a href="https://www.idinahui.art/publishing" class="w-[175px] bg-white text-black flex justify-center items-center font-bold text-[16px] tracking-[-0.04em] uppercase no-underline">
                ПРО НАС
            </a>
@@ -153,30 +176,49 @@
        </div>
 
        <div class="bg-[#D9D9D9] text-black flex flex-col pt-[14px] px-[14px] pb-0 w-full" style="height: 543px;">
-           <h1 class="font-bold m-0 origin-left scale-x-125 leading-[110%] tracking-[-0.04em] text-[26px] mb-[12px] w-[80%]">
+           <h1 class="font-bold m-0 origin-left scale-x-125 leading-[110%] tracking-[-0.04em] text-[26px] mb-[12px] w-[80%] shrink-0">
                Зін «Мама»<br />
                Христина Новікова
            </h1>
 
-           <p class="text-[16px] leading-[110%] tracking-[-0.04em] font-bold m-0 mb-[24px] pr-[10px]">
-               Цей зін апропріює естетику культової пачки Marlboro Red, перетворюючи хроніку життя в окупації на візуальний об'єкт із попередженням про небезпеку. Червоний колір тривоги тут римується з агресивним брендингом, а очікування повідомлень від мами з Маріуполя (2022–2026) стає метафорою залежності, від якої неможливо відмовитися. Це документація зв'язку, де буденні поради «поїсти супу» перемішані зі звуками вибухів, а любов до рідного дому межує з фатальним ризиком там залишатися.
-           </p>
-
-           <div class="text-[16px] leading-[110%] tracking-[-0.04em] font-bold m-0 mb-[30px]">
-               Дизайн та верстка: <a href="https://www.instagram.com/adult.xoma/" target="_blank" class="content-link">Володимир Хоменко</a><br />
-               Видавництво: <a href="https://www.instagram.com/idinahui.art/" target="_blank" class="content-link">IDINAHUI PUBLISHING</a><br />
-               Формат А5, 68 с.<br />
-               Київ, 2026
+           <div class="relative flex-1 overflow-hidden min-h-0 mb-[16px]">
+               <div class="h-full overflow-y-auto hide-scrollbar pr-[5px] pb-[40px]">
+                   <div class="text-[16px] leading-[110%] tracking-[-0.04em] font-bold m-0 flex flex-col gap-[14px]">
+                       <div>
+                           Авторка ідеї: <a href="https://www.instagram.com/hristinazhopa2/" target="_blank" class="content-link">Христина Новикова</a><br />
+                           Дизайн та розробка: <a href="https://www.instagram.com/adult.xoma/" target="_blank" class="content-link">Володимир Хоменко</a><br />
+                           Текст: <a href="https://www.instagram.com/oxanaozarchuk/" target="_blank" class="content-link">Оксана Озарчук</a><br />
+                           Видавництво: <a href="https://www.instagram.com/idinahui.art/" target="_blank" class="content-link">IDINAHUI PUBLISHING</a><br />
+                           Київ, 2026 рік
+                       </div>
+                       
+                       <p class="m-0">IDINAHUI PUBLISHING представляє перший та можливо єдиний свій зін «Мама». Авторами зіну стали фотохудожниця Христина Жопа* та графічний дизайнер Володимир Хоменко**. Зін розповідає про маму Христини через її особисті фотографії та щемкі, і водночас побутові повідомлення, які мама відправляє з окупованого Маріуполя. Багато з них охоплює хвилювання матері за дитину, особливо на початку повномасштабного вторгнення.</p>
+                       
+                       <p class="m-0">Видавництво «IDINAHUI PUBLISHING» є дитинним проєктом «Іді Нахуй», курований Володимиром Хоменко. На дебютній виставці, у квартирі Каті Хадико, була представлена неймовірна кількість арт-об’єктів усіх можливих мистецьких практик, що працюють з кемповістю та ідентичністю народного мему. Серед секс-ляльок та зв’язаного спицями панно «Іді Нахуй» були селфі мами Христини. Ці фото вже були показані як частина фотопроєкту «Pepsi/Cola», що розповідає про розлучених батьків Христини, які зовсім різні, а найбільше їх відрізняє те, що батько любить колу, а мама – пепсі. На цих фото мама Альона вдома, на роботі в продуктовому магазині, іноді в новому пеньюарі, іноді без зубів. З матеріальних потреб бути з новими зубами та питань, чи жива Христина і чи є в неї гроші складається здебільшого переписка з Христиною. Що не скажеш про її стосунки з батьком. Не домовляючись з «Іді Нахуй», Балконна галерея представила напередодні частину «Cola», адже саме з батьком у Христини міцний ментальний зв’язок, де можна довіритись повністю та все розказати. Навіть, якщо батько – русофіл.</p>
+                       
+                       <p class="m-0">Батьки Христини довго не могли розлучитися, проте, коли зробили це, влаштували свято та замовили піцу. Опісля їх стосунки можна описати цитатою Альони: «Бачила цього ідіота, тобто, твого батька». Вже довгий час в Альони є партнер, який працює далекобійником. На відміну від нього, Альона не може від’їжджати кудись далеко і її постійно тягне в Маріуполь. Через два місяці опісля смертельної тиші, мама вийшла на зв’язок та повідомила, що вона та їхня домівка цілі. Христина вивезла маму в Італію, де тоді навчалась. Мама зловживала алкоголем та хотіла додому. Мама також пожила у Львові. Наскільки б місце не було безпечним, вона завжди хотіла у Маріуполь, навіть, якщо від нього майже нічого не залишилось.</p>
+                       
+                       <p class="m-0">Особистість мами складається з її широкого спектру хобі та вподобань. Окрім того, що вона мама, яка хвилюється за доньку та пише про це, вона ще розмірковує про самотність, про свою долю та як вона зараз складається в Маріуполі. Все це вона транслює у текстових повідомленнях в переписці з Христиною. В мами є купа ескапічних вподобань, особливо вони стосуються догляду за собою та простору, де вона живе: шугаринг, засмагання, прибирання квартири по декілька разів на день та перегляд романтичних серіалів у чистій домівці. Про це вона пише або звітує фотографіями: особистими, інколи гламурними та безглуздими.</p>
+                       
+                       <p class="m-0">Зін «Мама» продовжує впізнаваний народний дискурс «Іді Нахуй» – персональні фото репрезентують глобальні проблеми як відстань між батьками та дітьми та проживання на окупованих територіях. Для цього вони використовують особисте, яке стає народним. Роблять це не тільки без драматизму, а ще й з іронією.</p>
+                       
+                       <div class="m-0 text-[14px]">
+                           * Христина Новикова (більш відома як Христина Жопа) – фотохудожниця та театральна режисерка з Маріуполя. Провідні теми у творчості Христини – тілесність, сексуальність, дівочість та ментальні проблеми.<br /><br />
+                           ** Володимир Хоменко – графічний дизайнер та куратор артпроєкту ІдіНахуй. Працює з темами як сучасний народний міф та цифрова іронія.
+                       </div>
+                   </div>
+               </div>
+               <div class="absolute bottom-0 left-0 w-full h-[50px] bg-gradient-to-t from-[#D9D9D9] to-transparent pointer-events-none"></div>
            </div>
           
-           <div class="mt-auto mb-[11px] flex justify-center w-full">
+           <div class="mt-auto mb-[11px] flex justify-center w-full shrink-0">
                <a href="https://secure.wayforpay.com/button/b6b9d60b66bca" class="bg-white text-black w-[328px] h-[82px] flex justify-center items-center hover:scale-[1.02] transition-transform cursor-pointer border-none no-underline">
                    <span class="font-bold text-[26px] tracking-[-0.04em] scale-x-125 origin-center inline-block leading-[103%] -mt-[3px]">Купити</span>
                </a>
            </div>
        </div>
       
-       <div class="flex w-full h-[63px]">
+       <div class="flex w-full h-[63px] shrink-0">
            <div class="w-[175px] bg-white text-black flex flex-col justify-center items-center">
                <div class="font-bold text-[18px] tracking-[-0.04em] leading-[110%]">666₴</div>
                <div class="font-bold text-[11px] tracking-[-0.04em] leading-[110%] mt-[1px]">передзамовлення</div>
@@ -274,7 +316,6 @@
            rotationSpeed: 0.05
        };
 
-       // Функція оновлення розмірів bug renderer + camera
        function resizeBug() {
            const w = window.innerWidth;
            const h = window.innerHeight;
@@ -287,19 +328,18 @@
            bugCamera.updateProjectionMatrix();
        }
 
-       // Ініціалізуємо розміри одразу
        resizeBug();
 
        function setRandomTarget() {
-     const aspect = window.innerWidth / window.innerHeight;
-     const xBound = (bugViewSize * aspect / 2) * 1.3;
-     const yBound = (bugViewSize / 2) * 1.3;
-     movement.target.set(
-         (Math.random() - 0.5) * 2 * xBound,
-         (Math.random() - 0.5) * 2 * yBound,
-         0
-     );
-}
+           const aspect = window.innerWidth / window.innerHeight;
+           const xBound = (bugViewSize * aspect / 2) * 1.3;
+           const yBound = (bugViewSize / 2) * 1.3;
+           movement.target.set(
+               (Math.random() - 0.5) * 2 * xBound,
+               (Math.random() - 0.5) * 2 * yBound,
+               0
+           );
+       }
 
        const loader = new GLTFLoader();
        const modelPath = './centipede.glb.bin';
@@ -332,11 +372,9 @@
            setRandomTarget();
        });
 
-       // Показати таргана через 5 секунд
        setTimeout(() => {
            bugVisible = true;
            bugOverlay.style.visibility = 'visible';
-           // Перерахувати розміри на момент показу (мобільний адресний рядок міг зникнути)
            resizeBug();
        }, 2000);
 
@@ -389,7 +427,6 @@
            resizeBug();
        });
 
-       // Додатково: на мобільних visualViewport може змінюватись без resize
        if (window.visualViewport) {
            window.visualViewport.addEventListener('resize', resizeBug);
        }

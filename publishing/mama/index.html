@@ -64,10 +64,11 @@
 
        .content-link {
            color: inherit;
-           text-decoration: underline;
-           text-underline-offset: 2px;
+           text-decoration: none;
        }
        .content-link:hover {
+           text-decoration: underline;
+           text-underline-offset: 2px;
            opacity: 0.8;
        }
 
@@ -132,7 +133,7 @@
                        Дизайн та розробка: <a href="https://www.instagram.com/adult.xoma/" target="_blank" class="content-link">Володимир Хоменко</a><br />
                        Текст: <a href="https://www.instagram.com/oxanaozarchuk/" target="_blank" class="content-link">Оксана Озарчук</a><br />
                        Видавництво: <a href="https://www.instagram.com/idinahui.art/" target="_blank" class="content-link">IDINAHUI PUBLISHING</a><br />
-                       70 сторінок, стікерпак А5
+                       70 сторінок А5 та стікерпак<br />
                        Київ, 2026 рік
                    </div>
                    
@@ -190,7 +191,7 @@
                            Дизайн та розробка: <a href="https://www.instagram.com/adult.xoma/" target="_blank" class="content-link">Володимир Хоменко</a><br />
                            Текст: <a href="https://www.instagram.com/oxanaozarchuk/" target="_blank" class="content-link">Оксана Озарчук</a><br />
                            Видавництво: <a href="https://www.instagram.com/idinahui.art/" target="_blank" class="content-link">IDINAHUI PUBLISHING</a><br />
-                           70 сторінок, стікерпак А5
+                           70 сторінок А5 та стікерпак<br />
                            Київ, 2026 рік
                        </div>
                        
@@ -210,7 +211,7 @@
                        </div>
                    </div>
                </div>
-               <div class="absolute bottom-0 left-0 w-full h-[50px] bg-gradient-to-t from-[#D9D9D9] to-transparent pointer-events-none"></div>
+               <div class="absolute bottom-0 left-0 w-full h-[100px] bg-gradient-to-t from-[#D9D9D9] via-[#D9D9D9]/80 to-transparent pointer-events-none"></div>
            </div>
           
            <div class="mt-auto mb-[11px] flex justify-center w-full shrink-0">
@@ -231,6 +232,27 @@
            </div>
        </div>
 
+   </div>
+
+   <div class="hidden md:flex fixed bottom-0 left-0 z-50 items-end">
+       <div class="group cursor-pointer relative">
+           <img src="./book 1.png" alt="Book 1" class="w-[112px] h-[70px] object-cover">
+           <div class="fixed bottom-[70px] left-0 hidden group-hover:block z-50 pointer-events-none origin-bottom-left">
+               <img src="./book 1.png" alt="Book 1 Full" class="max-h-[85vh] max-w-[70vw] object-contain drop-shadow-2xl">
+           </div>
+       </div>
+       <div class="group cursor-pointer relative">
+           <img src="./book 3.png" alt="Book 3" class="w-[112px] h-[70px] object-cover border-l border-white/20">
+           <div class="fixed bottom-[70px] left-0 hidden group-hover:block z-50 pointer-events-none origin-bottom-left">
+               <img src="./book 3.png" alt="Book 3 Full" class="max-h-[85vh] max-w-[70vw] object-contain drop-shadow-2xl">
+           </div>
+       </div>
+       <div class="group cursor-pointer relative">
+           <img src="./stickers.png" alt="Stickers" class="w-[112px] h-[70px] object-cover border-l border-white/20">
+           <div class="fixed bottom-[70px] left-0 hidden group-hover:block z-50 pointer-events-none origin-bottom-left">
+               <img src="./stickers.png" alt="Stickers Full" class="max-h-[85vh] max-w-[70vw] object-contain drop-shadow-2xl">
+           </div>
+       </div>
    </div>
 
    <script type="module">

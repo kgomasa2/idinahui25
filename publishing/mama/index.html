@@ -1,87 +1,117 @@
 <!DOCTYPE html>
 <html lang="uk">
+
 <head>
-   <meta charset="UTF-8">
-   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-   <title>Зін «Мама» — Христина Новикова</title>
-  
-   <link rel="apple-touch-icon" sizes="180x180" href="/assets/favicon/apple-touch-icon.png">
-   <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon/favicon-32x32.png">
-   <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon/favicon-16x16.png">
-   <link rel="shortcut icon" href="/assets/favicon/favicon.ico">
-   <meta name="theme-color" content="#FF0000">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Зін «Мама» — Христина Новикова</title>
 
-   <script async src="https://www.googletagmanager.com/gtag/js?id=G-8RKB3ZJ59V"></script>
-   <script>
-     window.dataLayer = window.dataLayer || [];
-     function gtag(){dataLayer.push(arguments);}
-     gtag('js', new Date());
-     gtag('config', 'G-8RKB3ZJ59V');
-   </script>
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/favicon/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon/favicon-16x16.png">
+    <link rel="shortcut icon" href="/assets/favicon/favicon.ico">
+    <meta name="theme-color" content="#FF0000">
 
-   <script src="https://cdn.tailwindcss.com"></script>
-   <link href="https://fonts.googleapis.com/css2?family=Helvetica+Neue:wght@400;700&display=swap" rel="stylesheet">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-8RKB3ZJ59V"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+        gtag('config', 'G-8RKB3ZJ59V');
+    </script>
 
-   <style>
-       html, body {
-           max-width: 100vw;
-           height: 100%;
-           margin: 0;
-           padding: 0;
-       }
-       body {
-           font-family: 'Helvetica Neue', sans-serif;
-           background-color: #FF0000;
-           overflow-x: hidden;
-           overflow-y: auto;  
-       }
-       .text-base-custom { font-size: 13px; line-height: 103%; letter-spacing: -0.04em; }
-       .title-custom { font-size: 26px; line-height: 103%; letter-spacing: -0.04em; }
-       
-       .distorted-text { 
-           font-size: 23px; 
-           font-weight: bold; 
-           line-height: 1; 
-           transform: scaleX(1.25); 
-           transform-origin: center; 
-           letter-spacing: -0.04em;
-       }
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Helvetica+Neue:wght@400;700&display=swap" rel="stylesheet">
 
-       .label-text { font-size: 13px; letter-spacing: -0.04em; font-weight: bold; line-height: 1; margin-top: 4px; }
-       
-       #scene-container { width: 100%; height: 100%; display: block; outline: none; pointer-events: auto; }
-       
-       #bug-overlay {
-           position: fixed;
-           top: 0;
-           left: 0;
-           width: 100vw;
-           height: 100vh;
-           z-index: 50;
-           pointer-events: none;
-           visibility: hidden;
-       }
+    <style>
+        html,
+        body {
+            max-width: 100vw;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
 
-       .content-link {
-           color: inherit;
-           text-decoration: none;
-       }
-       .content-link:hover {
-           text-decoration: underline;
-           text-underline-offset: 2px;
-           opacity: 0.8;
-       }
+        body {
+            font-family: 'Helvetica Neue', sans-serif;
+            background-color: #FF0000;
+            overflow-x: hidden;
+            overflow-y: auto;
+        }
 
-       .hide-scrollbar {
-           -ms-overflow-style: none;  /* IE та Edge */
-           scrollbar-width: none;  /* Firefox */
-       }
-       .hide-scrollbar::-webkit-scrollbar {
-           display: none; /* Chrome, Safari та Opera */
-       }
-   </style>
+        .text-base-custom {
+            font-size: 13px;
+            line-height: 103%;
+            letter-spacing: -0.04em;
+        }
 
-   <script type="importmap">
+        .title-custom {
+            font-size: 26px;
+            line-height: 103%;
+            letter-spacing: -0.04em;
+        }
+
+        .distorted-text {
+            font-size: 23px;
+            font-weight: bold;
+            line-height: 1;
+            transform: scaleX(1.25);
+            transform-origin: center;
+            letter-spacing: -0.04em;
+        }
+
+        .label-text {
+            font-size: 13px;
+            letter-spacing: -0.04em;
+            font-weight: bold;
+            line-height: 1;
+            margin-top: 4px;
+        }
+
+        #scene-container {
+            width: 100%;
+            height: 100%;
+            display: block;
+            outline: none;
+            pointer-events: auto;
+        }
+
+        #bug-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 50;
+            pointer-events: none;
+            visibility: hidden;
+        }
+
+        .content-link {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        .content-link:hover {
+            text-decoration: underline;
+            text-underline-offset: 2px;
+            opacity: 0.8;
+        }
+
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            /* IE та Edge */
+            scrollbar-width: none;
+            /* Firefox */
+        }
+
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+            /* Chrome, Safari та Opera */
+        }
+    </style>
+
+    <script type="importmap">
        {
            "imports": {
                "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
@@ -90,380 +120,490 @@
        }
    </script>
 </head>
+
 <body class="relative min-h-screen w-full max-w-[100vw] flex flex-col md:block overflow-x-hidden box-border">
 
-   <div id="bug-overlay"></div>
+    <div id="bug-overlay"></div>
 
-   <div id="fs-overlay" class="hidden md:hidden fixed inset-0 bg-black/80 z-[200] flex justify-center items-center p-4 cursor-pointer" onclick="this.classList.add('hidden')">
-       <img id="fs-img" src="" class="max-w-full max-h-full object-contain">
-   </div>
+    <div id="fs-overlay"
+        class="hidden md:hidden fixed inset-0 bg-black/80 z-[200] flex justify-center items-center p-4 cursor-pointer"
+        onclick="this.classList.add('hidden')">
+        <img id="fs-img" src="" class="max-w-full max-h-full object-contain">
+    </div>
 
-   <div class="flex md:hidden fixed top-0 right-0 z-[110] items-start gap-x-[2px]">
-       <img src="./stickers preview.png" alt="Stickers" class="h-[55px] w-auto object-contain cursor-pointer" onclick="document.getElementById('fs-img').src='./stickers.png'; document.getElementById('fs-overlay').classList.remove('hidden');">
-       <img src="./book 1 preview.png" alt="Book 1" class="h-[55px] w-auto object-cover cursor-pointer" onclick="document.getElementById('fs-img').src='./book 1.png'; document.getElementById('fs-overlay').classList.remove('hidden');">
-       <img src="./book 3 preview.png" alt="Book 3" class="h-[55px] w-auto object-cover cursor-pointer" onclick="document.getElementById('fs-img').src='./book 3.png'; document.getElementById('fs-overlay').classList.remove('hidden');">
-   </div>
+    <div class="flex md:hidden fixed top-0 right-0 z-[110] items-start gap-x-[2px]">
+        <img src="./stickers preview.png" alt="Stickers" class="h-[55px] w-auto object-contain cursor-pointer"
+            onclick="document.getElementById('fs-img').src='./stickers.png'; document.getElementById('fs-overlay').classList.remove('hidden');">
+        <img src="./book 1 preview.png" alt="Book 1" class="h-[55px] w-auto object-cover cursor-pointer"
+            onclick="document.getElementById('fs-img').src='./book 1.png'; document.getElementById('fs-overlay').classList.remove('hidden');">
+        <img src="./book 3 preview.png" alt="Book 3" class="h-[55px] w-auto object-cover cursor-pointer"
+            onclick="document.getElementById('fs-img').src='./book 3.png'; document.getElementById('fs-overlay').classList.remove('hidden');">
+    </div>
 
-   <div class="book-wrapper relative w-full h-[65vh] md:absolute md:top-0 md:left-0 md:w-full md:h-full flex-shrink-0 md:-translate-x-8 md:-translate-y-[3%] md:[clip-path:inset(0_350px_0_0)]" style="z-index: 100; pointer-events: none;">
-       <div id="scene-container" class="w-full h-full scale-[0.90] md:scale-100"></div>
-   </div>
+    <div class="book-wrapper relative w-full h-[65vh] md:absolute md:top-0 md:left-0 md:w-full md:h-full flex-shrink-0 md:-translate-x-8 md:-translate-y-[3%] md:[clip-path:inset(0_350px_0_0)]"
+        style="z-index: 100; pointer-events: none;">
+        <div id="scene-container" class="w-full h-full scale-[0.90] md:scale-100"></div>
+    </div>
 
-   <div class="mobile-panel md:hidden relative w-full max-w-[100vw] bg-[#D9D9D9] flex flex-col z-10 flex-grow box-border pt-[22px] px-[22px] pb-[22px] m-0">
-      
-       <h1 class="title-custom font-bold m-0 origin-left scale-x-125 w-[85%] mb-[24px]">
-           Зін «Мама»<br />
-           Христина Новикова
-       </h1>
+    <div
+        class="mobile-panel md:hidden relative w-full max-w-[100vw] bg-[#D9D9D9] flex flex-col z-10 flex-grow box-border pt-[22px] px-[22px] pb-[22px] m-0">
 
-       <div class="flex flex-col gap-[5px] mb-[24px] shrink-0">
-           <a href="https://secure.wayforpay.com/button/b6b9d60b66bca" class="bg-white text-black w-full h-[70px] flex justify-center items-center hover:scale-[1.01] transition-transform cursor-pointer border-none no-underline">
-               <span class="font-bold text-[26px] tracking-[-0.04em] scale-x-125 origin-center inline-block leading-none -mt-[3px]">Купити</span>
-           </a>
+        <h1 class="title-custom font-bold m-0 origin-left scale-x-125 w-[85%] mb-[24px]">
+            Зін «Мама» +стікерпак<br />
+            Христина Новикова
+        </h1>
 
-           <div class="flex w-full h-[63px] gap-[5px]">
-               <div class="flex-1 bg-white text-black flex flex-col justify-center items-center">
-                   <div class="distorted-text">666₴</div>
-                   <div class="label-text">передзамовлення</div>
-               </div>
-               <div class="flex-1 bg-[#A3A3A3] text-[#757575] flex flex-col justify-center items-center">
-                   <div class="distorted-text relative">
-                       <span>777₴</span>
-                       <span class="absolute left-0 top-1/2 w-full h-[2px] bg-[#757575] -translate-y-1/2"></span>
-                   </div>
-                   <div class="label-text">повна ціна</div>
-               </div>
-           </div>
-       </div>
+        <div class="flex flex-col gap-[5px] mb-[24px] shrink-0">
+            <a href="https://secure.wayforpay.com/button/b6b9d60b66bca"
+                class="bg-white text-black w-full h-[70px] flex justify-center items-center hover:scale-[1.01] transition-transform cursor-pointer border-none no-underline">
+                <span
+                    class="font-bold text-[26px] tracking-[-0.04em] scale-x-125 origin-center inline-block leading-none -mt-[3px]">Купити</span>
+            </a>
 
-       <div class="relative w-full h-[35vh] min-h-[250px] mb-[24px]">
-           <div class="h-full overflow-y-auto hide-scrollbar pb-[40px]">
-               <div class="text-[16px] leading-[103%] tracking-[-0.04em] font-bold m-0 flex flex-col gap-[14px]">
-                   <div>
-                       Авторка ідеї: <a href="https://www.instagram.com/hristinazhopa2/" target="_blank" class="content-link">Христина Новикова</a><br />
-                       Дизайн та розробка: <a href="https://www.instagram.com/adult.xoma/" target="_blank" class="content-link">Володимир Хоменко</a><br />
-                       Текст: <a href="https://www.instagram.com/oxanaozarchuk/" target="_blank" class="content-link">Оксана Озарчук</a><br />
-                       Видавництво: <a href="https://www.instagram.com/idinahui.art/" target="_blank" class="content-link">IDINAHUI PUBLISHING</a><br />
-                       70 сторінок А5 та стікерпак<br />
-                       Київ, 2026 рік
-                   </div>
-                   
-                   <p class="m-0">IDINAHUI PUBLISHING представляє перший та можливо єдиний свій зін «Мама». Авторами зіну стали фотохудожниця Христина Жопа* та графічний дизайнер Володимир Хоменко**. Зін розповідає про маму Христини через її особисті фотографії та щемкі, і водночас побутові повідомлення, які мама відправляє з окупованого Маріуполя. Багато з них охоплює хвилювання матері за дитину, особливо на початку повномасштабного вторгнення.</p>
-                   
-                   <p class="m-0">Видавництво «IDINAHUI PUBLISHING» є дитинним проєктом «Іді Нахуй», курований Володимиром Хоменко. На дебютній виставці, у квартирі Каті Хадико, була представлена неймовірна кількість арт-об’єктів усіх можливих мистецьких практик, що працюють з кемповістю та ідентичністю народного мему. Серед секс-ляльок та зв’язаного спицями панно «Іді Нахуй» були селфі мами Христини. Ці фото вже були показані як частина фотопроєкту «Pepsi/Cola», що розповідає про розлучених батьків Христини, які зовсім різні, а найбільше їх відрізняє те, що батько любить колу, а мама – пепсі. На цих фото мама Альона вдома, на роботі в продуктовому магазині, іноді в новому пеньюарі, іноді без зубів. З матеріальних потреб бути з новими зубами та питань, чи жива Христина і чи є в неї гроші складається здебільшого переписка з Христиною. Що не скажеш про її стосунки з батьком. Не домовляючись з «Іді Нахуй», Балконна галерея представила напередодні частину «Cola», адже саме з батьком у Христини міцний ментальний зв’язок, де можна довіритись повністю та все розказати. Навіть, якщо батько – русофіл.</p>
-                   
-                   <p class="m-0">Батьки Христини довго не могли розлучитися, проте, коли зробили це, влаштували свято та замовили піцу. Опісля їх стосунки можна описати цитатою Альони: «Бачила цього ідіота, тобто, твого батька». Вже довгий час в Альони є партнер, який працює далекобійником. На відміну від нього, Альона не може від’їжджати кудись далеко і її постійно тягне в Маріуполь. Через два місяці опісля смертельної тиші, мама вийшла на зв’язок та повідомила, що вона та їхня домівка цілі. Христина вивезла маму в Італію, де тоді навчалась. Мама зловживала алкоголем та хотіла додому. Мама також пожила у Львові. Наскільки б місце не було безпечним, вона завжди хотіла у Маріуполь, навіть, якщо від нього майже нічого не залишилось.</p>
-                   
-                   <p class="m-0">Особистість мами складається з її широкого спектру хобі та вподобань. Окрім того, що вона мама, яка хвилюється за доньку та пише про це, вона ще розмірковує про самотність, про свою долю та як вона зараз складається в Маріуполі. Все це вона транслює у текстових повідомленнях в переписці з Христиною. В мами є купа ескапічних вподобань, особливо вони стосуються догляду за собою та простору, де вона живе: шугаринг, засмагання, прибирання квартири по декілька разів на день та перегляд романтичних серіалів у чистій домівці. Про це вона пише або звітує фотографіями: особистими, інколи гламурними та безглуздими.</p>
-                   
-                   <p class="m-0">Зін «Мама» продовжує впізнаваний народний дискурс «Іді Нахуй» – персональні фото репрезентують глобальні проблеми як відстань між батьками та дітьми та проживання на окупованих територіях. Для цього вони використовують особисте, яке стає народним. Роблять це не тільки без драматизму, а ще й з іронією.</p>
-                   
-                   <div class="m-0 text-[14px]">
-                       * Христина Новикова (більш відома як Христина Жопа) – фотохудожниця та театральна режисерка з Маріуполя. Провідні теми у творчості Христини – тілесність, сексуальність, дівочість та ментальні проблеми.<br /><br />
-                       ** Володимир Хоменко – графічний дизайнер та куратор артпроєкту ІдіНахуй. Працює з темами як сучасний народний міф та цифрова іронія.
-                   </div>
-               </div>
-           </div>
-           <div class="absolute bottom-[-2px] left-0 w-full h-[100px] bg-gradient-to-t from-[#D9D9D9] via-[#D9D9D9]/80 to-transparent pointer-events-none"></div>
-       </div>
+            <div class="flex w-full h-[63px] gap-[5px]">
+                <div class="flex-1 bg-white text-black flex flex-col justify-center items-center">
+                    <div class="distorted-text">666₴</div>
+                    <div class="label-text">передзамовлення</div>
+                </div>
+                <div class="flex-1 bg-[#A3A3A3] text-[#757575] flex flex-col justify-center items-center">
+                    <div class="distorted-text relative">
+                        <span>777₴</span>
+                        <span class="absolute left-0 top-1/2 w-full h-[2px] bg-[#757575] -translate-y-1/2"></span>
+                    </div>
+                    <div class="label-text">повна ціна</div>
+                </div>
+            </div>
+        </div>
 
-       <div class="flex w-full gap-[5px] mt-auto shrink-0">
-           <a href="https://www.idinahui.art/publishing" class="flex-1 h-[63px] bg-white text-black flex justify-center items-center font-bold text-[16px] tracking-[-0.04em] no-underline">
-               Про нас
-           </a>
-           <a href="https://www.instagram.com/idinahui.art/" target="_blank" class="flex-1 h-[63px] bg-[#A3A3A3] text-black flex justify-center items-center font-bold text-[16px] tracking-[-0.04em] no-underline">
-               Контакти
-           </a>
-       </div>
-   </div>
+        <div class="relative w-full h-[35vh] min-h-[250px] mb-[24px]">
+            <div class="h-full overflow-y-auto hide-scrollbar pb-[40px]">
+                <div class="text-[16px] leading-[103%] tracking-[-0.04em] font-bold m-0 flex flex-col gap-[14px]">
+                    <div>
+                        Авторка ідеї: <a href="https://www.instagram.com/hristinazhopa2/" target="_blank"
+                            class="content-link">Христина Новикова</a><br />
+                        Дизайн та розробка: <a href="https://www.instagram.com/adult.xoma/" target="_blank"
+                            class="content-link">Володимир Хоменко</a><br />
+                        Текст: <a href="https://www.instagram.com/oxanaozarchuk/" target="_blank"
+                            class="content-link">Оксана Озарчук</a><br />
+                        Видавництво: <a href="https://www.instagram.com/idinahui.art/" target="_blank"
+                            class="content-link">IDINAHUI PUBLISHING</a><br />
+                        70 сторінок А5 та стікерпак<br />
+                        Київ, 2026 рік
+                    </div>
 
-   <div class="desktop-panel hidden md:flex absolute top-0 right-0 flex-col z-10 w-[350px]">
-       
-       <div class="flex w-full h-[54px] shrink-0">
-           <a href="https://www.idinahui.art/publishing" class="w-[175px] bg-white text-black flex justify-center items-center font-bold text-[16px] tracking-[-0.04em] uppercase no-underline">
-               ПРО НАС
-           </a>
-           <a href="https://www.instagram.com/idinahui.art/" target="_blank" class="w-[175px] bg-[#ACACAC] text-black flex justify-center items-center font-bold text-[16px] tracking-[-0.04em] uppercase no-underline">
-               КОНТАКТИ
-           </a>
-       </div>
+                    <p class="m-0">IDINAHUI PUBLISHING представляє перший та можливо єдиний свій зін «Мама». Авторами
+                        зіну стали фотохудожниця Христина Жопа* та графічний дизайнер Володимир Хоменко**. Зін
+                        розповідає про маму Христини через її особисті фотографії та щемкі, і водночас побутові
+                        повідомлення, які мама відправляє з окупованого Маріуполя. Багато з них охоплює хвилювання
+                        матері за дитину, особливо на початку повномасштабного вторгнення.</p>
 
-       <div class="bg-[#D9D9D9] text-black flex flex-col pt-[14px] px-[14px] pb-0 w-full" style="height: 543px;">
-           <h1 class="font-bold m-0 origin-left scale-x-125 leading-[110%] tracking-[-0.04em] text-[26px] mb-[12px] w-[80%] shrink-0">
-               Зін «Мама»<br />
-               Христина Новікова
-           </h1>
+                    <p class="m-0">Видавництво «IDINAHUI PUBLISHING» є дитинним проєктом «Іді Нахуй», курований
+                        Володимиром Хоменко. На дебютній виставці, у квартирі Каті Хадико, була представлена неймовірна
+                        кількість арт-об’єктів усіх можливих мистецьких практик, що працюють з кемповістю та
+                        ідентичністю народного мему. Серед секс-ляльок та зв’язаного спицями панно «Іді Нахуй» були
+                        селфі мами Христини. Ці фото вже були показані як частина фотопроєкту «Pepsi/Cola», що
+                        розповідає про розлучених батьків Христини, які зовсім різні, а найбільше їх відрізняє те, що
+                        батько любить колу, а мама – пепсі. На цих фото мама Альона вдома, на роботі в продуктовому
+                        магазині, іноді в новому пеньюарі, іноді без зубів. З матеріальних потреб бути з новими зубами
+                        та питань, чи жива Христина і чи є в неї гроші складається здебільшого переписка з Христиною. Що
+                        не скажеш про її стосунки з батьком. Не домовляючись з «Іді Нахуй», Балконна галерея представила
+                        напередодні частину «Cola», адже саме з батьком у Христини міцний ментальний зв’язок, де можна
+                        довіритись повністю та все розказати. Навіть, якщо батько – русофіл.</p>
 
-           <div class="relative flex-1 overflow-hidden min-h-0 mb-[16px]">
-               <div class="h-full overflow-y-auto hide-scrollbar pr-[5px] pb-[40px]">
-                   <div class="text-[16px] leading-[110%] tracking-[-0.04em] font-bold m-0 flex flex-col gap-[14px]">
-                       <div>
-                           Авторка ідеї: <a href="https://www.instagram.com/hristinazhopa2/" target="_blank" class="content-link">Христина Новикова</a><br />
-                           Дизайн та розробка: <a href="https://www.instagram.com/adult.xoma/" target="_blank" class="content-link">Володимир Хоменко</a><br />
-                           Текст: <a href="https://www.instagram.com/oxanaozarchuk/" target="_blank" class="content-link">Оксана Озарчук</a><br />
-                           Видавництво: <a href="https://www.instagram.com/idinahui.art/" target="_blank" class="content-link">IDINAHUI PUBLISHING</a><br />
-                           70 сторінок А5 та стікерпак<br />
-                           Київ, 2026 рік
-                       </div>
-                       
-                       <p class="m-0">IDINAHUI PUBLISHING представляє перший та можливо єдиний свій зін «Мама». Авторами зіну стали фотохудожниця Христина Жопа* та графічний дизайнер Володимир Хоменко**. Зін розповідає про маму Христини через її особисті фотографії та щемкі, і водночас побутові повідомлення, які мама відправляє з окупованого Маріуполя. Багато з них охоплює хвилювання матері за дитину, особливо на початку повномасштабного вторгнення.</p>
-                       
-                       <p class="m-0">Видавництво «IDINAHUI PUBLISHING» є дитинним проєктом «Іді Нахуй», курований Володимиром Хоменко. На дебютній виставці, у квартирі Каті Хадико, була представлена неймовірна кількість арт-об’єктів усіх можливих мистецьких практик, що працюють з кемповістю та ідентичністю народного мему. Серед секс-ляльок та зв’язаного спицями панно «Іді Нахуй» були селфі мами Христини. Ці фото вже були показані як частина фотопроєкту «Pepsi/Cola», що розповідає про розлучених батьків Христини, які зовсім різні, а найбільше їх відрізняє те, що батько любить колу, а мама – пепсі. На цих фото мама Альона вдома, на роботі в продуктовому магазині, іноді в новому пеньюарі, іноді без зубів. З матеріальних потреб бути з новими зубами та питань, чи жива Христина і чи є в неї гроші складається здебільшого переписка з Христиною. Що не скажеш про її стосунки з батьком. Не домовляючись з «Іді Нахуй», Балконна галерея представила напередодні частину «Cola», адже саме з батьком у Христини міцний ментальний зв’язок, де можна довіритись повністю та все розказати. Навіть, якщо батько – русофіл.</p>
-                       
-                       <p class="m-0">Батьки Христини довго не могли розлучитися, проте, коли зробили це, влаштували свято та замовили піцу. Опісля їх стосунки можна описати цитатою Альони: «Бачила цього ідіота, тобто, твого батька». Вже довгий час в Альони є партнер, який працює далекобійником. На відміну від нього, Альона не може від’їжджати кудись далеко і її постійно тягне в Маріуполь. Через два місяці опісля смертельної тиші, мама вийшла на зв’язок та повідомила, що вона та їхня домівка цілі. Христина вивезла маму в Італію, де тоді навчалась. Мама зловживала алкоголем та хотіла додому. Мама також пожила у Львові. Наскільки б місце не було безпечним, вона завжди хотіла у Маріуполь, навіть, якщо від нього майже нічого не залишилось.</p>
-                       
-                       <p class="m-0">Особистість мами складається з її широкого спектру хобі та вподобань. Окрім того, що вона мама, яка хвилюється за доньку та пише про це, вона ще розмірковує про самотність, про свою долю та як вона зараз складається в Маріуполі. Все це вона транслює у текстових повідомленнях в переписці з Христиною. В мами є купа ескапічних вподобань, особливо вони стосуються догляду за собою та простору, де вона живе: шугаринг, засмагання, прибирання квартири по декілька разів на день та перегляд романтичних серіалів у чистій домівці. Про це вона пише або звітує фотографіями: особистими, інколи гламурними та безглуздими.</p>
-                       
-                       <p class="m-0">Зін «Мама» продовжує впізнаваний народний дискурс «Іді Нахуй» – персональні фото репрезентують глобальні проблеми як відстань між батьками та дітьми та проживання на окупованих територіях. Для цього вони використовують особисте, яке стає народним. Роблять це не тільки без драматизму, а ще й з іронією.</p>
-                       
-                       <div class="m-0 text-[14px]">
-                           * Христина Новикова (більш відома як Христина Жопа) – фотохудожниця та театральна режисерка з Маріуполя. Провідні теми у творчості Христини – тілесність, сексуальність, дівочість та ментальні проблеми.<br /><br />
-                           ** Володимир Хоменко – графічний дизайнер та куратор артпроєкту ІдіНахуй. Працює з темами як сучасний народний міф та цифрова іронія.
-                       </div>
-                   </div>
-               </div>
-               <div class="absolute bottom-0 left-0 w-full h-[130px] bg-gradient-to-t from-[#D9D9D9] via-[#D9D9D9]/80 to-transparent pointer-events-none"></div>
-           </div>
-          
-           <div class="mt-auto mb-[11px] flex justify-center w-full shrink-0">
-               <a href="https://secure.wayforpay.com/button/b6b9d60b66bca" class="bg-white text-black w-[328px] h-[82px] flex justify-center items-center hover:scale-[1.02] transition-transform cursor-pointer border-none no-underline">
-                   <span class="font-bold text-[26px] tracking-[-0.04em] scale-x-125 origin-center inline-block leading-[103%] -mt-[3px]">Купити</span>
-               </a>
-           </div>
-       </div>
-      
-       <div class="flex w-full h-[63px] shrink-0">
-           <div class="w-[175px] bg-white text-black flex flex-col justify-center items-center">
-               <div class="font-bold text-[18px] tracking-[-0.04em] leading-[110%]">666₴</div>
-               <div class="font-bold text-[11px] tracking-[-0.04em] leading-[110%] mt-[1px]">передзамовлення</div>
-           </div>
-           <div class="w-[175px] bg-[#ACACAC] text-[#757575] flex flex-col justify-center items-center">
-               <div class="font-bold text-[18px] tracking-[-0.04em] leading-[110%] line-through">777₴</div>
-               <div class="font-bold text-[#757575] text-[11px] tracking-[-0.04em] leading-[110%] mt-[1px]">повна ціна</div>
-           </div>
-       </div>
+                    <p class="m-0">Батьки Христини довго не могли розлучитися, проте, коли зробили це, влаштували свято
+                        та замовили піцу. Опісля їх стосунки можна описати цитатою Альони: «Бачила цього ідіота, тобто,
+                        твого батька». Вже довгий час в Альони є партнер, який працює далекобійником. На відміну від
+                        нього, Альона не може від’їжджати кудись далеко і її постійно тягне в Маріуполь. Через два
+                        місяці опісля смертельної тиші, мама вийшла на зв’язок та повідомила, що вона та їхня домівка
+                        цілі. Христина вивезла маму в Італію, де тоді навчалась. Мама зловживала алкоголем та хотіла
+                        додому. Мама також пожила у Львові. Наскільки б місце не було безпечним, вона завжди хотіла у
+                        Маріуполь, навіть, якщо від нього майже нічого не залишилось.</p>
 
-   </div>
+                    <p class="m-0">Особистість мами складається з її широкого спектру хобі та вподобань. Окрім того, що
+                        вона мама, яка хвилюється за доньку та пише про це, вона ще розмірковує про самотність, про свою
+                        долю та як вона зараз складається в Маріуполі. Все це вона транслює у текстових повідомленнях в
+                        переписці з Христиною. В мами є купа ескапічних вподобань, особливо вони стосуються догляду за
+                        собою та простору, де вона живе: шугаринг, засмагання, прибирання квартири по декілька разів на
+                        день та перегляд романтичних серіалів у чистій домівці. Про це вона пише або звітує
+                        фотографіями: особистими, інколи гламурними та безглуздими.</p>
 
-   <div class="hidden md:flex fixed bottom-0 left-0 z-[110] items-end gap-x-[2px]">
-       <div class="group cursor-pointer relative">
-           <img src="./stickers preview.png" alt="Stickers" class="h-[88px] w-auto object-contain border-r border-t border-white/20 bg-white/10">
-           <div class="fixed bottom-[88px] left-0 hidden group-hover:block z-[120] pointer-events-none origin-bottom-left">
-               <img src="./stickers.png" alt="Stickers Full" class="max-h-[85vh] max-w-[70vw] object-contain drop-shadow-2xl">
-           </div>
-       </div>
-       <div class="group cursor-pointer relative">
-           <img src="./book 1 preview.png" alt="Book 1" class="h-[88px] w-auto object-cover border-r border-t border-white/20">
-           <div class="fixed bottom-[88px] left-[143px] hidden group-hover:block z-[120] pointer-events-none origin-bottom-left">
-               <img src="./book 1.png" alt="Book 1 Full" class="max-h-[85vh] max-w-[70vw] object-contain drop-shadow-2xl">
-           </div>
-       </div>
-       <div class="group cursor-pointer relative">
-           <img src="./book 3 preview.png" alt="Book 3" class="h-[88px] w-auto object-cover border-r border-t border-white/20">
-           <div class="fixed bottom-[88px] left-[286px] hidden group-hover:block z-[120] pointer-events-none origin-bottom-left">
-               <img src="./book 3.png" alt="Book 3 Full" class="max-h-[85vh] max-w-[70vw] object-contain drop-shadow-2xl">
-           </div>
-       </div>
-   </div>
+                    <p class="m-0">Зін «Мама» продовжує впізнаваний народний дискурс «Іді Нахуй» – персональні фото
+                        репрезентують глобальні проблеми як відстань між батьками та дітьми та проживання на окупованих
+                        територіях. Для цього вони використовують особисте, яке стає народним. Роблять це не тільки без
+                        драматизму, а ще й з іронією.</p>
 
-   <script type="module">
-       import * as THREE from 'three';
-       import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-       import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+                    <div class="m-0 text-[14px]">
+                        * Христина Новикова (більш відома як Христина Жопа) – фотохудожниця та театральна режисерка з
+                        Маріуполя. Провідні теми у творчості Христини – тілесність, сексуальність, дівочість та
+                        ментальні проблеми.<br /><br />
+                        ** Володимир Хоменко – графічний дизайнер та куратор артпроєкту ІдіНахуй. Працює з темами як
+                        сучасний народний міф та цифрова іронія.
+                    </div>
+                </div>
+            </div>
+            <div
+                class="absolute bottom-[-2px] left-0 w-full h-[100px] bg-gradient-to-t from-[#D9D9D9] via-[#D9D9D9]/80 to-transparent pointer-events-none">
+            </div>
+        </div>
 
-       // --- 1. КНИЖКА ---
-       const container = document.getElementById('scene-container');
-       const scene = new THREE.Scene();
-       const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 1000);
-       camera.position.set(0, 0, 8);
-       const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
-       renderer.setSize(container.clientWidth, container.clientHeight);
-       renderer.outputColorSpace = THREE.SRGBColorSpace;
-       container.appendChild(renderer.domElement);
+        <div class="flex w-full gap-[5px] mt-auto shrink-0">
+            <a href="https://www.idinahui.art/publishing"
+                class="flex-1 h-[63px] bg-white text-black flex justify-center items-center font-bold text-[16px] tracking-[-0.04em] no-underline">
+                Про нас
+            </a>
+            <a href="https://www.instagram.com/idinahui.art/" target="_blank"
+                class="flex-1 h-[63px] bg-[#A3A3A3] text-black flex justify-center items-center font-bold text-[16px] tracking-[-0.04em] no-underline">
+                Контакти
+            </a>
+        </div>
+    </div>
 
-       scene.add(new THREE.AmbientLight(0xffffff, 2.5));
-       const dirLight = new THREE.DirectionalLight(0xffffff, 1.5);
-       dirLight.position.set(5, 10, 7);
-       scene.add(dirLight);
+    <div class="desktop-panel hidden md:flex absolute top-0 right-0 flex-col z-10 w-[350px]">
 
-       const textureLoader = new THREE.TextureLoader();
-       const coverTex = textureLoader.load('./cover_zine.png');
-       const pagesTex = textureLoader.load('./A5 - 2.png');
-       coverTex.colorSpace = THREE.SRGBColorSpace;
-       pagesTex.colorSpace = THREE.SRGBColorSpace;
+        <div class="flex w-full h-[54px] shrink-0">
+            <a href="https://www.idinahui.art/publishing"
+                class="w-[175px] bg-white text-black flex justify-center items-center font-bold text-[16px] tracking-[-0.04em] uppercase no-underline">
+                ПРО НАС
+            </a>
+            <a href="https://www.instagram.com/idinahui.art/" target="_blank"
+                class="w-[175px] bg-[#ACACAC] text-black flex justify-center items-center font-bold text-[16px] tracking-[-0.04em] uppercase no-underline">
+                КОНТАКТИ
+            </a>
+        </div>
 
-       const textureRight = pagesTex.clone();
-       textureRight.wrapS = THREE.RepeatWrapping;
-       textureRight.wrapT = THREE.RepeatWrapping;
-       textureRight.repeat.set(1, 4);
+        <div class="bg-[#D9D9D9] text-black flex flex-col pt-[14px] px-[14px] pb-0 w-full" style="height: 543px;">
+            <h1
+                class="font-bold m-0 origin-left scale-x-125 leading-[110%] tracking-[-0.04em] text-[26px] mb-[12px] w-[80%] shrink-0">
+                Зін «Мама» +стікерпак<br />
+                Христина Новікова
+            </h1>
 
-       const textureTopBottom = pagesTex.clone();
-       textureTopBottom.wrapS = THREE.RepeatWrapping;
-       textureTopBottom.wrapT = THREE.RepeatWrapping;
-       textureTopBottom.rotation = Math.PI / 2;
-       textureTopBottom.center.set(0.5, 0.5);
-       textureTopBottom.repeat.set(4, 1);
+            <div class="relative flex-1 overflow-hidden min-h-0 mb-[16px]">
+                <div class="h-full overflow-y-auto hide-scrollbar pr-[5px] pb-[40px]">
+                    <div class="text-[16px] leading-[110%] tracking-[-0.04em] font-bold m-0 flex flex-col gap-[14px]">
+                        <div>
+                            Авторка ідеї: <a href="https://www.instagram.com/hristinazhopa2/" target="_blank"
+                                class="content-link">Христина Новикова</a><br />
+                            Дизайн та розробка: <a href="https://www.instagram.com/adult.xoma/" target="_blank"
+                                class="content-link">Володимир Хоменко</a><br />
+                            Текст: <a href="https://www.instagram.com/oxanaozarchuk/" target="_blank"
+                                class="content-link">Оксана Озарчук</a><br />
+                            Видавництво: <a href="https://www.instagram.com/idinahui.art/" target="_blank"
+                                class="content-link">IDINAHUI PUBLISHING</a><br />
+                            70 сторінок А5 та стікерпак<br />
+                            Київ, 2026 рік
+                        </div>
 
-       const bookGeo = new THREE.BoxGeometry(3, 4.2, 0.25);
-       const bookMats = [
-           new THREE.MeshBasicMaterial({ map: textureRight }),
-           new THREE.MeshBasicMaterial({ color: 0xffffff }),
-           new THREE.MeshBasicMaterial({ map: textureTopBottom }),
-           new THREE.MeshBasicMaterial({ map: textureTopBottom }),
-           new THREE.MeshBasicMaterial({ map: coverTex }),
-           new THREE.MeshBasicMaterial({ map: coverTex })
-       ];
-       const book = new THREE.Mesh(bookGeo, bookMats);
-       book.rotation.set(0, -0.5, 0);
-       scene.add(book);
+                        <p class="m-0">IDINAHUI PUBLISHING представляє перший та можливо єдиний свій зін «Мама».
+                            Авторами зіну стали фотохудожниця Христина Жопа* та графічний дизайнер Володимир Хоменко**.
+                            Зін розповідає про маму Христини через її особисті фотографії та щемкі, і водночас побутові
+                            повідомлення, які мама відправляє з окупованого Маріуполя. Багато з них охоплює хвилювання
+                            матері за дитину, особливо на початку повномасштабного вторгнення.</p>
 
-       const controls = new OrbitControls(camera, renderer.domElement);
-       controls.enableZoom = false;
-       controls.autoRotate = true;
+                        <p class="m-0">Видавництво «IDINAHUI PUBLISHING» є дитинним проєктом «Іді Нахуй», курований
+                            Володимиром Хоменко. На дебютній виставці, у квартирі Каті Хадико, була представлена
+                            неймовірна кількість арт-об’єктів усіх можливих мистецьких практик, що працюють з кемповістю
+                            та ідентичністю народного мему. Серед секс-ляльок та зв’язаного спицями панно «Іді Нахуй»
+                            були селфі мами Христини. Ці фото вже були показані як частина фотопроєкту «Pepsi/Cola», що
+                            розповідає про розлучених батьків Христини, які зовсім різні, а найбільше їх відрізняє те,
+                            що батько любить колу, а мама – пепсі. На цих фото мама Альона вдома, на роботі в
+                            продуктовому магазині, іноді в новому пеньюарі, іноді без зубів. З матеріальних потреб бути
+                            з новими зубами та питань, чи жива Христина і чи є в неї гроші складається здебільшого
+                            переписка з Христиною. Що не скажеш про її стосунки з батьком. Не домовляючись з «Іді
+                            Нахуй», Балконна галерея представила напередодні частину «Cola», адже саме з батьком у
+                            Христини міцний ментальний зв’язок, де можна довіритись повністю та все розказати. Навіть,
+                            якщо батько – русофіл.</p>
 
-       // --- 2. ТАРАКАН (OVERLAY) ---
-       const bugOverlay = document.getElementById('bug-overlay');
-       const bugScene = new THREE.Scene();
-       const bugViewSize = 10;
-       
-       const bugCamera = new THREE.OrthographicCamera(-5, 5, 5, -5, 0.1, 1000);
-       bugCamera.position.z = 10;
-       
-       const bugRenderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
-       bugRenderer.setPixelRatio(window.devicePixelRatio);
-       bugOverlay.appendChild(bugRenderer.domElement);
+                        <p class="m-0">Батьки Христини довго не могли розлучитися, проте, коли зробили це, влаштували
+                            свято та замовили піцу. Опісля їх стосунки можна описати цитатою Альони: «Бачила цього
+                            ідіота, тобто, твого батька». Вже довгий час в Альони є партнер, який працює далекобійником.
+                            На відміну від нього, Альона не може від’їжджати кудись далеко і її постійно тягне в
+                            Маріуполь. Через два місяці опісля смертельної тиші, мама вийшла на зв’язок та повідомила,
+                            що вона та їхня домівка цілі. Христина вивезла маму в Італію, де тоді навчалась. Мама
+                            зловживала алкоголем та хотіла додому. Мама також пожила у Львові. Наскільки б місце не було
+                            безпечним, вона завжди хотіла у Маріуполь, навіть, якщо від нього майже нічого не
+                            залишилось.</p>
 
-       bugScene.add(new THREE.AmbientLight(0xffffff, 3));
-       const bugLight = new THREE.PointLight(0xffffff, 5);
-       bugLight.position.set(0, 0, 10);
-       bugScene.add(bugLight);
+                        <p class="m-0">Особистість мами складається з її широкого спектру хобі та вподобань. Окрім того,
+                            що вона мама, яка хвилюється за доньку та пише про це, вона ще розмірковує про самотність,
+                            про свою долю та як вона зараз складається в Маріуполі. Все це вона транслює у текстових
+                            повідомленнях в переписці з Христиною. В мами є купа ескапічних вподобань, особливо вони
+                            стосуються догляду за собою та простору, де вона живе: шугаринг, засмагання, прибирання
+                            квартири по декілька разів на день та перегляд романтичних серіалів у чистій домівці. Про це
+                            вона пише або звітує фотографіями: особистими, інколи гламурними та безглуздими.</p>
 
-       let cockroach = null;
-       let bugGroup = null; 
-       let mixer = null;
-       let bugReady = false;
-       let bugVisible = false;
-       const clock = new THREE.Clock();
+                        <p class="m-0">Зін «Мама» продовжує впізнаваний народний дискурс «Іді Нахуй» – персональні фото
+                            репрезентують глобальні проблеми як відстань між батьками та дітьми та проживання на
+                            окупованих територіях. Для цього вони використовують особисте, яке стає народним. Роблять це
+                            не тільки без драматизму, а ще й з іронією.</p>
 
-       const movement = {
-           target: new THREE.Vector3(0, 0, 0),
-           speed: 0.032,
-           rotationSpeed: 0.05
-       };
+                        <div class="m-0 text-[14px]">
+                            * Христина Новикова (більш відома як Христина Жопа) – фотохудожниця та театральна режисерка
+                            з Маріуполя. Провідні теми у творчості Христини – тілесність, сексуальність, дівочість та
+                            ментальні проблеми.<br /><br />
+                            ** Володимир Хоменко – графічний дизайнер та куратор артпроєкту ІдіНахуй. Працює з темами як
+                            сучасний народний міф та цифрова іронія.
+                        </div>
+                    </div>
+                </div>
+                <div
+                    class="absolute bottom-0 left-0 w-full h-[130px] bg-gradient-to-t from-[#D9D9D9] via-[#D9D9D9]/80 to-transparent pointer-events-none">
+                </div>
+            </div>
 
-       function resizeBug() {
-           const w = window.innerWidth;
-           const h = window.innerHeight;
-           bugRenderer.setSize(w, h);
-           const aspect = w / h;
-           bugCamera.left = -5 * aspect;
-           bugCamera.right = 5 * aspect;
-           bugCamera.top = 5;
-           bugCamera.bottom = -5;
-           bugCamera.updateProjectionMatrix();
-       }
+            <div class="mt-auto mb-[11px] flex justify-center w-full shrink-0">
+                <a href="https://secure.wayforpay.com/button/b6b9d60b66bca"
+                    class="bg-white text-black w-[328px] h-[82px] flex justify-center items-center hover:scale-[1.02] transition-transform cursor-pointer border-none no-underline">
+                    <span
+                        class="font-bold text-[26px] tracking-[-0.04em] scale-x-125 origin-center inline-block leading-[103%] -mt-[3px]">Купити</span>
+                </a>
+            </div>
+        </div>
 
-       resizeBug();
+        <div class="flex w-full h-[63px] shrink-0">
+            <div class="w-[175px] bg-white text-black flex flex-col justify-center items-center">
+                <div class="font-bold text-[18px] tracking-[-0.04em] leading-[110%]">666₴</div>
+                <div class="font-bold text-[11px] tracking-[-0.04em] leading-[110%] mt-[1px]">передзамовлення</div>
+            </div>
+            <div class="w-[175px] bg-[#ACACAC] text-[#757575] flex flex-col justify-center items-center">
+                <div class="font-bold text-[18px] tracking-[-0.04em] leading-[110%] line-through">777₴</div>
+                <div class="font-bold text-[#757575] text-[11px] tracking-[-0.04em] leading-[110%] mt-[1px]">повна ціна
+                </div>
+            </div>
+        </div>
 
-       function setRandomTarget() {
-           const aspect = window.innerWidth / window.innerHeight;
-           const xBound = (bugViewSize * aspect / 2) * 1.3;
-           const yBound = (bugViewSize / 2) * 1.3;
-           movement.target.set(
-               (Math.random() - 0.5) * 2 * xBound,
-               (Math.random() - 0.5) * 2 * yBound,
-               0
-           );
-       }
+    </div>
 
-       const loader = new GLTFLoader();
-       const modelPath = './centipede.glb.bin';
+    <div class="hidden md:flex fixed bottom-0 left-0 z-[110] items-end gap-x-[2px]">
+        <div class="group cursor-pointer relative">
+            <img src="./stickers preview.png" alt="Stickers"
+                class="h-[88px] w-auto object-contain border-r border-t border-white/20 bg-white/10">
+            <div
+                class="fixed bottom-[88px] left-0 hidden group-hover:block z-[120] pointer-events-none origin-bottom-left">
+                <img src="./stickers.png" alt="Stickers Full"
+                    class="max-h-[85vh] max-w-[70vw] object-contain drop-shadow-2xl">
+            </div>
+        </div>
+        <div class="group cursor-pointer relative">
+            <img src="./book 1 preview.png" alt="Book 1"
+                class="h-[88px] w-auto object-cover border-r border-t border-white/20">
+            <div
+                class="fixed bottom-[88px] left-[143px] hidden group-hover:block z-[120] pointer-events-none origin-bottom-left">
+                <img src="./book 1.png" alt="Book 1 Full"
+                    class="max-h-[85vh] max-w-[70vw] object-contain drop-shadow-2xl">
+            </div>
+        </div>
+        <div class="group cursor-pointer relative">
+            <img src="./book 3 preview.png" alt="Book 3"
+                class="h-[88px] w-auto object-cover border-r border-t border-white/20">
+            <div
+                class="fixed bottom-[88px] left-[286px] hidden group-hover:block z-[120] pointer-events-none origin-bottom-left">
+                <img src="./book 3.png" alt="Book 3 Full"
+                    class="max-h-[85vh] max-w-[70vw] object-contain drop-shadow-2xl">
+            </div>
+        </div>
+    </div>
 
-       loader.load(modelPath, (gltf) => {
-           bugGroup = new THREE.Group();
-           const model = gltf.scene;
-           
-           model.rotation.x = Math.PI / 2; 
-           model.rotation.z = Math.PI; 
-           
-           model.scale.set(0.265, 0.265, 0.265);
-           bugGroup.add(model);
-           
-           if (gltf.animations.length > 0) {
-               mixer = new THREE.AnimationMixer(model);
-               mixer.clipAction(gltf.animations[0]).play();
-           }
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+        import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
-           bugScene.add(bugGroup);
-           cockroach = bugGroup; 
-           bugReady = true;
-           setRandomTarget();
-       }, undefined, (err) => {
-           console.error('Помилка моделі:', err);
-           const geo = new THREE.SphereGeometry(0.08);
-           cockroach = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color: 0x00ff00 }));
-           bugScene.add(cockroach);
-           bugReady = true;
-           setRandomTarget();
-       });
+        // --- 1. КНИЖКА ---
+        const container = document.getElementById('scene-container');
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 1000);
+        camera.position.set(0, 0, 8);
+        const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+        renderer.setSize(container.clientWidth, container.clientHeight);
+        renderer.outputColorSpace = THREE.SRGBColorSpace;
+        container.appendChild(renderer.domElement);
 
-       setTimeout(() => {
-           bugVisible = true;
-           bugOverlay.style.visibility = 'visible';
-           resizeBug();
-       }, 2000);
+        scene.add(new THREE.AmbientLight(0xffffff, 2.5));
+        const dirLight = new THREE.DirectionalLight(0xffffff, 1.5);
+        dirLight.position.set(5, 10, 7);
+        scene.add(dirLight);
 
-       function updateBug(delta) {
-           if (!cockroach || !bugVisible) return;
+        const textureLoader = new THREE.TextureLoader();
+        const coverTex = textureLoader.load('./cover_zine.png');
+        const pagesTex = textureLoader.load('./A5 - 2.png');
+        coverTex.colorSpace = THREE.SRGBColorSpace;
+        pagesTex.colorSpace = THREE.SRGBColorSpace;
 
-           const pos = cockroach.position;
-           const target = movement.target;
-           const dir = new THREE.Vector3().subVectors(target, pos);
-           const dist = dir.length();
+        const textureRight = pagesTex.clone();
+        textureRight.wrapS = THREE.RepeatWrapping;
+        textureRight.wrapT = THREE.RepeatWrapping;
+        textureRight.repeat.set(1, 4);
 
-           if (dist < 0.6) {
-               setRandomTarget();
-               return;
-           }
+        const textureTopBottom = pagesTex.clone();
+        textureTopBottom.wrapS = THREE.RepeatWrapping;
+        textureTopBottom.wrapT = THREE.RepeatWrapping;
+        textureTopBottom.rotation = Math.PI / 2;
+        textureTopBottom.center.set(0.5, 0.5);
+        textureTopBottom.repeat.set(4, 1);
 
-           const targetAngle = Math.atan2(dir.y, dir.x) + Math.PI / 2;
-           
-           let diff = targetAngle - cockroach.rotation.z;
-           while (diff < -Math.PI) diff += Math.PI * 2;
-           while (diff > Math.PI) diff -= Math.PI * 2;
-           
-           cockroach.rotation.z += diff * movement.rotationSpeed;
+        const bookGeo = new THREE.BoxGeometry(3, 4.2, 0.25);
+        const bookMats = [
+            new THREE.MeshBasicMaterial({ map: textureRight }),
+            new THREE.MeshBasicMaterial({ color: 0xffffff }),
+            new THREE.MeshBasicMaterial({ map: textureTopBottom }),
+            new THREE.MeshBasicMaterial({ map: textureTopBottom }),
+            new THREE.MeshBasicMaterial({ map: coverTex }),
+            new THREE.MeshBasicMaterial({ map: coverTex })
+        ];
+        const book = new THREE.Mesh(bookGeo, bookMats);
+        book.rotation.set(0, -0.5, 0);
+        scene.add(book);
 
-           const moveX = Math.sin(cockroach.rotation.z) * movement.speed;
-           const moveY = -Math.cos(cockroach.rotation.z) * movement.speed;
-           
-           cockroach.position.x += moveX;
-           cockroach.position.y += moveY;
+        const controls = new OrbitControls(camera, renderer.domElement);
+        controls.enableZoom = false;
+        controls.autoRotate = true;
 
-           if (mixer) mixer.update(delta);
-       }
+        // --- 2. ТАРАКАН (OVERLAY) ---
+        const bugOverlay = document.getElementById('bug-overlay');
+        const bugScene = new THREE.Scene();
+        const bugViewSize = 10;
 
-       function animate() {
-           requestAnimationFrame(animate);
-           const delta = clock.getDelta();
-           controls.update();
-           renderer.render(scene, camera);
-           updateBug(delta);
-           if (bugVisible) {
-               bugRenderer.render(bugScene, bugCamera);
-           }
-       }
-       animate();
+        const bugCamera = new THREE.OrthographicCamera(-5, 5, 5, -5, 0.1, 1000);
+        bugCamera.position.z = 10;
 
-       window.addEventListener('resize', () => {
-           renderer.setSize(container.clientWidth, container.clientHeight);
-           camera.aspect = container.clientWidth / container.clientHeight;
-           camera.updateProjectionMatrix();
-           resizeBug();
-       });
+        const bugRenderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+        bugRenderer.setPixelRatio(window.devicePixelRatio);
+        bugOverlay.appendChild(bugRenderer.domElement);
 
-       if (window.visualViewport) {
-           window.visualViewport.addEventListener('resize', resizeBug);
-       }
-   </script>
+        bugScene.add(new THREE.AmbientLight(0xffffff, 3));
+        const bugLight = new THREE.PointLight(0xffffff, 5);
+        bugLight.position.set(0, 0, 10);
+        bugScene.add(bugLight);
+
+        let cockroach = null;
+        let bugGroup = null;
+        let mixer = null;
+        let bugReady = false;
+        let bugVisible = false;
+        const clock = new THREE.Clock();
+
+        const movement = {
+            target: new THREE.Vector3(0, 0, 0),
+            speed: 0.032,
+            rotationSpeed: 0.05
+        };
+
+        function resizeBug() {
+            const w = window.innerWidth;
+            const h = window.innerHeight;
+            bugRenderer.setSize(w, h);
+            const aspect = w / h;
+            bugCamera.left = -5 * aspect;
+            bugCamera.right = 5 * aspect;
+            bugCamera.top = 5;
+            bugCamera.bottom = -5;
+            bugCamera.updateProjectionMatrix();
+        }
+
+        resizeBug();
+
+        function setRandomTarget() {
+            const aspect = window.innerWidth / window.innerHeight;
+            const xBound = (bugViewSize * aspect / 2) * 1.3;
+            const yBound = (bugViewSize / 2) * 1.3;
+            movement.target.set(
+                (Math.random() - 0.5) * 2 * xBound,
+                (Math.random() - 0.5) * 2 * yBound,
+                0
+            );
+        }
+
+        const loader = new GLTFLoader();
+        const modelPath = './centipede.glb.bin';
+
+        loader.load(modelPath, (gltf) => {
+            bugGroup = new THREE.Group();
+            const model = gltf.scene;
+
+            model.rotation.x = Math.PI / 2;
+            model.rotation.z = Math.PI;
+
+            model.scale.set(0.265, 0.265, 0.265);
+            bugGroup.add(model);
+
+            if (gltf.animations.length > 0) {
+                mixer = new THREE.AnimationMixer(model);
+                mixer.clipAction(gltf.animations[0]).play();
+            }
+
+            bugScene.add(bugGroup);
+            cockroach = bugGroup;
+            bugReady = true;
+            setRandomTarget();
+        }, undefined, (err) => {
+            console.error('Помилка моделі:', err);
+            const geo = new THREE.SphereGeometry(0.08);
+            cockroach = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color: 0x00ff00 }));
+            bugScene.add(cockroach);
+            bugReady = true;
+            setRandomTarget();
+        });
+
+        setTimeout(() => {
+            bugVisible = true;
+            bugOverlay.style.visibility = 'visible';
+            resizeBug();
+        }, 2000);
+
+        function updateBug(delta) {
+            if (!cockroach || !bugVisible) return;
+
+            const pos = cockroach.position;
+            const target = movement.target;
+            const dir = new THREE.Vector3().subVectors(target, pos);
+            const dist = dir.length();
+
+            if (dist < 0.6) {
+                setRandomTarget();
+                return;
+            }
+
+            const targetAngle = Math.atan2(dir.y, dir.x) + Math.PI / 2;
+
+            let diff = targetAngle - cockroach.rotation.z;
+            while (diff < -Math.PI) diff += Math.PI * 2;
+            while (diff > Math.PI) diff -= Math.PI * 2;
+
+            cockroach.rotation.z += diff * movement.rotationSpeed;
+
+            const moveX = Math.sin(cockroach.rotation.z) * movement.speed;
+            const moveY = -Math.cos(cockroach.rotation.z) * movement.speed;
+
+            cockroach.position.x += moveX;
+            cockroach.position.y += moveY;
+
+            if (mixer) mixer.update(delta);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            const delta = clock.getDelta();
+            controls.update();
+            renderer.render(scene, camera);
+            updateBug(delta);
+            if (bugVisible) {
+                bugRenderer.render(bugScene, bugCamera);
+            }
+        }
+        animate();
+
+        window.addEventListener('resize', () => {
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            camera.aspect = container.clientWidth / container.clientHeight;
+            camera.updateProjectionMatrix();
+            resizeBug();
+        });
+
+        if (window.visualViewport) {
+            window.visualViewport.addEventListener('resize', resizeBug);
+        }
+    </script>
 </body>
+
 </html>

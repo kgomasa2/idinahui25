@@ -125,11 +125,62 @@
 
     <div id="bug-overlay"></div>
 
-    <div id="fs-overlay"
-        class="hidden fixed inset-0 bg-black/80 z-[200] flex justify-center items-center p-4 cursor-pointer"
-        onclick="this.classList.add('hidden')">
-        <img id="fs-img" src="" class="max-w-full max-h-full object-contain">
+    <div id="fs-overlay" class="hidden fixed inset-0 bg-black/95 z-[200] flex flex-col justify-center items-center cursor-pointer select-none pb-8" style="touch-action: none;">
+        <div class="absolute top-4 right-4 text-white text-[40px] z-50 p-4 leading-none" onclick="closeGallery(event)">×</div>
+        <div class="absolute left-0 top-0 w-1/3 h-full z-10" onclick="prevImage(event)"></div>
+        <div class="absolute right-0 top-0 w-1/3 h-full z-10" onclick="nextImage(event)"></div>
+        <img id="fs-img" src="" class="max-w-full max-h-full object-contain pointer-events-none p-2 selection:bg-transparent">
+        <div class="absolute bottom-6 left-0 w-full text-center text-white text-[14px] font-bold tracking-widest pointer-events-none drop-shadow-md">
+            <span id="fs-counter"></span>
+        </div>
     </div>
+    <script>
+        const galleryImages = [
+            './14.png', './16.png', './18.png', './20.png', 
+            './21.png', './22.png', './24.png'
+        ];
+        let currentGalleryIndex = 0;
+        
+        function openGallery(index) {
+            currentGalleryIndex = index;
+            updateGalleryImage();
+            document.getElementById('fs-overlay').classList.remove('hidden');
+        }
+        function closeGallery(event) {
+            if(event) event.stopPropagation();
+            document.getElementById('fs-overlay').classList.add('hidden');
+        }
+        function prevImage(event) {
+            if(event) event.stopPropagation();
+            currentGalleryIndex = (currentGalleryIndex - 1 + galleryImages.length) % galleryImages.length;
+            updateGalleryImage();
+        }
+        function nextImage(event) {
+            if(event) event.stopPropagation();
+            currentGalleryIndex = (currentGalleryIndex + 1) % galleryImages.length;
+            updateGalleryImage();
+        }
+        function updateGalleryImage() {
+            document.getElementById('fs-img').src = galleryImages[currentGalleryIndex];
+            const counter = document.getElementById('fs-counter');
+            if(counter) counter.textContent = (currentGalleryIndex + 1) + ' / ' + galleryImages.length;
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const overlay = document.getElementById('fs-overlay');
+            if(!overlay) return;
+            let touchstartX = 0;
+            let touchendX = 0;
+            overlay.addEventListener('touchstart', e => { 
+                touchstartX = e.changedTouches[0].screenX; 
+            }, {passive: true});
+            overlay.addEventListener('touchend', e => {
+                touchendX = e.changedTouches[0].screenX;
+                if (touchendX < touchstartX - 40) nextImage();
+                if (touchendX > touchstartX + 40) prevImage();
+            });
+        });
+    </script>
 
     <!-- Right sticky icons removed from mobile (hidden md:hidden) -->
     <div class="hidden sticky top-0 right-0 z-[110] items-start gap-x-[2px]">
@@ -149,25 +200,47 @@
     <div
         class="mobile-panel md:hidden relative w-full max-w-[100vw] bg-[#D9D9D9] flex flex-col z-10 flex-grow box-border pt-[22px] px-[22px] pb-[22px] m-0">
 
-        <h1 class="title-custom font-bold m-0 origin-left scale-x-125 w-[85%] mb-[16px]">
+        <h1 class="title-custom font-bold m-0 origin-left scale-x-125 w-[85%] mb-[24px]">
             Зін «Мама» і стікери<br />
             Христина Новикова
         </h1>
 
-        <!-- Mobile Gallery Dropdown -->
-        <div class="w-full mb-[24px] bg-white text-black font-bold border border-black/10">
-            <button onclick="document.getElementById('mobile-gallery').classList.toggle('hidden')" class="w-full h-[50px] flex justify-between items-center px-[15px] font-bold text-[16px] tracking-[-0.04em]">
+        <div class="flex flex-col gap-[5px] mb-[24px] shrink-0">
+            <a href="https://secure.wayforpay.com/button/b6b9d60b66bca"
+                class="bg-white text-black w-full h-[70px] flex justify-center items-center hover:scale-[1.01] transition-transform cursor-pointer border-none no-underline">
+                <span
+                    class="font-bold text-[26px] tracking-[-0.04em] scale-x-125 origin-center inline-block leading-none -mt-[3px]">Купити</span>
+            </a>
+
+            <div class="flex w-full h-[63px] gap-[5px]">
+                <div class="flex-1 bg-white text-black flex flex-col justify-center items-center">
+                    <div class="distorted-text">666₴</div>
+                    <div class="label-text">передзамовлення</div>
+                </div>
+                <div class="flex-1 bg-[#A3A3A3] text-[#757575] flex flex-col justify-center items-center">
+                    <div class="distorted-text relative">
+                        <span>777₴</span>
+                        <span class="absolute left-0 top-1/2 w-full h-[2px] bg-[#757575] -translate-y-1/2"></span>
+                    </div>
+                    <div class="label-text">повна ціна</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Gallery Dropdown (Brought inside main layout block below prices) -->
+        <div class="w-full mb-[24px] bg-[#D9D9D9] font-bold">
+            <button onclick="document.getElementById('mobile-gallery').classList.toggle('hidden'); document.getElementById('mobile-gallery-arrow').textContent = document.getElementById('mobile-gallery').classList.contains('hidden') ? '▼' : '▲';" class="w-full h-[50px] flex justify-between items-center px-[15px] font-bold text-[16px] tracking-[-0.04em] bg-white border border-black/10 text-black">
                 <span>Фото зіна та стікерпака</span>
-                <span class="text-[12px]">▼</span>
+                <span id="mobile-gallery-arrow" class="text-[12px]">▼</span>
             </button>
-            <div id="mobile-gallery" class="hidden p-[10px] bg-[#f5f5f5] border-t border-black/10 flex flex-wrap gap-[5px] justify-center">
-                <img src="./14.png" alt="14" class="h-[78px] w-auto object-contain bg-black/10 cursor-pointer" onclick="document.getElementById('fs-img').src='./14.png'; document.getElementById('fs-overlay').classList.remove('hidden');">
-                <img src="./16.png" alt="16" class="h-[78px] w-auto object-contain bg-black/10 cursor-pointer" onclick="document.getElementById('fs-img').src='./16.png'; document.getElementById('fs-overlay').classList.remove('hidden');">
-                <img src="./18.png" alt="18" class="h-[78px] w-auto object-contain bg-black/10 cursor-pointer" onclick="document.getElementById('fs-img').src='./18.png'; document.getElementById('fs-overlay').classList.remove('hidden');">
-                <img src="./20.png" alt="20" class="h-[78px] w-auto object-contain bg-black/10 cursor-pointer" onclick="document.getElementById('fs-img').src='./20.png'; document.getElementById('fs-overlay').classList.remove('hidden');">
-                <img src="./21.png" alt="21" class="h-[78px] w-auto object-contain bg-black/10 cursor-pointer" onclick="document.getElementById('fs-img').src='./21.png'; document.getElementById('fs-overlay').classList.remove('hidden');">
-                <img src="./22.png" alt="22" class="h-[78px] w-auto object-contain bg-black/10 cursor-pointer" onclick="document.getElementById('fs-img').src='./22.png'; document.getElementById('fs-overlay').classList.remove('hidden');">
-                <img src="./24.png" alt="24" class="h-[78px] w-auto object-contain bg-black/10 cursor-pointer" onclick="document.getElementById('fs-img').src='./24.png'; document.getElementById('fs-overlay').classList.remove('hidden');">
+            <div id="mobile-gallery" class="hidden flex-col w-full bg-[#f5f5f5]">
+                <img src="./14.png" alt="14" class="w-full h-auto object-cover cursor-pointer bg-black/10" onclick="openGallery(0)">
+                <img src="./16.png" alt="16" class="w-full h-auto object-cover cursor-pointer bg-black/10" onclick="openGallery(1)">
+                <img src="./18.png" alt="18" class="w-full h-auto object-cover cursor-pointer bg-black/10" onclick="openGallery(2)">
+                <img src="./20.png" alt="20" class="w-full h-auto object-cover cursor-pointer bg-black/10" onclick="openGallery(3)">
+                <img src="./21.png" alt="21" class="w-full h-auto object-cover cursor-pointer bg-black/10" onclick="openGallery(4)">
+                <img src="./22.png" alt="22" class="w-full h-auto object-cover cursor-pointer bg-black/10" onclick="openGallery(5)">
+                <img src="./24.png" alt="24" class="w-full h-auto object-cover cursor-pointer bg-black/10" onclick="openGallery(6)">
             </div>
         </div>
 

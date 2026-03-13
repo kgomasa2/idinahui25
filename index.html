@@ -355,6 +355,33 @@
                 padding-top: 0px; 
             }
         }
+
+        #promo-banner {
+            position: fixed;
+            bottom: 30px;
+            left: 30px;
+            z-index: 9999;
+            cursor: pointer;
+            transition: opacity 0.5s ease, transform 0.2s ease;
+            max-width: 150px;
+            height: auto;
+        }
+        #promo-banner img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+        #promo-banner:hover {
+            transform: scale(1.05);
+        }
+        @media (max-width: 768px) {
+            #promo-banner {
+                bottom: auto;
+                top: 20px;
+                left: 20px;
+                max-width: 80px;
+            }
+        }
     </style>
     
     <script type="importmap">
@@ -473,6 +500,10 @@
             <a href="https://www.instagram.com/idinahui.art/" target="_blank" class="insta-btn">ІНСТАГРАМ</a>
         </div>
     </div>
+
+    <a href="https://www.idinahui.art/publishing/mama/" target="_blank" id="promo-banner">
+        <img src="assets/banner_zine.png" alt="Zine Mama">
+    </a>
 
     <script>
         window.addEventListener('load', function() {
@@ -1256,6 +1287,14 @@
             e.preventDefault(); e.stopPropagation(); 
             startScreen.style.display = 'none'; isGameActive = true; infoBtn.style.display = 'flex'; 
             
+            setTimeout(() => {
+                const banner = document.getElementById('promo-banner');
+                if (banner) {
+                    banner.style.opacity = '0';
+                    setTimeout(() => banner.style.display = 'none', 500);
+                }
+            }, 7000);
+
             if(!isMobile) controlsHint.style.display = 'block'; 
             bgMusic.play().catch(e => console.log("Audio block", e)); 
             

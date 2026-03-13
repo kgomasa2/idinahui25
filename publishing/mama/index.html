@@ -556,6 +556,53 @@
         controls.enableZoom = false;
         controls.autoRotate = true;
 
+        // --- МОБІЛЬНИЙ ФІКС ОБЕРТАННЯ ---
+        const raycaster = new THREE.Raycaster();
+        const mouse = new THREE.Vector2();
+
+        function updateTouchAction() {
+            if (window.innerWidth < 768) {
+                renderer.domElement.style.touchAction = 'auto'; // Дозволити скролінг за замовчуванням
+            } else {
+                renderer.domElement.style.touchAction = 'none';
+            }
+        }
+        window.addEventListener('resize', updateTouchAction);
+        updateTouchAction();
+
+        renderer.domElement.addEventListener('pointerdown', (event) => {
+            if (window.innerWidth < 768) {
+                const rect = renderer.domElement.getBoundingClientRect();
+                mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+                mouse.y = - ((event.clientY - rect.top) / rect.height) * 2 + 1;
+                raycaster.setFromCamera(mouse, camera);
+                const intersects = raycaster.intersectObject(book);
+                
+                // Якщо не потрапили по самій книзі, запобігаємо захопленню події OrbitControls
+                if (intersects.length === 0) {
+                    event.stopImmediatePropagation();
+                }
+            }
+        }, { capture: true });
+
+        renderer.domElement.addEventListener('touchstart', (event) => {
+            if (window.innerWidth < 768) {
+                const rect = renderer.domElement.getBoundingClientRect();
+                if (!event.touches || event.touches.length === 0) return;
+                const touch = event.touches[0];
+                mouse.x = ((touch.clientX - rect.left) / rect.width) * 2 - 1;
+                mouse.y = - ((touch.clientY - rect.top) / rect.height) * 2 + 1;
+                raycaster.setFromCamera(mouse, camera);
+                const intersects = raycaster.intersectObject(book);
+                
+                // Якщо зачепили книгу — запобігаємо скролу екрану, щоб можна було її крутити
+                if (intersects.length > 0) {
+                    event.preventDefault();
+                }
+            }
+        }, { passive: false });
+        // --- КІНЕЦЬ ФІКСУ ---
+
         // --- 2. ТАРАКАН (OVERLAY) ---
         const bugOverlay = document.getElementById('bug-overlay');
         const bugScene = new THREE.Scene();

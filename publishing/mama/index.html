@@ -248,7 +248,7 @@
                 </div>
 
                 <div class="mt-[10px]">
-                    Фото зіна та стікерпака
+                    Фото зіну та стікерпака
                 </div>
                 <div class="flex flex-col w-full bg-[#f5f5f5] mb-[10px]">
                     <img src="./14.png" alt="14" class="w-full h-auto object-cover cursor-pointer bg-black/10"
@@ -447,7 +447,7 @@
     </div>
 
     <div class="hidden md:block fixed bottom-0 left-0 z-[110]">
-        <div class="text-black text-[16px] leading-[110%] tracking-[-0.04em] font-bold pl-[3px] pb-[3px]">Фото зіна та
+        <div class="text-black text-[16px] leading-[110%] tracking-[-0.04em] font-bold pl-[3px] pb-[3px]">Фото зіну та
             стікерпака</div>
         <div class="flex items-end gap-x-[2px]">
             <div class="group cursor-pointer relative shrink-0">
@@ -577,7 +577,7 @@
                 mouse.y = - ((event.clientY - rect.top) / rect.height) * 2 + 1;
                 raycaster.setFromCamera(mouse, camera);
                 const intersects = raycaster.intersectObject(book);
-                
+
                 // Якщо не потрапили по самій книзі, запобігаємо захопленню події OrbitControls
                 if (intersects.length === 0) {
                     event.stopImmediatePropagation();
@@ -594,7 +594,7 @@
                 mouse.y = - ((touch.clientY - rect.top) / rect.height) * 2 + 1;
                 raycaster.setFromCamera(mouse, camera);
                 const intersects = raycaster.intersectObject(book);
-                
+
                 // Якщо зачепили книгу — запобігаємо скролу екрану, щоб можна було її крутити
                 if (intersects.length > 0) {
                     event.preventDefault();

@@ -48,7 +48,7 @@
             width: 100vw;
             box-sizing: border-box;
             /* Відступи від країв, щоб текст не прилипав */
-            padding: 3vw;
+            padding: 0;
         }
 
         /* Спільні стилі для текстів */
@@ -57,16 +57,16 @@
             font-family: "Helvetica Neue", Helvetica, Arial, -apple-system, sans-serif;
             font-weight: 900; /* Жирний */
             line-height: 0.8; /* 80% інтерліньяж */
-            letter-spacing: -0.01em; /* Трохи звузити букви для ефекту */
+            letter-spacing: -0.05em; /* Трохи звузити букви для ефекту */
             white-space: nowrap; /* Перенос лише через <br> */
         }
 
         /* ВЕЛИКИЙ ТЕКСТ ВЕРХУ */
         .top-text {
-            top: 4vw;
-            left: 4vw;
-            font-size: 6.5vw;
-            transform: scaleX(2.4);
+            top: 0.5vw;
+            left: 0.5vw;
+            font-size: 6.8vw;
+            transform: scaleX(2.5);
             transform-origin: left top;
         }
 
@@ -82,28 +82,28 @@
 
         /* НИЖНІЙ ТЕКСТ */
         .bottom-text {
-            bottom: 4vw;
-            left: 4vw;
-            font-size: 6.5vw;
-            transform: scaleX(2.4);
+            bottom: 0.5vw;
+            left: 0.5vw;
+            font-size: 6.8vw;
+            transform: scaleX(2.5);
             transform-origin: left bottom;
         }
 
         /* 📱 МОБІЛЬНА ВЕРСІЯ (Медіа-запит) 📱 */
         @media (max-width: 768px) {
             .text {
-                font-size: 28vw; /* Значно збільшений кегль */
+                font-size: 29vw; /* Значно збільшений кегль */
                 transform: scaleX(0.55); /* Звузити */
             }
 
             .top-text {
-                top: 4vh;
-                left: 5vw;
+                top: 0.5vh;
+                left: 1vw;
             }
 
             .bottom-text {
-                bottom: 4vh;
-                left: 5vw;
+                bottom: 0.5vh;
+                left: 1vw;
             }
 
             .logo {

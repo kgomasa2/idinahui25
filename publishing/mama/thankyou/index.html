@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="uk">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Дякуємо за замовлення! — IDINAHUI Publishing</title>
+
+    <script>
+        !function (f, b, e, v, n, t, s) {
+            if (f.fbq) return; n = f.fbq = function () {
+                n.callMethod ?
+                n.callMethod.apply(n, arguments) : n.queue.push(arguments)
+            };
+            if (!f._fbq) f._fbq = n; n.push = n; n.loaded = !0; n.version = '2.0';
+            n.queue = []; t = b.createElement(e); t.async = !0;
+            t.src = v; s = b.getElementsByTagName(e)[0];
+            s.parentNode.insertBefore(t, s)
+        }(window, document, 'script',
+            'https://connect.facebook.net/en_US/fbevents.js');
+        fbq('init', '1314827367411953'); // ✅ Вставлений твій Pixel ID
+        fbq('track', 'PageView');
+    </script>
+    <noscript><img height="1" width="1" style="display:none"
+            src="https://www.facebook.com/tr?id=1314827367411953&ev=PageView&noscript=1" /></noscript>
+    <style>
+        /* Скидання базових стилів */
+        body,
+        html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            width: 100%;
+            /* Пріоритет на Helvetica Neue (system-font stack) */
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Helvetica, Arial, sans-serif;
+            background-color: #FF3A1B;
+            /* Яскраво-червоний як на скріншоті */
+            color: #000000;
+            /* Чорний текст */
+            overflow: hidden;
+            /* Щоб нічого не скролилося */
+        }
+
+        /* Головний контейнер на весь екран */
+        .page-wrapper {
+            position: relative;
+            height: 100vh;
+            width: 100vw;
+            box-sizing: border-box;
+            /* Відступи від країв, щоб текст не прилипав */
+            padding: 3vw;
+        }
+
+        /* Спільні стилі для текстів */
+        .text {
+            position: absolute;
+            font-weight: 700;
+            /* Жирний */
+            line-height: 1;
+            /* Жорсткий інтерліньяж */
+            letter-spacing: -0.01em;
+            /* Трохи звузити букви для ефекту */
+        }
+
+        /* ВЕЛИКИЙ ТЕКСТ ВЕРХУ */
+        .top-text {
+            top: 3vw;
+            left: 3vw;
+            /* На десктопі шрифт вже досить розширений */
+            font-size: 8vw;
+            /* Великий, адаптивний розмір */
+            text-transform: none;
+            /* Беремо як ввів користувач: "Дякуємо..." */
+        }
+
+        /* ЛОГОТИП ЦЕНТРІ */
+        .logo {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            /* Точне центрування */
+            width: 25%;
+            /* Відсотковий розмір від ширини екрана */
+            height: auto;
+        }
+
+        /* НИЖНІЙ ТЕКСТ */
+        .bottom-text {
+            bottom: 3vw;
+            left: 3vw;
+            font-size: 7vw;
+            /* Трохи менший за верхній */
+        }
+
+        /* 📱 МОБІЛЬНА ВЕРСІЯ (Медіа-запит) 📱 */
+        @media (max-width: 768px) {
+            .page-wrapper {
+                padding: 5vh 5vw;
+                /* Збільшені відступи */
+            }
+
+            .text {
+                font-size: 10vw;
+                /* Значно збільшений шрифт */
+                line-height: 1.1;
+                /* 👉 ЕФЕКТ "ВУЗЬКОГО" ШРИФТУ НА МОБІЛЬЦІ 👈 */
+                transform: scaleX(0.75);
+                /* Звузити до 75% ширини */
+                transform-origin: left center;
+                /* Притиснути звуження до лівого краю */
+            }
+
+            .top-text {
+                top: 5vh;
+                left: 5vw;
+            }
+
+            .bottom-text {
+                bottom: 5vh;
+                left: 5vw;
+            }
+
+            .logo {
+                width: 45%;
+                /* Більший логотип */
+                top: 48%;
+                /* Трохи вище, щоб візуально центрувати */
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="page-wrapper">
+        <div class="text top-text">Дякуємо за замовлення!</div>
+
+        <img src="idinahpublogo.svg" alt="IDINAHUI Publishing Logo" class="logo">
+
+        <div class="text bottom-text">Зін скоро поїде до вас</div>
+    </div>
+
+</body>
+
+</html>

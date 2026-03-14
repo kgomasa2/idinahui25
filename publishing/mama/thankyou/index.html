@@ -54,23 +54,20 @@
         /* Спільні стилі для текстів */
         .text {
             position: absolute;
-            font-weight: 700;
-            /* Жирний */
-            line-height: 1;
-            /* Жорсткий інтерліньяж */
-            letter-spacing: -0.01em;
-            /* Трохи звузити букви для ефекту */
+            font-family: "Helvetica Neue", Helvetica, Arial, -apple-system, sans-serif;
+            font-weight: 900; /* Жирний */
+            line-height: 0.8; /* 80% інтерліньяж */
+            letter-spacing: -0.01em; /* Трохи звузити букви для ефекту */
+            white-space: nowrap; /* Перенос лише через <br> */
         }
 
         /* ВЕЛИКИЙ ТЕКСТ ВЕРХУ */
         .top-text {
-            top: 3vw;
-            left: 3vw;
-            /* На десктопі шрифт вже досить розширений */
-            font-size: 8vw;
-            /* Великий, адаптивний розмір */
-            text-transform: none;
-            /* Беремо як ввів користувач: "Дякуємо..." */
+            top: 4vw;
+            left: 4vw;
+            font-size: 6.5vw;
+            transform: scaleX(2.4);
+            transform-origin: left top;
         }
 
         /* ЛОГОТИП ЦЕНТРІ */
@@ -79,53 +76,39 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            /* Точне центрування */
-            width: 25%;
-            /* Відсотковий розмір від ширини екрана */
+            width: 20%;
             height: auto;
         }
 
         /* НИЖНІЙ ТЕКСТ */
         .bottom-text {
-            bottom: 3vw;
-            left: 3vw;
-            font-size: 7vw;
-            /* Трохи менший за верхній */
+            bottom: 4vw;
+            left: 4vw;
+            font-size: 6.5vw;
+            transform: scaleX(2.4);
+            transform-origin: left bottom;
         }
 
         /* 📱 МОБІЛЬНА ВЕРСІЯ (Медіа-запит) 📱 */
         @media (max-width: 768px) {
-            .page-wrapper {
-                padding: 5vh 5vw;
-                /* Збільшені відступи */
-            }
-
             .text {
-                font-size: 10vw;
-                /* Значно збільшений шрифт */
-                line-height: 1.1;
-                /* 👉 ЕФЕКТ "ВУЗЬКОГО" ШРИФТУ НА МОБІЛЬЦІ 👈 */
-                transform: scaleX(0.75);
-                /* Звузити до 75% ширини */
-                transform-origin: left center;
-                /* Притиснути звуження до лівого краю */
+                font-size: 28vw; /* Значно збільшений кегль */
+                transform: scaleX(0.55); /* Звузити */
             }
 
             .top-text {
-                top: 5vh;
+                top: 4vh;
                 left: 5vw;
             }
 
             .bottom-text {
-                bottom: 5vh;
+                bottom: 4vh;
                 left: 5vw;
             }
 
             .logo {
                 width: 45%;
-                /* Більший логотип */
-                top: 48%;
-                /* Трохи вище, щоб візуально центрувати */
+                top: 50%;
             }
         }
     </style>
@@ -134,11 +117,11 @@
 <body>
 
     <div class="page-wrapper">
-        <div class="text top-text">Дякуємо за замовлення!</div>
+        <div class="text top-text">Дякуємо за<br>замовлення!</div>
 
         <img src="idinahpublogo.svg" alt="IDINAHUI Publishing Logo" class="logo">
 
-        <div class="text bottom-text">Зін скоро поїде до вас</div>
+        <div class="text bottom-text">Зін скоро<br>поїде до вас</div>
     </div>
 
 </body>

@@ -10,7 +10,7 @@
         !function (f, b, e, v, n, t, s) {
             if (f.fbq) return; n = f.fbq = function () {
                 n.callMethod ?
-                n.callMethod.apply(n, arguments) : n.queue.push(arguments)
+                    n.callMethod.apply(n, arguments) : n.queue.push(arguments)
             };
             if (!f._fbq) f._fbq = n; n.push = n; n.loaded = !0; n.version = '2.0';
             n.queue = []; t = b.createElement(e); t.async = !0;
@@ -20,6 +20,7 @@
             'https://connect.facebook.net/en_US/fbevents.js');
         fbq('init', '1314827367411953'); // ✅ Вставлений твій Pixel ID
         fbq('track', 'PageView');
+        fbq('track', 'Purchase', { value: 666.00, currency: 'UAH' }); // ✅ Додана подія успішної покупки
     </script>
     <noscript><img height="1" width="1" style="display:none"
             src="https://www.facebook.com/tr?id=1314827367411953&ev=PageView&noscript=1" /></noscript>
@@ -55,10 +56,14 @@
         .text {
             position: absolute;
             font-family: "Helvetica Neue", Helvetica, Arial, -apple-system, sans-serif;
-            font-weight: 900; /* Жирний */
-            line-height: 0.8; /* 80% інтерліньяж */
-            letter-spacing: -0.05em; /* Трохи звузити букви для ефекту */
-            white-space: nowrap; /* Перенос лише через <br> */
+            font-weight: 900;
+            /* Жирний */
+            line-height: 0.8;
+            /* 80% інтерліньяж */
+            letter-spacing: -0.05em;
+            /* Трохи звузити букви для ефекту */
+            white-space: nowrap;
+            /* Перенос лише через <br> */
         }
 
         /* ВЕЛИКИЙ ТЕКСТ ВЕРХУ */
@@ -92,8 +97,10 @@
         /* 📱 МОБІЛЬНА ВЕРСІЯ (Медіа-запит) 📱 */
         @media (max-width: 768px) {
             .text {
-                font-size: 29vw; /* Значно збільшений кегль */
-                transform: scaleX(0.55); /* Звузити */
+                font-size: 29vw;
+                /* Значно збільшений кегль */
+                transform: scaleX(0.55);
+                /* Звузити */
             }
 
             .top-text {

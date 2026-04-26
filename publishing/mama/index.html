@@ -2,6 +2,26 @@
 <html lang="uk">
 
 <head>
+    <!-- Meta Pixel Code -->
+    <script>
+        !function (f, b, e, v, n, t, s) {
+            if (f.fbq) return; n = f.fbq = function () {
+                n.callMethod ?
+                n.callMethod.apply(n, arguments) : n.queue.push(arguments)
+            };
+            if (!f._fbq) f._fbq = n; n.push = n; n.loaded = !0; n.version = '2.0';
+            n.queue = []; t = b.createElement(e); t.async = !0;
+            t.src = v; s = b.getElementsByTagName(e)[0];
+            s.parentNode.insertBefore(t, s)
+        }(window, document, 'script',
+            'https://connect.facebook.net/en_US/fbevents.js');
+        fbq('init', '668732746335013');
+        fbq('track', 'PageView');
+    </script>
+    <noscript><img height="1" width="1" style="display:none"
+            src="https://www.facebook.com/tr?id=668732746335013&ev=PageView&noscript=1" /></noscript>
+    <!-- End Meta Pixel Code -->
+
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Зін «Мама» — Христина Новикова</title>
@@ -231,7 +251,7 @@
         </h1>
 
         <div class="flex flex-col gap-[5px] mb-[24px] shrink-0">
-            <a href="https://secure.wayforpay.com/button/b6b9d60b66bca"
+            <a href="https://secure.wayforpay.com/button/b6b9d60b66bca" onclick="fbq('track', 'InitiateCheckout')"
                 class="bg-white text-black w-full h-[70px] flex justify-center items-center hover:scale-[1.01] transition-transform cursor-pointer border-none no-underline">
                 <span
                     class="font-bold text-[26px] tracking-[-0.04em] scale-x-125 origin-center inline-block leading-none -mt-[3px]">Купити</span>
@@ -444,7 +464,7 @@
             </div>
 
             <div class="mt-auto mb-[11px] flex justify-center w-full shrink-0">
-                <a href="https://secure.wayforpay.com/button/b6b9d60b66bca"
+                <a href="https://secure.wayforpay.com/button/b6b9d60b66bca" onclick="fbq('track', 'InitiateCheckout')"
                     class="bg-white text-black w-[328px] h-[82px] flex justify-center items-center hover:scale-[1.02] transition-transform cursor-pointer border-none no-underline">
                     <span
                         class="font-bold text-[26px] tracking-[-0.04em] scale-x-125 origin-center inline-block leading-[103%] -mt-[3px]">Купити</span>

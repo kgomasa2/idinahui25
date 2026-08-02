@@ -80,16 +80,15 @@
         /* --- 3D-зіни в картках --- */
         .zine3d { position: relative; }
 
-        /* PEEPING на 10% дрібніший за базовий кадр картки */
         .zine3d--peeping {
-            height: 55.8%;
-            max-width: 76.5%;
+            height: 50.2%;
+            max-width: 68.9%;
             aspect-ratio: 560 / 855;
         }
 
         .zine3d--mama {
-            height: 62%;
-            max-width: 85%;
+            height: 55.8%;
+            max-width: 76.5%;
             aspect-ratio: 443 / 500;
         }
 
@@ -424,13 +423,13 @@
             }
 
             .zine3d--peeping {
-                height: 81%;
-                max-width: 81%;
+                height: 72.9%;
+                max-width: 72.9%;
             }
 
             .zine3d--mama {
-                height: 90%;
-                max-width: 90%;
+                height: 81%;
+                max-width: 81%;
             }
 
             .info-block { 
@@ -696,9 +695,11 @@
             const scene = new THREE.Scene();
             const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 100);
 
+            let dirty = true;                    /* книжка сама не рухається — малюємо лише на зміну */
             const load = new THREE.TextureLoader();
-            const cover = load.load('/publishing/mama/cover_zine.png');
-            const pages = load.load('/publishing/mama/A5%20-%202.png');
+            const done = () => { dirty = true; };
+            const cover = load.load('/publishing/mama/cover_zine.png', done);
+            const pages = load.load('/publishing/mama/A5%20-%202.png', done);
             cover.colorSpace = THREE.SRGBColorSpace;
             pages.colorSpace = THREE.SRGBColorSpace;
 
@@ -734,14 +735,16 @@
                     const k = 2 * Math.tan((45 * Math.PI) / 360);
                     camera.position.z = Math.max(4.2 * 1.24 / k, 3.0 * 1.10 / (k * camera.aspect));
                     camera.updateProjectionMatrix();
+                    dirty = true;
                 },
                 spin(dx, dy) {
                     book.rotation.y += dx * 0.009;
                     book.rotation.x = Math.max(-0.7, Math.min(0.7, book.rotation.x + dy * 0.005));
+                    dirty = true;
                 },
-                /* повільне самообертання, як на сторінці зіну; поки тягнуть — стоїть */
-                frame(dt, dragging) {
-                    if (!dragging) book.rotation.y += dt * 0.22;
+                frame() {
+                    if (!dirty) return;          /* стоїть, поки її не крутять */
+                    dirty = false;
                     renderer.render(scene, camera);
                 },
             };

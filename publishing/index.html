@@ -77,15 +77,23 @@
 
         .product-card:hover .product-img { transform: scale(1.03); }
 
-        /* --- 3D-блокнот PEEPING --- */
-        .peep3d {
-            position: relative;
-            height: 62%;
-            max-width: 85%;
+        /* --- 3D-зіни в картках --- */
+        .zine3d { position: relative; }
+
+        /* PEEPING на 10% дрібніший за базовий кадр картки */
+        .zine3d--peeping {
+            height: 55.8%;
+            max-width: 76.5%;
             aspect-ratio: 560 / 855;
         }
 
-        .peep3d__poster {
+        .zine3d--mama {
+            height: 62%;
+            max-width: 85%;
+            aspect-ratio: 443 / 500;
+        }
+
+        .zine3d__poster {
             position: absolute;
             inset: 0;
             width: 100%;
@@ -96,37 +104,36 @@
             transition: opacity 0.45s ease;
         }
 
-        /* полотно більше за постер — блокноту потрібен запас, щоб не
+        /* полотно більше за постер — зіну потрібен запас, щоб не
            зрізатись на повороті */
-        .peep3d__canvas {
+        .zine3d__canvas,
+        .zine3d__grab {
             position: absolute;
             left: -15%;
             top: -9%;
             width: 130%;
             height: 118%;
+        }
+
+        .zine3d__canvas {
             display: block;
             opacity: 0;
             transition: opacity 0.45s ease;
         }
 
-        .peep3d.is-live .peep3d__canvas { opacity: 1; }
-        .peep3d.is-live .peep3d__poster { opacity: 0; }
+        .zine3d.is-live .zine3d__canvas { opacity: 1; }
+        .zine3d.is-live .zine3d__poster { opacity: 0; }
 
-        .peep3d__grab {
-            position: absolute;
-            left: -15%;
-            top: -9%;
-            width: 130%;
-            height: 118%;
+        .zine3d__grab {
             display: none;
             touch-action: pan-y;
         }
 
-        .peep3d.is-live .peep3d__grab { display: block; cursor: grab; }
-        .peep3d.is-live .peep3d__grab.is-grabbing { cursor: grabbing; }
+        .zine3d.is-live .zine3d__grab { display: block; cursor: grab; }
+        .zine3d.is-live .zine3d__grab.is-grabbing { cursor: grabbing; }
 
         @media (hover: hover) {
-            .product-card:hover .peep3d__poster { transform: scale(1.03); }
+            .product-card:hover .zine3d__poster { transform: scale(1.03); }
         }
 
         .info-block {
@@ -416,7 +423,12 @@
                 max-height: 90%; /* ЗБІЛЬШЕНО: тепер картинки великі */
             }
 
-            .peep3d {
+            .zine3d--peeping {
+                height: 81%;
+                max-width: 81%;
+            }
+
+            .zine3d--mama {
                 height: 90%;
                 max-width: 90%;
             }
@@ -454,7 +466,11 @@
         <div class="left-col">
             <a href="/publishing/mama/" class="product-card">
                 <div class="img-container">
-                    <img src="./zine-mama.png" alt="Зін Мама" class="product-img">
+                    <div class="zine3d zine3d--mama" id="zine3d-mama">
+                        <img src="./zine-mama.png" alt="Зін Мама" class="zine3d__poster">
+                        <canvas class="zine3d__canvas"></canvas>
+                        <span class="zine3d__grab" title="Потягни, щоб покрутити"></span>
+                    </div>
                 </div>
                 <div class="info-block">
                     <div class="title">ЗІН “МАМА”</div>
@@ -467,10 +483,10 @@
 
             <div class="product-card">
                 <div class="img-container">
-                    <div class="peep3d" id="peep3d">
-                        <img src="./zine-peeping.png" alt="Зін PEEPING" class="peep3d__poster">
-                        <canvas class="peep3d__canvas"></canvas>
-                        <span class="peep3d__grab" title="Потягни, щоб покрутити"></span>
+                    <div class="zine3d zine3d--peeping" id="zine3d-peeping">
+                        <img src="./zine-peeping.png" alt="Зін PEEPING" class="zine3d__poster">
+                        <canvas class="zine3d__canvas"></canvas>
+                        <span class="zine3d__grab" title="Потягни, щоб покрутити"></span>
                     </div>
                 </div>
                 <div class="info-block">
@@ -567,64 +583,50 @@
     </script>
 
     <script type="module">
-        /* 3D-блокнот PEEPING у картці: та сама сцена, що на peeping-site,
-           але закрита (без гортання) і з вільним обертанням мишею/пальцем.
+        /* 3D-зіни в картках: ті самі сцени, що на їхніх сторінках, але
+           статичні (без гортання) і з обертанням мишею/пальцем.
            Вантажимо ліниво — до цього моменту в картці лежить постер. */
-        const holder = document.getElementById('peep3d');
-        const canvas = holder.querySelector('.peep3d__canvas');
-        const grab = holder.querySelector('.peep3d__grab');
 
-        const start = async () => {
-            let Notepad;
+        /** Спільне: перетягування, вписування в полотно, рендер лише на екрані.
+         *  build(canvas, THREE) → { renderer, camera, fit(w, h), frame(dt), spin(dx, dy) } */
+        async function mount(holderId, build) {
+            const holder = document.getElementById(holderId);
+            if (!holder) return;
+            const canvas = holder.querySelector('.zine3d__canvas');
+            const grab = holder.querySelector('.zine3d__grab');
+
+            let scene;
             try {
-                ({ Notepad } = await import('/publishing/peeping3d/js/notepad.js'));
+                const THREE = await import('three');
+                scene = await build(canvas, THREE);
             } catch (err) {
-                console.warn('3D-блокнот недоступний:', err);
-                return;                       /* лишається постер */
+                console.warn('3D недоступний (' + holderId + '):', err);
+                return;                          /* у картці лишається постер */
             }
+            holder.classList.add('is-live');
 
-            let pad;
-            try {
-                pad = new Notepad(canvas, { onReady: () => holder.classList.add('is-live') });
-            } catch (err) {
-                console.warn('WebGL недоступний:', err);
-                return;
-            }
-
-            pad.shadow.visible = false;        /* картка біла — тінь тут зайва */
-            window.__peep3d = pad;
-
-            /* Вписуємо блокнот у полотно картки: у модулі кадр розрахований
-               на весь екран, тут потрібно значно щільніше. */
             const fit = () => {
                 const w = canvas.clientWidth, h = canvas.clientHeight;
-                if (!w || !h) return;
-                pad.renderer.setSize(w, h, false);
-                pad.camera.aspect = w / h;
-                const k = 2 * Math.tan((26 * Math.PI) / 360);   /* видима висота на відстані 1 */
-                const z = Math.max(2.0 * 1.18 / k, 1.42 * 1.30 / (k * pad.camera.aspect));
-                pad.baseZ = z;
-                pad.yBias = 0;
-                pad.camera.near = Math.max(0.5, z - 3);
-                pad.camera.far = z * 1.6 + 5;
-                pad.camera.updateProjectionMatrix();
+                if (w && h) scene.fit(w, h);
             };
-            pad.resize = fit;                  /* модуль сам кличе resize() на ресайз вікна */
             fit();
             new ResizeObserver(fit).observe(canvas);
+            addEventListener('resize', fit, { passive: true });
 
-            /* Обертання: пишемо просто в базову позу, тож поворот лишається
-               там, де його відпустили (вбудований drag модуля відпружинює назад). */
-            let id = null, px = 0, py = 0;
+            /* Обертання. Картка «Мами» — посилання, тож після справжнього
+               перетягування гасимо клік, щоб не піти на сторінку зіну. */
+            let id = null, px = 0, py = 0, moved = 0;
+            grab.addEventListener('dragstart', (e) => e.preventDefault());
             grab.addEventListener('pointerdown', (e) => {
-                id = e.pointerId; px = e.clientX; py = e.clientY;
+                id = e.pointerId; px = e.clientX; py = e.clientY; moved = 0;
                 try { grab.setPointerCapture(id); } catch { }
                 grab.classList.add('is-grabbing');
             });
             grab.addEventListener('pointermove', (e) => {
                 if (e.pointerId !== id) return;
-                pad.tilt.y += (e.clientX - px) * 0.009;
-                pad.tilt.x = Math.max(-0.7, Math.min(0.7, pad.tilt.x + (e.clientY - py) * 0.005));
+                const dx = e.clientX - px, dy = e.clientY - py;
+                moved += Math.abs(dx) + Math.abs(dy);
+                scene.spin(dx, dy);
                 px = e.clientX; py = e.clientY;
             });
             const up = (e) => {
@@ -635,20 +637,119 @@
             };
             grab.addEventListener('pointerup', up);
             grab.addEventListener('pointercancel', up);
+            grab.addEventListener('click', (e) => {
+                if (moved > 8) { e.preventDefault(); e.stopPropagation(); }
+            }, { capture: true });
 
-            /* крутимо кадри лише поки картка на екрані */
+            /* кадри малюємо лише поки картка на екрані */
             let raf = null, prev = 0;
             const tick = (t) => {
                 raf = requestAnimationFrame(tick);
                 const dt = Math.min(0.05, (t - prev) / 1000 || 0);
                 prev = t;
-                pad.update(dt);
+                scene.frame(dt, id !== null);
             };
             new IntersectionObserver((es) => {
                 const on = es[0].isIntersecting;
                 if (on && raf === null) { prev = performance.now(); raf = requestAnimationFrame(tick); }
                 if (!on && raf !== null) { cancelAnimationFrame(raf); raf = null; }
             }, { rootMargin: '200px' }).observe(holder);
+        }
+
+        /* ── PEEPING: блокнот із peeping-site, закритий ── */
+        const peeping = async (canvas) => {
+            const { Notepad } = await import('/publishing/peeping3d/js/notepad.js');
+            const pad = new Notepad(canvas);
+            pad.shadow.visible = false;          /* картка біла — тінь тут зайва */
+            window.__peep3d = pad;
+
+            return {
+                /* у модулі кадр розрахований на весь екран — у картці тісніше */
+                fit(w, h) {
+                    pad.renderer.setSize(w, h, false);
+                    pad.camera.aspect = w / h;
+                    const k = 2 * Math.tan((26 * Math.PI) / 360);
+                    const z = Math.max(2.0 * 1.18 / k, 1.42 * 1.30 / (k * pad.camera.aspect));
+                    pad.baseZ = z;
+                    pad.yBias = 0;
+                    pad.camera.near = Math.max(0.5, z - 3);
+                    pad.camera.far = z * 1.6 + 5;
+                    pad.camera.updateProjectionMatrix();
+                    pad.resize = () => { };        /* власний ресайз модуля нам би все зламав */
+                },
+                /* пишемо в базову позу, тож поворот лишається там, де відпустили
+                   (вбудований drag модуля відпружинює назад) */
+                spin(dx, dy) {
+                    pad.tilt.y += dx * 0.009;
+                    pad.tilt.x = Math.max(-0.7, Math.min(0.7, pad.tilt.x + dy * 0.005));
+                },
+                frame(dt) { pad.update(dt); },
+            };
+        };
+
+        /* ── МАМА: та сама книжка, що на /publishing/mama/ ── */
+        const mama = async (canvas, THREE) => {
+            const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+            renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+            renderer.outputColorSpace = THREE.SRGBColorSpace;
+
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 100);
+
+            const load = new THREE.TextureLoader();
+            const cover = load.load('/publishing/mama/cover_zine.png');
+            const pages = load.load('/publishing/mama/A5%20-%202.png');
+            cover.colorSpace = THREE.SRGBColorSpace;
+            pages.colorSpace = THREE.SRGBColorSpace;
+
+            const side = pages.clone();
+            side.wrapS = side.wrapT = THREE.RepeatWrapping;
+            side.repeat.set(1, 4);
+
+            const edge = pages.clone();
+            edge.wrapS = edge.wrapT = THREE.RepeatWrapping;
+            edge.rotation = Math.PI / 2;
+            edge.center.set(0.5, 0.5);
+            edge.repeat.set(4, 1);
+
+            const book = new THREE.Mesh(
+                new THREE.BoxGeometry(3, 4.2, 0.167),
+                [
+                    new THREE.MeshBasicMaterial({ map: side }),
+                    new THREE.MeshBasicMaterial({ color: 0xffffff }),
+                    new THREE.MeshBasicMaterial({ map: edge }),
+                    new THREE.MeshBasicMaterial({ map: edge }),
+                    new THREE.MeshBasicMaterial({ map: cover }),
+                    new THREE.MeshBasicMaterial({ map: cover }),
+                ]
+            );
+            book.rotation.set(0, -0.5, 0);
+            scene.add(book);
+            window.__mama3d = book;
+
+            return {
+                fit(w, h) {
+                    renderer.setSize(w, h, false);
+                    camera.aspect = w / h;
+                    const k = 2 * Math.tan((45 * Math.PI) / 360);
+                    camera.position.z = Math.max(4.2 * 1.24 / k, 3.0 * 1.10 / (k * camera.aspect));
+                    camera.updateProjectionMatrix();
+                },
+                spin(dx, dy) {
+                    book.rotation.y += dx * 0.009;
+                    book.rotation.x = Math.max(-0.7, Math.min(0.7, book.rotation.x + dy * 0.005));
+                },
+                /* повільне самообертання, як на сторінці зіну; поки тягнуть — стоїть */
+                frame(dt, dragging) {
+                    if (!dragging) book.rotation.y += dt * 0.22;
+                    renderer.render(scene, camera);
+                },
+            };
+        };
+
+        const start = () => {
+            mount('zine3d-peeping', peeping);
+            mount('zine3d-mama', mama);
         };
 
         /* не заважаємо завантаженню сторінки */

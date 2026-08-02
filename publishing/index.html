@@ -14,6 +14,12 @@
     { "imports": { "three": "/publishing/peeping3d/vendor/three.module.js" } }
     </script>
 
+    <!-- 3D у картках вантажимо паралельно з версткою, щоб постер змінявся одразу -->
+    <link rel="modulepreload" href="/publishing/peeping3d/vendor/three.module.js">
+    <link rel="modulepreload" href="/publishing/peeping3d/vendor/three.core.min.js">
+    <link rel="modulepreload" href="/publishing/peeping3d/js/notepad.js">
+    <link rel="preload" as="image" href="/publishing/mama/cover_zine.png">
+
     <style>
         @font-face {
             font-family: 'Director UA Variable';
@@ -98,19 +104,9 @@
             aspect-ratio: 443 / 500;
         }
 
-        .zine3d__poster {
-            position: absolute;
-            inset: 0;
-            width: 100%;
-            height: 100%;
-            max-width: none;
-            max-height: none;
-            object-fit: contain;
-            transition: opacity 0.45s ease;
-        }
-
-        /* полотно більше за постер — зіну потрібен запас, щоб не
-           зрізатись на повороті */
+        /* Постер лежить рівно в тих самих межах, що й полотно, і є знімком
+           тієї ж сцени в стартовій позі — тому підміна непомітна. */
+        .zine3d__poster,
         .zine3d__canvas,
         .zine3d__grab {
             position: absolute;
@@ -120,10 +116,17 @@
             height: 118%;
         }
 
+        .zine3d__poster {
+            max-width: none;
+            max-height: none;
+            object-fit: contain;
+            transition: opacity 0.2s ease;
+        }
+
         .zine3d__canvas {
             display: block;
             opacity: 0;
-            transition: opacity 0.45s ease;
+            transition: opacity 0.2s ease;
         }
 
         .zine3d.is-live .zine3d__canvas { opacity: 1; }
@@ -475,7 +478,7 @@
             <a href="/publishing/mama/" class="product-card" draggable="false">
                 <div class="img-container">
                     <div class="zine3d zine3d--mama" id="zine3d-mama">
-                        <img src="./zine-mama.png" alt="Зін Мама" class="zine3d__poster">
+                        <img src="./poster-mama.png" alt="Зін Мама" class="zine3d__poster">
                         <canvas class="zine3d__canvas"></canvas>
                         <span class="zine3d__grab" title="Потягни, щоб покрутити"></span>
                     </div>
@@ -492,7 +495,7 @@
             <div class="product-card">
                 <div class="img-container">
                     <div class="zine3d zine3d--peeping" id="zine3d-peeping">
-                        <img src="./zine-peeping.png" alt="Зін PEEPING" class="zine3d__poster">
+                        <img src="./poster-peeping.png" alt="Зін PEEPING" class="zine3d__poster">
                         <canvas class="zine3d__canvas"></canvas>
                         <span class="zine3d__grab" title="Потягни, щоб покрутити"></span>
                     </div>
@@ -611,7 +614,6 @@
                 console.warn('3D недоступний (' + holderId + '):', err);
                 return;                          /* у картці лишається постер */
             }
-            holder.classList.add('is-live');
 
             const fit = () => {
                 const w = canvas.clientWidth, h = canvas.clientHeight;
@@ -620,6 +622,16 @@
             fit();
             new ResizeObserver(fit).observe(canvas);
             addEventListener('resize', fit, { passive: true });
+
+            /* Постер міняємо на полотно лише коли всі текстури на місці
+               й перший кадр уже намальовано — інакше зін блимає недовантаженим. */
+            (async () => {
+                try { await scene.ready; } catch { }
+                try { await document.fonts?.ready; } catch { }
+                fit();
+                scene.frame(0, false);
+                requestAnimationFrame(() => holder.classList.add('is-live'));
+            })();
 
             /* Обертання. Картка «Мами» — посилання, тож після справжнього
                перетягування гасимо клік, щоб не піти на сторінку зіну. */
@@ -671,7 +683,9 @@
         /* ── PEEPING: блокнот із peeping-site, закритий ── */
         const peeping = async (canvas) => {
             const { Notepad } = await import('/publishing/peeping3d/js/notepad.js');
-            const pad = new Notepad(canvas);
+            let ready;
+            const done = new Promise((res) => { ready = res; });
+            const pad = new Notepad(canvas, { onReady: ready });
             pad.shadow.visible = false;          /* картка біла — тінь тут зайва */
 
             /* Модуль щокадру гойдає блокнот угору-вниз (у картці це зайве).
@@ -684,6 +698,7 @@
             window.__peep3d = pad;
 
             return {
+                ready: done,
                 /* у модулі кадр розрахований на весь екран — у картці тісніше */
                 fit(w, h) {
                     pad.renderer.setSize(w, h, false);
@@ -718,11 +733,16 @@
 
             let dirty = true;                    /* книжка сама не рухається — малюємо лише на зміну */
             const load = new THREE.TextureLoader();
-            const done = () => { dirty = true; };
-            const cover = load.load('/publishing/mama/cover_zine.png', done);
-            const pages = load.load('/publishing/mama/A5%20-%202.png', done);
-            cover.colorSpace = THREE.SRGBColorSpace;
-            pages.colorSpace = THREE.SRGBColorSpace;
+            const pending = [];
+            const grab = (url) => {
+                let settle;
+                pending.push(new Promise((res) => { settle = res; }));
+                const t = load.load(url, () => { dirty = true; settle(); }, undefined, settle);
+                t.colorSpace = THREE.SRGBColorSpace;
+                return t;
+            };
+            const cover = grab('/publishing/mama/cover_zine.png');
+            const pages = grab('/publishing/mama/A5%20-%202.png');
 
             const side = pages.clone();
             side.wrapS = side.wrapT = THREE.RepeatWrapping;
@@ -750,6 +770,7 @@
             window.__mama3d = book;
 
             return {
+                ready: Promise.all(pending),
                 fit(w, h) {
                     renderer.setSize(w, h, false);
                     camera.aspect = w / h;
@@ -771,14 +792,10 @@
             };
         };
 
-        const start = () => {
-            mount('zine3d-peeping', peeping);
-            mount('zine3d-mama', mama);
-        };
-
-        /* не заважаємо завантаженню сторінки */
-        if (document.readyState === 'complete') start();
-        else addEventListener('load', start, { once: true });
+        /* Стартуємо одразу: модуль і текстури підтягуються <link rel=preload>
+           паралельно з версткою, тож 3D готове майже одночасно зі сторінкою. */
+        mount('zine3d-peeping', peeping);
+        mount('zine3d-mama', mama);
     </script>
 
 </body>

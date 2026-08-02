@@ -78,17 +78,23 @@
         .product-card:hover .product-img { transform: scale(1.03); }
 
         /* --- 3D-зіни в картках --- */
-        .zine3d { position: relative; }
+        .zine3d {
+            position: relative;
+            user-select: none;
+            -webkit-user-select: none;
+        }
 
         .zine3d--peeping {
             height: 50.2%;
             max-width: 68.9%;
+            margin-top: 8%;
             aspect-ratio: 560 / 855;
         }
 
         .zine3d--mama {
-            height: 55.8%;
-            max-width: 76.5%;
+            height: 50.2%;
+            max-width: 68.9%;
+            margin-top: 5%;
             aspect-ratio: 443 / 500;
         }
 
@@ -425,11 +431,13 @@
             .zine3d--peeping {
                 height: 72.9%;
                 max-width: 72.9%;
+                margin-top: 4%;
             }
 
             .zine3d--mama {
-                height: 81%;
-                max-width: 81%;
+                height: 72.9%;
+                max-width: 72.9%;
+                margin-top: 3%;
             }
 
             .info-block { 
@@ -463,7 +471,7 @@
 
     <div class="container">
         <div class="left-col">
-            <a href="/publishing/mama/" class="product-card">
+            <a href="/publishing/mama/" class="product-card" draggable="false">
                 <div class="img-container">
                     <div class="zine3d zine3d--mama" id="zine3d-mama">
                         <img src="./zine-mama.png" alt="Зін Мама" class="zine3d__poster">
@@ -615,7 +623,11 @@
             /* Обертання. Картка «Мами» — посилання, тож після справжнього
                перетягування гасимо клік, щоб не піти на сторінку зіну. */
             let id = null, px = 0, py = 0, moved = 0;
-            grab.addEventListener('dragstart', (e) => e.preventDefault());
+            /* Картка «Мами» — посилання, а браузер за замовчуванням тягне
+               посилання як drag-and-drop: pointer-події обриваються і зін
+               перестає крутитись на середині жесту. Тому глушимо dragstart
+               на самій картці, а не лише на шарі-хапалці. */
+            (holder.closest('a') || holder).addEventListener('dragstart', (e) => e.preventDefault());
             grab.addEventListener('pointerdown', (e) => {
                 id = e.pointerId; px = e.clientX; py = e.clientY; moved = 0;
                 try { grab.setPointerCapture(id); } catch { }

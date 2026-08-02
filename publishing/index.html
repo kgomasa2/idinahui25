@@ -673,6 +673,14 @@
             const { Notepad } = await import('/publishing/peeping3d/js/notepad.js');
             const pad = new Notepad(canvas);
             pad.shadow.visible = false;          /* картка біла — тінь тут зайва */
+
+            /* Модуль щокадру гойдає блокнот угору-вниз (у картці це зайве).
+               Висоту жорстко тримаємо на нулі: сам модуль лише присвоює її,
+               тож порожній сеттер прибирає рух і нічого не ламає. */
+            Object.defineProperty(pad.book.position, 'y', {
+                get: () => 0, set: () => { }, configurable: true,
+            });
+
             window.__peep3d = pad;
 
             return {

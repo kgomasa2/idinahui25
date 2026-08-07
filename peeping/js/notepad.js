@@ -36,8 +36,10 @@ const ASSETS = new URL('../assets/', import.meta.url).href;
 const LEAF_FACES = [
   null,                           // 0 · обкладинка з висічкою
   null,                           // 1 · титул: розкидані літери під висічкою
-  ASSETS + 'pages_tex/pg-05.jpg',
-  ASSETS + 'pages_tex/pg-14.jpg',
+  /* ?v — та сама версія, що й у сканів у розмітці: assets віддаються
+     immutable на рік, тож під старим іменем повернулася б стара текстура */
+  ASSETS + 'pages_tex/pg-05.jpg?v=3',
+  ASSETS + 'pages_tex/pg-14.jpg?v=3',
   null,                           // 4 · «придбати»
 ];
 /* Решта блоку — глухі аркуші: вони не гортаються й не мають текстур,

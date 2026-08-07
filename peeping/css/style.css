@@ -262,13 +262,63 @@ body {
   overflow: hidden;
   background: #fff;
   aspect-ratio: 486 / 735;
+  cursor: zoom-in;
 }
 .shot img {
   display: block; width: 100%; height: 100%;
   object-fit: cover;
-  transition: transform .9s cubic-bezier(.16,1,.3,1), filter .9s ease;
 }
-.shot:hover img { transform: scale(1.035); }
+
+/* ── скан на весь екран ──────────────────── */
+.lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(12px, 3vh, 40px);
+  background: var(--pink);
+  cursor: zoom-out;
+  opacity: 0;
+  visibility: hidden;
+  /* visibility вмикаємо миттєво, а гасимо аж після прозорості. Якщо її
+     анімувати разом з opacity, шар усю анімацію рахується невидимим —
+     і фокус усередині нього не тримається. */
+  transition: opacity .35s ease, visibility 0s linear .35s;
+}
+/* клас перебиває [hidden] із таблиці браузера, тож ховаємо явно */
+.lightbox[hidden] { display: none; }
+.lightbox.is-open {
+  opacity: 1;
+  visibility: visible;
+  transition: opacity .35s ease, visibility 0s;
+}
+.lightbox img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+/* хрестик лишається клікабельним поверх картинки, але картинка теж закриває */
+.lightbox__close {
+  position: absolute;
+  top: clamp(10px, 2.4vh, 26px);
+  right: clamp(10px, 2.4vh, 26px);
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  font-size: 34px;
+  line-height: 1;
+  cursor: pointer;
+}
+/* поки відкрито — сторінка під сподом не їде. Скролить documentElement,
+   тож замикати треба саме його; padding-right замість смуги прокрутки
+   дописує JS, інакше верстка смикається на відкриванні. */
+html.is-locked, html.is-locked body { overflow: hidden; }
 
 /* ── підвал ──────────────────────────────── */
 .foot {

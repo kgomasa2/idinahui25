@@ -1,5 +1,6 @@
 import { Notepad, FLIPS } from './notepad.js';
 import { LetterField } from './letters.js';
+import './shots.js';
 
 /* перший екран закріплений — сторінка завжди починається згори */
 if ('scrollRestoration' in history) history.scrollRestoration = 'manual';

@@ -1,0 +1,323 @@
+/* ─────────────────────────────────────────────
+   PEEPING · Intimate Publics 02
+   ───────────────────────────────────────────── */
+
+@font-face {
+  font-family: 'KTF Metro';
+  src: url('../assets/fonts/KTFMetro-Roman.otf') format('opentype');
+  font-weight: 400;
+  font-display: swap;
+}
+
+:root {
+  --pink:   #f8cbdd;
+  --ink:    #000000;
+  --paper:  #ffffff;
+
+  --page:   1728;          /* ширина макета у Figma */
+  --gut:    59px;
+  --colw:   654px;
+
+  --fs-display: clamp(30px, 2.78vw, 48px);
+  --fs-body:    clamp(15px, 1.28vw, 22px);
+  --fs-note:    clamp(12px, 0.82vw, 14px);
+}
+
+* { box-sizing: border-box; }
+
+html {
+  background: var(--pink);
+  scroll-behavior: smooth;
+}
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+
+body {
+  margin: 0;
+  background: var(--pink);
+  color: var(--ink);
+  font-family: 'Comic Sans MS', 'Comic Neue', 'Chalkboard SE', cursive;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+/* ── розлетілі літери ────────────────────── */
+.letterfield {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+  contain: strict;
+}
+.letterfield b {
+  position: absolute;
+  top: 0; left: 0;
+  display: block;
+  font-family: 'KTF Metro', 'Times New Roman', serif;
+  font-weight: 400;
+  font-size: var(--fs-display);
+  line-height: 1;
+  color: var(--ink);
+  will-change: transform, opacity;
+  transform: translate3d(-100px, -100px, 0);
+}
+
+/* ── ЕКРАН 1 ─────────────────────────────── */
+.hero { position: relative; height: 560vh; height: 560svh; z-index: 1; }
+
+.hero__sticky {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  height: 100svh;
+  overflow: hidden;
+}
+
+.buy {
+  position: absolute;
+  top: 12%;
+  left: 76.8%;
+  transform: translateX(-50%);
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  white-space: nowrap;
+  font-family: 'KTF Metro', 'Helvetica Neue', sans-serif;
+  /* кириличні літери KTF Metro на 18% ширші за латинські, тож при
+     однаковому кеглі блок читається більшим за фонові літери — стишуємо */
+  font-size: calc(var(--fs-display) * 0.72);
+  line-height: 0.95;
+}
+.buy__price,
+.buy__spec { display: block; }
+.buy__link {
+  color: var(--ink);
+  text-decoration: underline;
+  text-decoration-style: solid;
+  /* лінія має йти суцільно й нижче ніжок «Д», а не розриватися на них */
+  text-underline-position: under;
+  text-decoration-skip-ink: none;
+  text-decoration-thickness: 0.055em;
+  transition: opacity .25s ease;
+}
+.buy__link:hover { opacity: .55; }
+
+.stage { position: absolute; inset: 0; z-index: 3; }
+#gl { display: block; width: 100%; height: 100%; touch-action: pan-y; cursor: grab; }
+#gl.is-grabbing { cursor: grabbing; }
+#gl.is-buy { cursor: pointer; }
+.stage__fallback {
+  position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  max-height: 70vh;
+}
+
+/* ── перемикач мови ──────────────────────── */
+.lang {
+  position: absolute;
+  left: var(--gut);
+  top: clamp(20px, 4vh, 46px);
+  z-index: 4;
+  display: flex;
+  gap: .8em;
+  font-family: 'KTF Metro', 'Helvetica Neue', sans-serif;
+  font-size: clamp(11px, 0.8vw, 14px);
+  letter-spacing: .14em;
+}
+.lang a { color: var(--ink); opacity: .45; text-decoration: none; transition: opacity .25s ease; }
+.lang a:hover { opacity: 1; }
+.lang__on { text-decoration: underline; text-underline-offset: .3em; }
+
+/* ── підказка про скрол ──────────────────── */
+.scrolldown {
+  position: absolute;
+  left: 50%;
+  bottom: clamp(20px, 4vh, 46px);
+  transform: translateX(-50%);
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .7em;
+  font-family: 'KTF Metro', 'Helvetica Neue', sans-serif;
+  font-size: clamp(11px, 0.8vw, 14px);
+  letter-spacing: .14em;
+  color: var(--ink);
+  pointer-events: none;
+  transition: opacity .6s ease;
+}
+.scrolldown svg { animation: bob 2.1s ease-in-out infinite; }
+
+@keyframes bob {
+  0%, 100% { transform: translateY(0); opacity: .55; }
+  50%      { transform: translateY(6px); opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .scrolldown svg { animation: none; }
+}
+
+.is-off { opacity: 0 !important; }
+
+.loader {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 2px;
+  z-index: 5;
+  pointer-events: none;
+  transition: opacity .5s ease .2s;
+}
+.loader span {
+  display: block; height: 100%; width: 0%;
+  background: var(--ink);
+  transition: width .3s ease;
+}
+.loader.is-done { opacity: 0; }
+
+/* ── ЕКРАН 2 ─────────────────────────────── */
+/* Сітка й відступи повторюють макет 1728px:
+   поля 59 / 48, колонки 654 · 33 · 654 · 22 · 258. */
+.read {
+  position: relative;
+  z-index: 1;
+  padding: clamp(60px, 9vh, 120px) 2.78% clamp(50px, 7vh, 90px) 3.41%;
+}
+.read__grid {
+  display: grid;
+  grid-template-columns: 654fr 33fr 654fr 22fr 258fr;
+  max-width: 1728px;
+  margin: 0 auto;
+}
+.col { min-width: 0; }
+.col--a     { grid-column: 1; }
+.col--b     { grid-column: 3; }
+.col--notes { grid-column: 5; }
+
+/* leading-none з макета: міжрядковий = кегль */
+.p-body,
+.p-metro,
+.p-credit {
+  margin: 0;
+  font-size: var(--fs-body);
+  line-height: 1;
+}
+/* Comic Sans MS Bold + обводка 0.5 назовні, як у макеті.
+   paint-order кладе штрих під заливку, тож 1px по центру = 0.5 назовні. */
+.p-body,
+.p-credit {
+  font-weight: 700;
+  -webkit-text-stroke: calc(var(--fs-body) / 22) currentColor;
+  paint-order: stroke fill;
+}
+/* абзацні відступи збережено пробілами, як у макеті;
+   сусідні абзаци всередині блоку йдуть без інтервалу */
+.p-body { text-align: justify; white-space: pre-wrap; hyphens: auto; }
+.p-metro {
+  margin: 0.36em 0;                 /* 8px між блоками в макеті */
+  font-family: 'KTF Metro', 'Helvetica Neue', sans-serif;
+  text-align: center;
+}
+/* рядок з авторством притиснутий до низу колонки, врівень
+   з останнім рядком лівої колонки */
+.col--b { display: flex; flex-direction: column; }
+.p-credit { text-align: center; margin-top: auto; padding-top: 2em; }
+
+.col--notes {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: calc(var(--fs-body) * 4.55);   /* 100px при кеглі 22 */
+  text-align: center;
+}
+.note__num {
+  font-family: 'KTF Metro', 'Helvetica Neue', sans-serif;
+  font-size: var(--fs-body);
+  line-height: 1;
+}
+.note__txt {
+  margin: 0;
+  font-family: 'American Typewriter', 'Courier New', ui-monospace, monospace;
+  font-weight: 600;
+  font-size: var(--fs-note);
+  line-height: 1;
+}
+
+/* ── ЕКРАН 3 ─────────────────────────────── */
+/* У макеті смуга з чотирьох кадрів 486×735 виходить за правий край
+   артборда — лишаємо це, лише даємо докрутити її вбік. */
+.shots {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  gap: 0.637%;
+  padding: 0 0 clamp(40px, 6vh, 68px) 3.41%;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.shots::-webkit-scrollbar { display: none; }
+.shot {
+  flex: 0 0 28.125%;
+  margin: 0;
+  overflow: hidden;
+  background: #fff;
+  aspect-ratio: 486 / 735;
+}
+.shot img {
+  display: block; width: 100%; height: 100%;
+  object-fit: cover;
+  transition: transform .9s cubic-bezier(.16,1,.3,1), filter .9s ease;
+}
+.shot:hover img { transform: scale(1.035); }
+
+/* ── підвал ──────────────────────────────── */
+.foot {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.4em;
+  justify-content: space-between;
+  padding: 0 var(--gut) clamp(30px, 5vh, 56px);
+  max-width: 1728px;
+  margin: 0 auto;
+  font-family: 'KTF Metro', 'Helvetica Neue', sans-serif;
+  font-size: clamp(12px, 0.93vw, 16px);
+  letter-spacing: .03em;
+}
+.foot a { color: var(--ink); text-decoration: underline; text-underline-offset: .18em; }
+.foot a:hover { opacity: .55; }
+
+/* ── адаптив ─────────────────────────────── */
+@media (max-width: 1100px) {
+  :root { --gut: 28px; }
+  .read { padding-left: var(--gut); padding-right: var(--gut); }
+  .read__grid { grid-template-columns: 1fr; }
+  .col--a, .col--b, .col--notes { grid-column: 1; }
+  /* в одну колонку блоки йдуть тим самим кроком, що й усередині колонки */
+  .col--b { margin-top: 0.36em; }
+  .col--notes {
+    gap: calc(var(--fs-body) * 2.2);
+    margin-top: 2.4em;
+  }
+  /* власного відступу немає — лишається тільки крок 0.36em
+     від нижнього поля попереднього блоку, як і скрізь */
+  .p-credit { margin-top: 0; padding-top: 0; }
+  .shots { padding-left: var(--gut); gap: 11px; }
+  .shot { flex: 0 0 46%; }
+}
+
+@media (max-width: 620px) {
+  :root { --gut: 18px; --fs-body: 15px; --fs-display: 30px; }
+  /* ті самі одиниці, що й у sticky-контейнера: інакше на мобільній
+     панель браузера робить hero вищим за приліплений екран і в кінці
+     лишається смуга порожнечі */
+  .hero { height: 480vh; height: 480svh; }
+  .read { padding-top: 24px; }
+  .buy { left: 50%; top: 5vh; }
+  /* на вузькому екрані літерам нема де розлетітися — вони лізуть
+     на блокнот і на блок з ціною, тож на мобільній їх немає */
+  .letterfield { display: none; }
+  .shot { flex: 0 0 76%; }
+  .foot { gap: .8em 1.4em; font-size: 12px; }
+}

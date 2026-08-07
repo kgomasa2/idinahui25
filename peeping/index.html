@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>PEEPING — зін Intimate Publics</title>
+<meta name="description" content="«PEEPING» — другий зін серії Intimate Publics. Фотографії чужих екранів у київському метро. Христина Новикова × Володимир Хоменко.">
+<meta property="og:title" content="PEEPING — зін Intimate Publics">
+<meta property="og:description" content="Другий зін серії Intimate Publics. Екрани незнайомців у київському метро.">
+<meta property="og:image" content="assets/img/hero-render.jpg">
+<link rel="alternate" hreflang="uk" href="./">
+<link rel="alternate" hreflang="en" href="en/">
+<link rel="alternate" hreflang="x-default" href="./">
+<link rel="stylesheet" href="css/style.css">
+<script src="js/lang.js"></script>
+</head>
+<body>
+
+<!-- ── фон: розлетілі літери, композиція змінюється при скролі ── -->
+<div class="letterfield" id="letterfield" aria-hidden="true"></div>
+
+<!-- ── ЕКРАН 1: 3D-блокнот ── -->
+<section class="hero" id="hero">
+  <div class="hero__sticky">
+
+    <nav class="lang" aria-label="Мова">
+      <span class="lang__on">UA</span>
+      <a href="en/?lang=en">EN</a>
+    </nav>
+
+    <header class="buy">
+      <span class="buy__price">380₴</span>
+      <span class="buy__spec">A6, 40 сторінок</span>
+      <a class="buy__link" href="https://secure.wayforpay.com/button/be8d00dfb56c2" target="_blank" rel="noopener">придбати</a>
+    </header>
+
+    <div class="stage" id="stage">
+      <canvas id="gl"></canvas>
+      <noscript><img src="assets/img/hero-render.jpg" alt="Зін PEEPING" class="stage__fallback"></noscript>
+    </div>
+
+    <div class="scrolldown" id="scrolldown">
+      <span>scroll down</span>
+      <svg viewBox="0 0 12 30" width="12" height="30" aria-hidden="true">
+        <path d="M6 1V27M1.2 22.2 6 28l4.8-5.8" fill="none" stroke="currentColor" stroke-width="1"/>
+      </svg>
+    </div>
+
+    <div class="loader" id="loader"><span></span></div>
+  </div>
+</section>
+
+<!-- ── ЕКРАН 2: тексти ── -->
+<section class="read" id="read">
+  <div class="read__grid">
+
+    <div class="col col--a">
+      <p class="p-body">            «PEEPING» — другий зін серії Intimate Publics. Серія присвячена різним формам існування інтимного в публічному просторі. Перший зін, «Мама», побудований на повідомленнях, які Альона надсилала доньці з окупованого Маріуполя. Другий, цей, — на екранах незнайомців у метро. Третій, запланований на кінець 2026-го, складатиметься з епітафій — надгробної поезії. Особисте листування, екран смартфона, напис на надгробку: різні медіуми, але всі вони виводять приватне в зону видимості інших.</p>
+
+      <p class="p-metro">Фотографії «PEEPING» зроблені в київському метро, де приватність чужого екрана тримається виключно на мовчазній згоді не дивитися. Христина Новикова свідомо порушує цю домовленість, фіксуючи те, що випадково опиняється в полі зору: AI-котиків із побажаннями доброго ранку, гороскопи про токсичних жінок, чужий флірт в онлайн-грі, відеопроповіді, аудіопорно. Кожен кадр є уривком чужого повсякдення; разом вони утворюють архів повторюваних образів, сюжетів і способів, через які сьогодні проявляється приватне життя.</p>
+
+      <p class="p-body">             Ці фрагменти рідко відкривають щось виняткове. Навпаки, вони демонструють, наскільки інтимне дедалі частіше існує через стандартизовані культурні форми. Щойно ми намагаємося прожити чи висловити свої емоції, то звертаємося до готових форматів, які постачає сучасна культура: пересилаємо один одному меми, шукаємо розраду в гороскопах, які здаються написаними персонально для нас, використовуємо стандартні набори стікерів, щоб передати вразливості. Що більш особистим здається переживання, то частіше воно виявляється вже упакованим у готовий культурний шаблон. Тому чужий екран у метро рідко відкриває щось по-справжньому унікальне. Зазираючи в нього, ми очікуємо побачити таємницю, але найчастіше знаходимо спільний набір образів та інтерфейсів, через які сьогодні існує і виражається приватне життя.</p>
+    </div>
+
+    <div class="col col--b">
+      <p class="p-body">          Назва «PEEPING» відсилає до історичної практики peep show — атракціону, побудованого навколо контрольованого акту підглядання. Глядачеві пропонувалося зазирнути крізь невеликий отвір, щоб побачити сцену, недоступну для інших. Доступ вимагав фізичного наближення та свідомого жесту спостереження. У багатьох випадках такі сцени мали виразний еротичний характер, і саме ця напруга між приватністю та бажанням побачити «заборонене» ставала ключовою частиною досвіду.</p>
+
+      <p class="p-body">                 Перегортаючи сторінки зіну, читач повторює той самий жест, що зробив можливим появу «PEEPING» — підглядає. Видання не приховує цього жесту, а навпаки робить його предметом розмови (або, принаймні, роздумів). Де проходить межа між приватним і публічним – хз, напевно, вона рухлива й ситуативна, щоразу заново визначаючись у самому акті підглядання.</p>
+
+      <p class="p-metro">Фотографії зроблено без згоди людей, чиї екрани стали матеріалом. Імена, обличчя та контакти стерто, проте анонімізація лише пом'якшує етичне питання, а не знімає його. Цей архів принципово вибірковий, і односторонність погляду є базовою умовою такого видання — умовою, яку ми залишаємо видимою.</p>
+
+      <p class="p-credit">Фотографії — Христина Новикова, дизайн — Володимир Хоменко.</p>
+    </div>
+
+    <aside class="col col--notes">
+      <span class="note__num">1</span>
+      <p class="note__txt">Уже в процесі роботи ми натрапили на схоже видання — «#nyc» Джеффа Мермельштейна, який роками нишком фотографував екрани незнайомців на вулицях Нью-Йорка. На щастя, монополії на прийом не існує, а контекст — зовсім інший, тому ПОХУЙ.</p>
+      <span class="note__num">2</span>
+      <p class="note__txt">Христина Новикова (більш відома як Христина Жопа) – фотохудожниця та театральна режисерка з Маріуполя. Провідні теми у творчості Христини – тілесність, сексуальність, дівочість та ментальні проблеми.</p>
+      <span class="note__num">3</span>
+      <p class="note__txt">Володимир Хоменко – графічний дизайнер та засновник артпроєкту “Іді Нахуй”. Працює з темами спекулятивного дизайну та цифрового фольклору.</p>
+    </aside>
+
+  </div>
+</section>
+
+<!-- ── ЕКРАН 3: фото видання ── -->
+<section class="shots" id="shots">
+  <figure class="shot"><img src="assets/img/spread-01.jpg?v=2" alt="Зін PEEPING — обкладинка" loading="lazy"></figure>
+  <figure class="shot"><img src="assets/img/spread-02.jpg?v=2" alt="Зін PEEPING — титульна сторінка" loading="lazy"></figure>
+  <figure class="shot"><img src="assets/img/spread-03.jpg?v=2" alt="Зін PEEPING — розворот із гравюрою" loading="lazy"></figure>
+  <figure class="shot"><img src="assets/img/spread-04.jpg?v=2" alt="Зін PEEPING — вступний текст" loading="lazy"></figure>
+  <figure class="shot"><img src="assets/img/spread-05.jpg?v=2" alt="Зін PEEPING — розворот: чуже листування" loading="lazy"></figure>
+  <figure class="shot"><img src="assets/img/spread-06.jpg?v=2" alt="Зін PEEPING — розворот: гра в слова" loading="lazy"></figure>
+  <figure class="shot"><img src="assets/img/spread-07.jpg?v=2" alt="Зін PEEPING — розворот: відео у стрічці" loading="lazy"></figure>
+  <figure class="shot"><img src="assets/img/spread-08.jpg?v=2" alt="Зін PEEPING — розворот: музичний плеєр" loading="lazy"></figure>
+  <figure class="shot"><img src="assets/img/spread-09.jpg?v=2" alt="Зін PEEPING — розворот: пост у стрічці" loading="lazy"></figure>
+</section>
+
+<footer class="foot">
+  <a href="https://www.instagram.com/idinahui.art/" target="_blank" rel="noopener">@idinahui.art</a>
+  <a href="https://www.idinahui.art/publishing/" target="_blank" rel="noopener">IDINAHUI PUBLISHING</a>
+</footer>
+
+<script type="importmap">
+{ "imports": { "three": "./vendor/three.module.js" } }
+</script>
+<script type="module" src="js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>PEEPING — an Intimate Publics zine</title>
+<meta name="description" content="«PEEPING» is the second zine in the Intimate Publics series. Photographs of strangers' screens in the Kyiv metro. Hristina Novykova × Volodymyr Khomenko.">
+<meta property="og:title" content="PEEPING — an Intimate Publics zine">
+<meta property="og:description" content="The second zine in the Intimate Publics series. Strangers' screens in the Kyiv metro.">
+<meta property="og:image" content="../assets/img/hero-render.jpg">
+<link rel="alternate" hreflang="uk" href="../">
+<link rel="alternate" hreflang="en" href="./">
+<link rel="alternate" hreflang="x-default" href="../">
+<link rel="stylesheet" href="../css/style.css">
+<script src="../js/lang.js"></script>
+</head>
+<body>
+
+<!-- ── background: scattered letters, recomposed on scroll ── -->
+<div class="letterfield" id="letterfield" aria-hidden="true"></div>
+
+<!-- ── SCREEN 1: 3D notepad ── -->
+<section class="hero" id="hero">
+  <div class="hero__sticky">
+
+    <nav class="lang" aria-label="Language">
+      <a href="../?lang=uk">UA</a>
+      <span class="lang__on">EN</span>
+    </nav>
+
+    <header class="buy">
+      <span class="buy__price">380₴</span>
+      <span class="buy__spec">A6, 40 pages</span>
+      <a class="buy__link" href="https://secure.wayforpay.com/button/be8d00dfb56c2" target="_blank" rel="noopener">buy</a>
+    </header>
+
+    <div class="stage" id="stage">
+      <canvas id="gl"></canvas>
+      <noscript><img src="../assets/img/hero-render.jpg" alt="PEEPING zine" class="stage__fallback"></noscript>
+    </div>
+
+    <div class="scrolldown" id="scrolldown">
+      <span>scroll down</span>
+      <svg viewBox="0 0 12 30" width="12" height="30" aria-hidden="true">
+        <path d="M6 1V27M1.2 22.2 6 28l4.8-5.8" fill="none" stroke="currentColor" stroke-width="1"/>
+      </svg>
+    </div>
+
+    <div class="loader" id="loader"><span></span></div>
+  </div>
+</section>
+
+<!-- ── SCREEN 2: texts ── -->
+<section class="read" id="read">
+  <div class="read__grid">
+
+    <div class="col col--a">
+      <p class="p-body">            «PEEPING» is the second zine in the Intimate Publics series. The series is devoted to the different forms intimacy takes in public space. The first zine, «Mama», was built on the messages Alyona sent her daughter from occupied Mariupol. The second — this one — on the screens of strangers in the metro. The third, planned for late 2026, will consist of epitaphs: gravestone poetry. Private correspondence, a phone screen, an inscription on a headstone: different media, but all of them push the private into the field of view of others.</p>
+
+      <p class="p-metro">The photographs in «PEEPING» were taken in the Kyiv metro, where the privacy of someone else's screen rests solely on a silent agreement not to look. Hristina Novykova deliberately breaks that agreement, recording whatever happens to fall into view: AI kittens wishing good morning, horoscopes about toxic women, someone's flirting in an online game, video sermons, audio porn. Each frame is a fragment of another person's everyday life; together they form an archive of the recurring images, plots and formats through which private life surfaces today.</p>
+
+      <p class="p-body">             These fragments rarely reveal anything exceptional. On the contrary, they show how far the intimate now exists through standardised cultural forms. The moment we try to live through or express our emotions, we reach for the ready-made formats that contemporary culture supplies: we forward each other memes, look for consolation in horoscopes that seem written personally for us, use standard sticker packs to convey vulnerability. The more personal an experience feels, the more often it turns out to be already packaged in a ready cultural template. That is why someone else's screen in the metro rarely reveals anything genuinely unique. Looking into it, we expect to see a secret, but most often we find a shared set of images and interfaces through which private life exists and is expressed today.</p>
+    </div>
+
+    <div class="col col--b">
+      <p class="p-body">          The title «PEEPING» refers to the historical practice of the peep show — an attraction built around a controlled act of looking in. The viewer was invited to peer through a small opening at a scene unavailable to everyone else. Access required physical proximity and a deliberate gesture of observation. In many cases such scenes were distinctly erotic, and it was precisely this tension between privacy and the desire to see the «forbidden» that became the key part of the experience.</p>
+
+      <p class="p-body">                 Turning the pages of the zine, the reader repeats the very gesture that made «PEEPING» possible — peeping. The edition does not hide that gesture; on the contrary, it makes it the subject of the conversation (or at least of some thought). Where the line between the private and the public runs — no idea, probably it is mobile and situational, redrawn each time in the act of peeping itself.</p>
+
+      <p class="p-metro">The photographs were taken without the consent of the people whose screens became the material. Names, faces and contacts have been erased, yet anonymisation only softens the ethical question, it does not remove it. This archive is selective by principle, and the one-sidedness of the gaze is a basic condition of such an edition — a condition we leave visible.</p>
+
+      <p class="p-credit">Photographs — Hristina Novykova, design — Volodymyr Khomenko.</p>
+    </div>
+
+    <aside class="col col--notes">
+      <span class="note__num">1</span>
+      <p class="note__txt">Already in the middle of the work we came across a similar publication — «#nyc» by Jeff Mermelstein, who spent years quietly photographing strangers' screens on the streets of New York. Luckily there is no monopoly on a device, and the context here is entirely different, so WHO GIVES A FUCK.</p>
+      <span class="note__num">2</span>
+      <p class="note__txt">Hristina Novykova (better known as Hristina Zhopa) is a photo artist and theatre director from Mariupol. The leading themes in her work are corporeality, sexuality, girlhood and mental health.</p>
+      <span class="note__num">3</span>
+      <p class="note__txt">Volodymyr Khomenko is a graphic designer and the founder of the art project “Idi Nahui”. He works with speculative design and digital folklore.</p>
+    </aside>
+
+  </div>
+</section>
+
+<!-- ── SCREEN 3: photographs of the edition ── -->
+<section class="shots" id="shots">
+  <figure class="shot"><img src="../assets/img/spread-01.jpg?v=2" alt="PEEPING zine — cover" loading="lazy"></figure>
+  <figure class="shot"><img src="../assets/img/spread-02.jpg?v=2" alt="PEEPING zine — title page" loading="lazy"></figure>
+  <figure class="shot"><img src="../assets/img/spread-03.jpg?v=2" alt="PEEPING zine — spread with an engraving" loading="lazy"></figure>
+  <figure class="shot"><img src="../assets/img/spread-04.jpg?v=2" alt="PEEPING zine — introductory text" loading="lazy"></figure>
+  <figure class="shot"><img src="../assets/img/spread-05.jpg?v=2" alt="PEEPING zine — spread: someone's chat" loading="lazy"></figure>
+  <figure class="shot"><img src="../assets/img/spread-06.jpg?v=2" alt="PEEPING zine — spread: a word game" loading="lazy"></figure>
+  <figure class="shot"><img src="../assets/img/spread-07.jpg?v=2" alt="PEEPING zine — spread: a video in a feed" loading="lazy"></figure>
+  <figure class="shot"><img src="../assets/img/spread-08.jpg?v=2" alt="PEEPING zine — spread: a music player" loading="lazy"></figure>
+  <figure class="shot"><img src="../assets/img/spread-09.jpg?v=2" alt="PEEPING zine — spread: a post in a feed" loading="lazy"></figure>
+</section>
+
+<footer class="foot">
+  <a href="https://www.instagram.com/idinahui.art/" target="_blank" rel="noopener">@idinahui.art</a>
+  <a href="https://www.idinahui.art/publishing/" target="_blank" rel="noopener">IDINAHUI PUBLISHING</a>
+</footer>
+
+<script type="importmap">
+{ "imports": { "three": "../vendor/three.module.js" } }
+</script>
+<script type="module" src="../js/main.js"></script>
+</body>
+</html>

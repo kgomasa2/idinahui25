@@ -13,7 +13,7 @@
     <!-- 3D у картках вантажимо паралельно з версткою, щоб постер змінявся одразу -->
     <link rel="modulepreload" href="/publishing/peeping3d/vendor/three.module.js">
     <link rel="modulepreload" href="/publishing/peeping3d/vendor/three.core.min.js">
-    <link rel="modulepreload" href="/publishing/peeping3d/js/notepad.js">
+    <link rel="modulepreload" href="/publishing/peeping3d/js/notepad.js?v=2">
     <link rel="preload" as="image" href="/publishing/mama/cover_zine.png">
 
     <style>
@@ -678,7 +678,7 @@
 
         /* ── PEEPING: блокнот із peeping-site, закритий ── */
         const peeping = async (canvas) => {
-            const { Notepad } = await import('/publishing/peeping3d/js/notepad.js');
+            const { Notepad } = await import('/publishing/peeping3d/js/notepad.js?v=2');
             let ready;
             const done = new Promise((res) => { ready = res; });
             const pad = new Notepad(canvas, { onReady: ready });

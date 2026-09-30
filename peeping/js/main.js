@@ -1,4 +1,4 @@
-import { Notepad, FLIPS } from './notepad.js';
+import { Notepad, FLIPS } from './notepad.js?v=2'; // ?v: браузери могли закешувати стару версію, що чекала import map
 import { LetterField } from './letters.js';
 import './shots.js';
 

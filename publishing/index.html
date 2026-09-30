@@ -10,10 +10,6 @@
    <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon/favicon-16x16.png">
    <link rel="shortcut icon" href="/assets/favicon/favicon.ico">
 
-    <script type="importmap">
-    { "imports": { "three": "/publishing/peeping3d/vendor/three.module.js" } }
-    </script>
-
     <!-- 3D у картках вантажимо паралельно з версткою, щоб постер змінявся одразу -->
     <link rel="modulepreload" href="/publishing/peeping3d/vendor/three.module.js">
     <link rel="modulepreload" href="/publishing/peeping3d/vendor/three.core.min.js">
@@ -608,7 +604,7 @@
 
             let scene;
             try {
-                const THREE = await import('three');
+                const THREE = await import('/publishing/peeping3d/vendor/three.module.js');
                 scene = await build(canvas, THREE);
             } catch (err) {
                 console.warn('3D недоступний (' + holderId + '):', err);

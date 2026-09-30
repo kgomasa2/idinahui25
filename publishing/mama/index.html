@@ -151,14 +151,6 @@
         }
     </style>
 
-    <script type="importmap">
-       {
-           "imports": {
-               "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
-               "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
-           }
-       }
-   </script>
 </head>
 
 <body class="relative min-h-screen w-full max-w-[100vw] flex flex-col md:block overflow-x-hidden box-border">
@@ -542,9 +534,10 @@
     </div>
 
     <script type="module">
-        import * as THREE from 'three';
-        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-        import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+        // Повні адреси (+esm) замість import map: деякі розширення браузера її ламають
+        import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/+esm';
+        import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/controls/OrbitControls.js/+esm';
+        import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/GLTFLoader.js/+esm';
 
         // --- 1. КНИЖКА ---
         const container = document.getElementById('scene-container');

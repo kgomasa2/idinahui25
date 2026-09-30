@@ -1323,11 +1323,11 @@
         function createScaffoldingStructure(x, z, roomIndex) {
             revolvingStage = new THREE.Group(); revolvingStage.position.set(x, 0, z);
             const platform = new THREE.Mesh(new THREE.CylinderGeometry(3.5, 3.5, 0.2, 32), surfaceMat({ color: 0x333333, roughness: 0.8, metalness: 0.5 }));
-            platform.position.y = 0.1; platform.receiveShadow = !LITE; revolvingStage.add(platform); collidableObjects.push({ box: new THREE.Box3().setFromObject(platform) });
+            platform.position.y = 0.1; platform.receiveShadow = !LITE; revolvingStage.add(platform);
             const structureGroup = new THREE.Group(); structureGroup.position.y = 0.2; const metalMat = surfaceMat({ color: 0xeeeeee, roughness: 0.2, metalness: 0.8 });
             const w = 4; const h = 3.5; const d = 4;
 
-            function addPipe(px, py, pz, height, axis) { const mesh = new THREE.Mesh(cachedPipeGeo, metalMat); mesh.position.set(px, py, pz); mesh.scale.set(1, height, 1); if (axis === 'z') mesh.rotation.x = Math.PI / 2; if (axis === 'x') mesh.rotation.z = Math.PI / 2; mesh.castShadow = !LITE; structureGroup.add(mesh); collidableObjects.push({ box: new THREE.Box3().setFromObject(mesh) }); }
+            function addPipe(px, py, pz, height, axis) { const mesh = new THREE.Mesh(cachedPipeGeo, metalMat); mesh.position.set(px, py, pz); mesh.scale.set(1, height, 1); if (axis === 'z') mesh.rotation.x = Math.PI / 2; if (axis === 'x') mesh.rotation.z = Math.PI / 2; mesh.castShadow = !LITE; structureGroup.add(mesh); }
             function addJoint(jx, jy, jz) { const mesh = new THREE.Mesh(cachedJointGeo, metalMat); mesh.position.set(jx, jy, jz); structureGroup.add(mesh); }
             addPipe(-w / 2, h / 2, -d / 2, h, 'y'); addPipe(w / 2, h / 2, -d / 2, h, 'y'); addPipe(-w / 2, h / 2, d / 2, h, 'y'); addPipe(w / 2, h / 2, d / 2, h, 'y');
             const levels = [0.2, h - 0.2]; levels.forEach(lev => { addPipe(0, lev, -d / 2, w, 'x'); addPipe(0, lev, d / 2, w, 'x'); addPipe(-w / 2, lev, 0, d, 'z'); addPipe(w / 2, lev, 0, d, 'z'); });
@@ -1346,6 +1346,10 @@
             mountPoster(w2 / 2, posterCenterY, 0, -Math.PI / 2, topPipeLevel, SCAFFOLD_WORK_ID);
             revolvingStage.add(structureGroup);
             addToRoom(revolvingStage, roomIndex);
+            // Риштування обертається, тож колізія — один квадрат навколо кола, яке описують кути.
+            // Раніше кожна труба рахувалась у локальних координатах, і невидимі стовпчики стояли посеред першої зали.
+            const reach = Math.hypot(w / 2, d / 2) + 0.1;
+            collidableObjects.push({ box: new THREE.Box3(new THREE.Vector3(x - reach, 0, z - reach), new THREE.Vector3(x + reach, 0.2 + h, z + reach)) });
         }
 
         // --- 3D MODELS ---

@@ -409,6 +409,11 @@
             border: none;
             outline: none;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            transition: opacity 0.25s;
+        }
+
+        #modal-img.is-loading {
+            opacity: 0;
         }
 
         .no-image {
@@ -663,21 +668,13 @@
             }
         }
     </script>
+    <link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js">
+    <link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/GLTFLoader.js">
+    <link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/controls/PointerLockControls.js">
+    <link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/libs/meshopt_decoder.module.js">
 </head>
 
 <body>
-    <script>
-        // --- OPTIMIZATION FLAGS ---
-        window.isLowEnd = false;
-        if (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4) {
-            window.isLowEnd = true;
-            console.log("Low-end device detected (CPU Cores). Optimizing...");
-        }
-
-        const isMobileCheck = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-        if (isMobileCheck) window.isLowEnd = true; 
-    </script>
-
     <div id="cursor"></div>
     <div id="sit-hint">Натисни <span class="key">C</span> щоб сісти</div>
     <div id="info-btn">i</div>
@@ -756,14 +753,13 @@
     <div id="view-btn">VIEW</div>
 
     <audio id="bgMusic" loop preload="none">
-        <source src="assets/song.mp3" type="audio/mpeg">
+        <source src="assets/g25/song.mp3?v=1" type="audio/mpeg">
     </audio>
 
-    <video id="video1" loop crossOrigin="anonymous" playsinline style="display:none" muted preload="none">
-        <source data-src="assets/video1.mp4" type="video/mp4">
-    </video>
+    <!-- video1 (кінозал) отримує src лише на підході до кінозалу -->
+    <video id="video1" loop crossOrigin="anonymous" playsinline style="display:none" muted preload="none"></video>
     <video id="video2" loop crossOrigin="anonymous" playsinline style="display:none" muted preload="metadata">
-        <source src="assets/video2.mp4" type="video/mp4">
+        <source src="assets/g25/video2.mp4?v=1" type="video/mp4">
     </video>
 
     <div id="artwork-modal">
@@ -832,10 +828,8 @@
     <script type="module">
         import * as THREE from 'three';
         import { PointerLockControls } from 'three/addons/controls/PointerLockControls.js';
-        import { RectAreaLightUniformsLib } from 'three/addons/lights/RectAreaLightUniformsLib.js';
         import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-        import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
-        import { KTX2Loader } from 'three/addons/loaders/KTX2Loader.js';
+        import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 
         // --- DATABASE OF ARTWORKS ---
         const ARTWORK_DB = {
@@ -904,12 +898,10 @@
             63: { artist: "KESER1", handle: "keser.one" },
             64: { artist: "Віталік Леопар", handle: "vitleo" },
             65: { artist: "tanchik", handle: "demishkan.t" },
-            // UPDATED MOBILE POSTERS
-            66: { title: "Artwork #66" }, 67: { title: "Artwork #67" },
+            // 66, 67 і 78 — порожні номери, файлів для них немає
             68: { artist: "Volodymyr Khomenko", handle: "adult.xoma" },
             69: { artist: "Sofiia Markova", handle: "sofiia_markova_" },
             70: { artist: "Максим Неживий", handle: "nejuwuimaxim" },
-
             71: { artist: "Denys Zhuk", handle: "zhucccci" },
             72: { artist: "Богдан", handle: "xdout228" },
             73: { artist: "Volodymyr Khomenko", handle: "adult.xoma" },
@@ -917,11 +909,12 @@
             75: { artist: "Vladyslav Krasnoshchok", handle: "vkrasnmuseum" },
             76: { artist: "Olla Kuzovkina", handle: "olla.kuzovkina" },
             77: { title: "Ділдрон", artist: "pinkbrick_3d", handle: "pinkbrick_3d" },
-            78: { title: "Artwork #78" },
             79: { artist: "xfriscobluesx", handle: "xfriscobluesx" },
 
             80: { artist: "Віталік Леопардович", handle: "vitleo" }
         };
+        // Робота 80 завжди висить на риштуванні, решта розвішується по порядку номерів
+        const SCAFFOLD_WORK_ID = 80;
 
         const MODEL_DB = {
             '1.glb': { title: "Multidisciplinary independent artist", artist: "Volodymyr Khomenko", handle: "adult.xoma" },
@@ -936,11 +929,19 @@
 
         const CURTAIN_DATA = { artist: "Катя Дрозд", handle: "kkkaaattteee_ddd" };
 
-        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-        const isLowEnd = window.isLowEnd;
+        // --- ПРИСТРІЙ І ЯКІСТЬ ---
+        // iPadOS представляється як Mac, тому окремо ловимо «Mac» із сенсорним екраном
+        const isIPadOS = navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1;
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || isIPadOS;
+        // LITE: ті самі зали й роботи, але без тіней, з простішим світлом і матеріалами
+        const LITE = isMobile || (navigator.hardwareConcurrency > 0 && navigator.hardwareConcurrency <= 4);
+        // SMALL: менші текстури й відео, картини тримаються в памʼяті лише для сусідніх зал
+        const SMALL = isMobile;
 
-        // --- NEW LOGIC: Simplified View ---
-        const isSimplifiedView = isMobile || isLowEnd;
+        const ASSET_DIR = 'assets/g25/'; const ASSET_VERSION = '?v=1';
+        const asset = (path) => ASSET_DIR + path + ASSET_VERSION;
+        const wallUrl = (id) => asset(`${SMALL ? 'wall_m' : 'wall'}/image${id}.webp`);
+        const fullUrl = (id) => asset(`full/image${id}.webp`);
 
         if (isMobile) {
             const titles = document.querySelectorAll('.title-font');
@@ -949,10 +950,8 @@
                     t.innerHTML = '“ІДІ&nbsp; НАХУЙ”';
                 }
             });
-            document.getElementById('start-subtitle').innerText = "Для кращого досвіду радимо переглядати з комп’ютера";
+            document.getElementById('start-subtitle').innerText = "Ліва половина екрана — ходити, права — роззиратись. Тапни по роботі, щоб її роздивитись.";
         }
-
-        if (isSimplifiedView) { THREE.Cache.enabled = false; }
 
         // OPTIMIZATION: Async loading of Matter.js
         function loadMatterJS(callback) {
@@ -964,7 +963,7 @@
         }
 
         function initGravityBackground() {
-            if (isSimplifiedView) return;
+            if (isMobile) return;
 
             loadMatterJS(() => {
                 const Engine = Matter.Engine, Render = Matter.Render, Runner = Matter.Runner, Bodies = Matter.Bodies, Composite = Matter.Composite, Mouse = Matter.Mouse, Events = Matter.Events;
@@ -996,6 +995,9 @@
             });
         }
 
+        // --- LOADING SCREEN ---
+        // Екран завантаження чекає лише на першу залу. Решта (моделі, інші зали, відео)
+        // довантажується у фоні, поки людина читає стартовий екран і ходить.
         const loadStartTime = Date.now();
         const minLoadTime = 1500;
 
@@ -1004,187 +1006,152 @@
         const manager = new THREE.LoadingManager();
 
         function updateLoaderUI(percent) { progressFill.style.width = percent + '%'; angelLoader.style.left = percent + '%'; }
+        let loadingFinished = false;
         function finishLoading() {
+            if (loadingFinished) return;
+            loadingFinished = true;
             updateLoaderUI(100);
+            startBackgroundLoading();
             setTimeout(() => {
                 const loader = document.getElementById('loading-screen'); loader.style.opacity = 0;
                 setTimeout(() => {
                     loader.style.display = 'none'; document.getElementById('start-screen').style.display = 'flex';
                     initGravityBackground();
-                    if (isSimplifiedView) {
-                        checkRoomLoad(0);
-                    }
                 }, 800);
             }, 500);
         }
 
-        if (isSimplifiedView) {
-            let simPercent = 0;
-            const simInterval = setInterval(() => {
-                simPercent += 3; if (simPercent > 100) simPercent = 100; updateLoaderUI(simPercent);
-                if (simPercent >= 100) { clearInterval(simInterval); finishLoading(); }
-            }, 60);
-        } else {
-            manager.onProgress = function (item, loaded, total) { const rawPercent = (loaded / total) * 100; if (!isNaN(rawPercent)) updateLoaderUI(Math.round(rawPercent)); };
-            manager.onLoad = function () { const currentTime = Date.now(); const elapsedTime = currentTime - loadStartTime; const remainingTime = Math.max(0, minLoadTime - elapsedTime); setTimeout(finishLoading, remainingTime); };
-        }
+        manager.onProgress = function (item, loaded, total) { const rawPercent = (loaded / total) * 100; if (!isNaN(rawPercent)) updateLoaderUI(Math.round(rawPercent)); };
+        manager.onLoad = function () { const remainingTime = Math.max(0, minLoadTime - (Date.now() - loadStartTime)); setTimeout(finishLoading, remainingTime); };
+        // Якщо якийсь файл завис, не тримаємо людину на завантаженні вічно
+        setTimeout(finishLoading, 20000);
 
+        // --- RENDERER ---
         const scene = new THREE.Scene(); scene.background = new THREE.Color(0xffffff); scene.fog = new THREE.Fog(0xffffff, 5, 50);
-        RectAreaLightUniformsLib.init();
-        const aspect = window.innerWidth / window.innerHeight; const initialFov = aspect < 1 ? 95 : 70;
-        const camera = new THREE.PerspectiveCamera(initialFov, window.innerWidth / window.innerHeight, 0.1, 100); camera.position.set(0, 1.7, 8); camera.rotation.order = 'YXZ';
+        const baseFov = () => (window.innerWidth / window.innerHeight < 1 ? 95 : 70);
+        const sitFov = () => (window.innerWidth / window.innerHeight < 1 ? 60 : 40);
+        // far = 55: далі за туманом все одно суцільний білий, а дальні зали не малюються
+        const camera = new THREE.PerspectiveCamera(baseFov(), window.innerWidth / window.innerHeight, 0.1, 55); camera.position.set(0, 1.7, 8); camera.rotation.order = 'YXZ';
 
         const renderer = new THREE.WebGLRenderer({
-            antialias: !isSimplifiedView,
+            antialias: !LITE,
             powerPreference: "high-performance"
         });
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, LITE ? 1.25 : 1.5));
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.outputColorSpace = THREE.SRGBColorSpace;
         renderer.toneMapping = THREE.NoToneMapping;
-
-        const maxPixelRatio = isLowEnd ? 1.0 : 1.5;
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio, maxPixelRatio));
-
-        if (isSimplifiedView) {
-            renderer.shadowMap.enabled = false;
-        } else {
-            renderer.shadowMap.enabled = true;
-            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-        }
+        renderer.shadowMap.enabled = !LITE;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         document.body.appendChild(renderer.domElement);
+        const maxAnisotropy = Math.min(LITE ? 4 : 8, renderer.capabilities.getMaxAnisotropy());
+
+        if (!LITE) {
+            // Бібліотека RectAreaLight важка, тому на мобілці її взагалі не вантажимо
+            const { RectAreaLightUniformsLib } = await import('three/addons/lights/RectAreaLightUniformsLib.js');
+            RectAreaLightUniformsLib.init();
+        }
+
         const bgMusic = document.getElementById('bgMusic'); bgMusic.volume = 0.65;
 
-        // --- COMPRESSION LOADERS SETUP ---
-        const dracoLoader = new DRACOLoader();
-        // OPTIMIZATION: CDN
-        dracoLoader.setDecoderPath('https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/libs/draco/');
+        // --- MATERIALS ---
+        // На слабких пристроях Lambert замість PBR: стіни виглядають так само, а шейдер значно дешевший
+        function surfaceMat(params) {
+            if (!LITE) return new THREE.MeshStandardMaterial(params);
+            const { roughness, metalness, ...rest } = params;
+            return new THREE.MeshLambertMaterial(rest);
+        }
 
-        const ktx2Loader = new KTX2Loader();
-        // OPTIMIZATION: CDN
-        ktx2Loader.setTranscoderPath('https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/libs/basis/');
-        ktx2Loader.detectSupport(renderer);
+        const criticalLoader = new THREE.TextureLoader(manager);
+        const bgLoader = new THREE.TextureLoader();
 
-        const textureLoader = isSimplifiedView ? new THREE.TextureLoader() : new THREE.TextureLoader(manager);
-        const lazyLoader = new THREE.TextureLoader();
+        const concreteTex = criticalLoader.load(asset(SMALL ? 'floor_m.jpg' : 'floor.jpg'));
+        concreteTex.wrapS = concreteTex.wrapT = THREE.RepeatWrapping; concreteTex.repeat.set(10, 40); concreteTex.colorSpace = THREE.SRGBColorSpace; concreteTex.anisotropy = maxAnisotropy;
+        const drozdTex = criticalLoader.load('assets/drozd.jpg'); drozdTex.colorSpace = THREE.SRGBColorSpace;
 
-        const concreteTex = textureLoader.load('https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/plaster_grey_04/plaster_grey_04_diff_1k.jpg');
-        concreteTex.wrapS = concreteTex.wrapT = THREE.RepeatWrapping; concreteTex.repeat.set(10, 40); concreteTex.colorSpace = THREE.SRGBColorSpace;
-        const drozdTex = textureLoader.load('assets/drozd.jpg'); drozdTex.colorSpace = THREE.SRGBColorSpace;
-
-        const wallMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.5 });
-        const floorMat = new THREE.MeshStandardMaterial({ map: concreteTex, roughness: 0.8, color: 0xaaaaaa });
-        const darkWallMat = new THREE.MeshStandardMaterial({ color: 0x050505, roughness: 0.9 });
-        const darkFloorMat = new THREE.MeshStandardMaterial({ color: 0x020202, roughness: 0.9 });
-        const tvFrameMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.2 });
+        const PLACEHOLDER_COLOR = 0x888888;
+        const wallMat = surfaceMat({ color: 0xffffff, roughness: 0.5 });
+        const floorMat = surfaceMat({ map: concreteTex, roughness: 0.8, color: 0xaaaaaa });
+        const darkWallMat = surfaceMat({ color: 0x050505, roughness: 0.9 });
+        const darkFloorMat = surfaceMat({ color: 0x020202, roughness: 0.9 });
+        const tvFrameMat = surfaceMat({ color: 0x111111, roughness: 0.2 });
         const cableMat = new THREE.MeshBasicMaterial({ color: 0x000000 });
-        const benchMat = new THREE.MeshStandardMaterial({ color: 0xdddddd, roughness: 0.3 });
-        const mobilePosterMat = new THREE.MeshStandardMaterial({ color: 0xcccccc, roughness: 0.6, metalness: 0.1 });
-        const placeholderMat = new THREE.MeshStandardMaterial({ color: 0x888888, roughness: 0.8 });
-        const curtainDiscMat = new THREE.MeshStandardMaterial({ map: drozdTex, color: 0xffffff, roughness: 0.4, metalness: 0.1, side: THREE.DoubleSide, transparent: true, alphaTest: 0.5 });
-        const chainMat = new THREE.MeshStandardMaterial({ color: 0x888888, metalness: 0.9, roughness: 0.2 });
-        const discGeo = new THREE.CylinderGeometry(0.15, 0.15, 0.02, 32); discGeo.rotateZ(Math.PI / 2); discGeo.rotateX(Math.PI / 2);
+        const benchMat = surfaceMat({ color: 0xdddddd, roughness: 0.3 });
+        const curtainDiscMat = surfaceMat({ map: drozdTex, color: 0xffffff, roughness: 0.4, metalness: 0.1, side: THREE.DoubleSide, transparent: true, alphaTest: 0.5 });
+        const chainMat = surfaceMat({ color: 0x888888, metalness: 0.9, roughness: 0.2 });
+        const discGeo = new THREE.CylinderGeometry(0.15, 0.15, 0.02, LITE ? 16 : 32); discGeo.rotateZ(Math.PI / 2); discGeo.rotateX(Math.PI / 2);
         const ringGeo = new THREE.TorusGeometry(0.04, 0.008, 8, 16);
 
-        // --- LAZY VIDEO SETUP ---
+        // --- VIDEO ---
         const video1 = document.getElementById('video1');
         const video2 = document.getElementById('video2');
 
-        // Load placeholder image for Video 1 instead of video immediately
-        let videoTex1 = textureLoader.load('assets/share.jpg');
-        videoTex1.colorSpace = THREE.SRGBColorSpace;
+        // Поки не почалось відео кінозалу, на проєкціях висить заставка
+        const video1PosterTex = criticalLoader.load('assets/share.jpg');
+        video1PosterTex.colorSpace = THREE.SRGBColorSpace;
 
-        let videoTex2;
-        if (isSimplifiedView) {
-            const tvStaticTex = textureLoader.load('assets/for tv.jpeg');
-            tvStaticTex.colorSpace = THREE.SRGBColorSpace;
-            videoTex2 = tvStaticTex;
-        } else {
-            videoTex2 = new THREE.VideoTexture(video2);
-            videoTex2.colorSpace = THREE.SRGBColorSpace;
-        }
+        const videoTex2 = new THREE.VideoTexture(video2);
+        videoTex2.colorSpace = THREE.SRGBColorSpace;
 
         let isVideo1Loading = false;
+        let video1Tex = null;
         const video1Meshes = []; // To track screens showing video1
 
-        const collidableObjects = []; const clickableObjects = []; const postersArray = []; const roomPosters = {}; const roomStatus = {}; const roomGroups = {};
-        let revolvingStage = null; const animatedModels = []; const interactiveObjects = [];
-
-        let currentImageId = 1;
-        const totalImages = 80;
-
-        // DESKTOP LOGIC (kept for desktop)
-        function getNextImage() {
-            const id = currentImageId;
-            let wallUrl = `assets/small/image${id}.jpeg`;
-            let fullUrl = `assets/image${id}.jpeg`;
-
-            const meta = ARTWORK_DB[id] || { artist: "Unknown" };
-            const title = meta.title ? meta.title : "";
-
-            currentImageId++; if (currentImageId > totalImages) currentImageId = 1;
-            return { wallUrl, fullUrl, title, id, meta };
+        function attachVideo1() {
+            if (video1Tex) return;
+            video1Tex = new THREE.VideoTexture(video1);
+            video1Tex.colorSpace = THREE.SRGBColorSpace;
+            video1Meshes.forEach(mesh => {
+                mesh.material.map = video1Tex;
+                mesh.material.needsUpdate = true;
+            });
         }
+
+        function playVideo1() {
+            return video1.play().then(attachVideo1).catch(e => console.log("Video1 autoplay prevented", e));
+        }
+
+        // Відео кінозалу (найважчий файл) починає тягнутись, лише коли людина пройшла першу залу
+        function maybeLoadVideo1() {
+            if (isVideo1Loading || camera.position.z > -30) return;
+            isVideo1Loading = true;
+            video1.src = asset(isMobile ? 'video1_m.mp4' : 'video1.mp4');
+            video1.addEventListener('canplay', playVideo1, { once: true });
+            video1.load();
+        }
+
+        const collidableObjects = []; const clickableObjects = []; const occluders = []; const roomGroups = {};
+        let revolvingStage = null; const animatedModels = [];
 
         function addToRoom(object, roomIndex) {
             if (!roomGroups[roomIndex]) { roomGroups[roomIndex] = new THREE.Group(); scene.add(roomGroups[roomIndex]); }
             roomGroups[roomIndex].add(object);
         }
 
-        function addPoster(x, y, z, ry, w, h, roomIndex) {
-            const data = getNextImage();
-            const geo = new THREE.PlaneGeometry(w, h);
-
-            const tex = textureLoader.load(data.wallUrl, (t) => { t.colorSpace = THREE.SRGBColorSpace; });
-            const mat = new THREE.MeshStandardMaterial({ map: tex, color: 0xffffff, roughness: 0.4 });
-
-            const mesh = new THREE.Mesh(geo, mat);
-            mesh.position.set(x, y, z); mesh.rotation.y = ry;
-
-            mesh.userData = {
-                type: 'poster',
-                id: data.id,
-                url: data.fullUrl,
-                title: data.title,
-                artist: data.meta.artist,
-                handle: data.meta.handle,
-                extraLink: data.meta.extraLink,
-                customHTML: data.meta.customHTML
-            };
-
-            addToRoom(mesh, roomIndex);
-            postersArray.push(mesh);
-            clickableObjects.push(mesh);
+        // --- POSTERS ---
+        const WORK_IDS = Object.keys(ARTWORK_DB).map(Number).filter(id => id !== SCAFFOLD_WORK_ID).sort((a, b) => a - b);
+        let nextWorkIndex = 0;
+        function nextWorkId() {
+            const id = WORK_IDS[nextWorkIndex % WORK_IDS.length];
+            nextWorkIndex++;
+            return id;
         }
 
-        // --- MOBILE POSTER LOGIC ---
-        const validMobileIDs = [];
-        for (let i = 1; i <= 80; i++) {
-            if (i !== 66 && i !== 67 && i !== 78) {
-                validMobileIDs.push(i);
-            }
-        }
+        // Кожна картина: { mesh, room, id, state: 'idle' | 'loading' | 'loaded' }
+        const posters = [];
+        // Готові текстури віддаються на відеокарту по кілька за кадр, щоб не було ривка при вході в залу
+        const uploadQueue = [];
 
-        let mobilePosterIndex = 0;
-
-        function addMobilePoster(x, y, z, ry, w, h, roomIndex) {
-            const id = validMobileIDs[mobilePosterIndex];
-            mobilePosterIndex = (mobilePosterIndex + 1) % validMobileIDs.length;
-
-            const meta = ARTWORK_DB[id] || { artist: "" };
-
-            const wallUrl = `assets/small_mobile/image${id}.jpeg`;
-            const fullUrl = `assets/small/image${id}.jpeg`;
-
-            const geo = new THREE.PlaneGeometry(w, h);
-            const mat = placeholderMat.clone();
-
-            const mesh = new THREE.Mesh(geo, mat);
+        function makePoster(id, x, y, z, ry, w, h, roomIndex, parent = null, doubleSided = false) {
+            const meta = ARTWORK_DB[id] || {};
+            const mat = surfaceMat({ color: PLACEHOLDER_COLOR, roughness: 0.4, side: doubleSided ? THREE.DoubleSide : THREE.FrontSide });
+            const mesh = new THREE.Mesh(new THREE.PlaneGeometry(w, h), mat);
             mesh.position.set(x, y, z); mesh.rotation.y = ry;
 
             mesh.userData = {
                 type: 'poster',
                 id: id,
-                url: fullUrl,
+                url: fullUrl(id),
                 title: meta.title || "",
                 artist: meta.artist,
                 handle: meta.handle,
@@ -1192,69 +1159,81 @@
                 customHTML: meta.customHTML
             };
 
-            if (!roomPosters[roomIndex]) roomPosters[roomIndex] = [];
-            roomPosters[roomIndex].push({ mesh: mesh, material: mat, url: wallUrl });
-
-            if (roomIndex === 0) {
-                const onLoad = (t) => {
-                    t.colorSpace = THREE.SRGBColorSpace;
-                    mesh.material.map = t;
-                    mesh.material.color.setHex(0xffffff);
-                    mesh.material.needsUpdate = true;
-                };
-                lazyLoader.load(wallUrl, onLoad, undefined, () => {
-                    const fallback = wallUrl.replace('small_mobile', 'small');
-                    lazyLoader.load(fallback, onLoad);
-                });
-                roomStatus[0] = 'loaded';
-            }
-
-            addToRoom(mesh, roomIndex);
+            if (parent) parent.add(mesh); else addToRoom(mesh, roomIndex);
             clickableObjects.push(mesh);
+            posters.push({ mesh, room: roomIndex, id, state: 'idle' });
+            return mesh;
         }
 
-        function checkRoomLoad(currentRoom) {
-            if (!isSimplifiedView) return;
-            const keepLoaded = [currentRoom, currentRoom + 1];
-            for (let idx = 0; idx < 5; idx++) {
-                if (!keepLoaded.includes(idx) && roomStatus[idx] === 'loaded') { unloadRoomTextures(idx); }
+        function applyPosterTexture(poster, tex) {
+            const mat = poster.mesh.material;
+            if (mat.map && mat.map !== tex) mat.map.dispose();
+            mat.map = tex;
+            mat.color.setHex(0xffffff);
+            mat.needsUpdate = true;
+        }
+
+        function loadPoster(poster, loader = bgLoader, immediate = false) {
+            if (poster.state !== 'idle') return;
+            poster.state = 'loading';
+            loader.load(wallUrl(poster.id), (tex) => {
+                // Картину встигли вивантажити, поки вона летіла
+                if (poster.state !== 'loading') { tex.dispose(); return; }
+                tex.colorSpace = THREE.SRGBColorSpace;
+                tex.anisotropy = maxAnisotropy;
+                poster.state = 'loaded';
+                if (immediate) applyPosterTexture(poster, tex); else uploadQueue.push({ poster, tex });
+            }, undefined, () => { poster.state = 'idle'; });
+        }
+
+        function unloadPoster(poster) {
+            if (poster.state === 'loading') { poster.state = 'idle'; return; }
+            if (poster.state !== 'loaded') return;
+            poster.state = 'idle';
+            const mat = poster.mesh.material;
+            if (mat.map) { mat.map.dispose(); mat.map = null; }
+            mat.color.setHex(PLACEHOLDER_COLOR);
+            mat.needsUpdate = true;
+        }
+
+        function processUploads() {
+            let budget = LITE ? 2 : 4;
+            while (budget > 0 && uploadQueue.length) {
+                const { poster, tex } = uploadQueue.shift();
+                if (poster.state !== 'loaded') { tex.dispose(); continue; }
+                renderer.initTexture(tex);
+                applyPosterTexture(poster, tex);
+                budget--;
             }
-            keepLoaded.forEach(idx => {
-                if (idx >= 0 && idx < 5 && roomStatus[idx] !== 'loaded') { loadRoomTextures(idx); }
+        }
+
+        // На десктопі вантажимо все, ближчі зали першими.
+        // На мобілці в памʼяті лише поточна зала і дві сусідні, решта звільняється.
+        function updatePosterWindow(currentRoom) {
+            const byDistance = posters.slice().sort((a, b) => Math.abs(a.room - currentRoom) - Math.abs(b.room - currentRoom));
+            byDistance.forEach(poster => {
+                if (!SMALL || Math.abs(poster.room - currentRoom) <= 1) loadPoster(poster);
+                else unloadPoster(poster);
             });
         }
 
-        function loadRoomTextures(roomIdx) {
-            if (!roomPosters[roomIdx]) return;
-            roomStatus[roomIdx] = 'loaded';
-            roomPosters[roomIdx].forEach(item => {
-                if (item.material.map) return;
-                const onLoad = (tex) => {
-                    tex.colorSpace = THREE.SRGBColorSpace;
-                    item.material.map = tex;
-                    item.material.color.setHex(0xffffff);
-                    item.material.needsUpdate = true;
-                };
-                const onError = () => {
-                    if (item.url.includes('small_mobile')) {
-                        const fallbackUrl = item.url.replace('small_mobile', 'small');
-                        lazyLoader.load(fallbackUrl, onLoad);
-                    }
-                };
-                lazyLoader.load(item.url, onLoad, undefined, onError);
-            });
+        const prefetched = new Set();
+        function prefetchFull(url) {
+            if (!url || prefetched.has(url)) return;
+            prefetched.add(url);
+            const img = new Image(); img.decoding = 'async'; img.src = url;
         }
 
-        function unloadRoomTextures(roomIdx) { if (!roomPosters[roomIdx]) return; roomStatus[roomIdx] = 'unloaded'; roomPosters[roomIdx].forEach(item => { if (item.material.map) { item.material.map.dispose(); item.material.map = null; } item.material.color.setHex(0x888888); item.material.needsUpdate = true; }); }
-
+        // --- BUILDING BLOCKS ---
         function createBox(x, y, z, w, h, d, isWall = true, isDark = false, customMat = null, roomIndex) {
             let mat = customMat ? customMat : (isDark ? (isWall ? darkWallMat : darkFloorMat) : (isWall ? wallMat : floorMat));
             const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat); mesh.position.set(x, y, z);
-            mesh.receiveShadow = !isSimplifiedView;
+            mesh.receiveShadow = !LITE;
             if (isWall) {
-                if (w > 1 && h > 1 && !isSimplifiedView) mesh.castShadow = true;
+                if (w > 1 && h > 1 && !LITE) mesh.castShadow = true;
                 mesh.updateMatrixWorld();
                 collidableObjects.push({ box: new THREE.Box3().setFromObject(mesh) });
+                occluders.push(mesh);
             }
             addToRoom(mesh, roomIndex);
         }
@@ -1281,11 +1260,11 @@
             const tvTopY = tvY + (tvH / 2); const cableLen = ceilingHeight - tvTopY; const cableGeo = new THREE.CylinderGeometry(0.01, 0.01, cableLen > 0 ? cableLen : 0.1); cableGeo.translate(0, cableLen / 2, 0);
             const c1 = new THREE.Mesh(cableGeo, cableMat); c1.position.set(-tvW * 0.3, tvH / 2, 0); tv.add(c1);
             const c2 = new THREE.Mesh(cableGeo, cableMat); c2.position.set(tvW * 0.3, tvH / 2, 0); tv.add(c2);
-            if (!isSimplifiedView) { const screenLight = new THREE.PointLight(0xffffff, 2.0, 4.0); screenLight.position.set(0, 0, 1.0); tv.add(screenLight); }
+            if (!LITE) { const screenLight = new THREE.PointLight(0xffffff, 2.0, 4.0); screenLight.position.set(0, 0, 1.0); tv.add(screenLight); }
         }
 
-        function createProjection(x, y, z, w, h, rotationY, texture, roomIndex) {
-            const mesh = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshBasicMaterial({ map: texture, side: THREE.DoubleSide }));
+        function createProjection(x, y, z, w, h, rotationY, roomIndex) {
+            const mesh = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshBasicMaterial({ map: video1PosterTex, side: THREE.DoubleSide }));
             mesh.position.set(x, y, z); mesh.rotation.y = rotationY;
 
             mesh.userData = {
@@ -1304,17 +1283,12 @@
 
             addToRoom(mesh, roomIndex);
             clickableObjects.push(mesh);
+            video1Meshes.push(mesh);
 
-            // LAZY LOAD: Track if this projection uses video1
-            if (texture === videoTex1) {
-                video1Meshes.push(mesh);
-            }
-
-            if (!isSimplifiedView) { const light = new THREE.PointLight(0xaaaaff, 30, 25); light.position.set(x + Math.sin(rotationY), y, z + Math.cos(rotationY)); addToRoom(light, roomIndex); }
+            if (!LITE) { const light = new THREE.PointLight(0xaaaaff, 30, 25); light.position.set(x + Math.sin(rotationY), y, z + Math.cos(rotationY)); addToRoom(light, roomIndex); }
         }
 
         function createCurtain(x, z, roomIndex) {
-            if (isSimplifiedView) return;
             const curtainGroup = new THREE.Group(); const headerHeight = 3.5; curtainGroup.position.set(x, headerHeight, z);
             const doorWidth = 4; const strands = 9; const spacing = doorWidth / strands;
             const topRingGeo = new THREE.TorusGeometry(0.04, 0.008, 8, 16); topRingGeo.rotateX(Math.PI / 2);
@@ -1348,66 +1322,69 @@
 
         function createScaffoldingStructure(x, z, roomIndex) {
             revolvingStage = new THREE.Group(); revolvingStage.position.set(x, 0, z);
-            if (!isSimplifiedView) { // Only standard desktop
-                const platform = new THREE.Mesh(new THREE.CylinderGeometry(3.5, 3.5, 0.2, 32), new THREE.MeshStandardMaterial({ color: 0x333333, roughness: 0.8, metalness: 0.5 }));
-                platform.position.y = 0.1; platform.receiveShadow = !isSimplifiedView; revolvingStage.add(platform); collidableObjects.push({ box: new THREE.Box3().setFromObject(platform) });
-                const structureGroup = new THREE.Group(); structureGroup.position.y = 0.2; const metalMat = new THREE.MeshStandardMaterial({ color: 0xeeeeee, roughness: 0.2, metalness: 0.8 });
-                const w = 4; const h = 3.5; const d = 4;
+            const platform = new THREE.Mesh(new THREE.CylinderGeometry(3.5, 3.5, 0.2, 32), surfaceMat({ color: 0x333333, roughness: 0.8, metalness: 0.5 }));
+            platform.position.y = 0.1; platform.receiveShadow = !LITE; revolvingStage.add(platform); collidableObjects.push({ box: new THREE.Box3().setFromObject(platform) });
+            const structureGroup = new THREE.Group(); structureGroup.position.y = 0.2; const metalMat = surfaceMat({ color: 0xeeeeee, roughness: 0.2, metalness: 0.8 });
+            const w = 4; const h = 3.5; const d = 4;
 
-                function addPipe(px, py, pz, height, axis) { const mesh = new THREE.Mesh(cachedPipeGeo, metalMat); mesh.position.set(px, py, pz); mesh.scale.set(1, height, 1); if (axis === 'z') mesh.rotation.x = Math.PI / 2; if (axis === 'x') mesh.rotation.z = Math.PI / 2; mesh.castShadow = !isLowEnd; structureGroup.add(mesh); collidableObjects.push({ box: new THREE.Box3().setFromObject(mesh) }); }
-                function addJoint(jx, jy, jz) { const mesh = new THREE.Mesh(cachedJointGeo, metalMat); mesh.position.set(jx, jy, jz); structureGroup.add(mesh); }
-                addPipe(-w / 2, h / 2, -d / 2, h, 'y'); addPipe(w / 2, h / 2, -d / 2, h, 'y'); addPipe(-w / 2, h / 2, d / 2, h, 'y'); addPipe(w / 2, h / 2, d / 2, h, 'y');
-                const levels = [0.2, h - 0.2]; levels.forEach(lev => { addPipe(0, lev, -d / 2, w, 'x'); addPipe(0, lev, d / 2, w, 'x'); addPipe(-w / 2, lev, 0, d, 'z'); addPipe(w / 2, lev, 0, d, 'z'); });
-                const cornersX = [-w / 2, w / 2]; const cornersZ = [-d / 2, d / 2]; levels.forEach(lev => { cornersX.forEach(cx => { cornersZ.forEach(cz => { addJoint(cx, lev, cz); }); }); });
+            function addPipe(px, py, pz, height, axis) { const mesh = new THREE.Mesh(cachedPipeGeo, metalMat); mesh.position.set(px, py, pz); mesh.scale.set(1, height, 1); if (axis === 'z') mesh.rotation.x = Math.PI / 2; if (axis === 'x') mesh.rotation.z = Math.PI / 2; mesh.castShadow = !LITE; structureGroup.add(mesh); collidableObjects.push({ box: new THREE.Box3().setFromObject(mesh) }); }
+            function addJoint(jx, jy, jz) { const mesh = new THREE.Mesh(cachedJointGeo, metalMat); mesh.position.set(jx, jy, jz); structureGroup.add(mesh); }
+            addPipe(-w / 2, h / 2, -d / 2, h, 'y'); addPipe(w / 2, h / 2, -d / 2, h, 'y'); addPipe(-w / 2, h / 2, d / 2, h, 'y'); addPipe(w / 2, h / 2, d / 2, h, 'y');
+            const levels = [0.2, h - 0.2]; levels.forEach(lev => { addPipe(0, lev, -d / 2, w, 'x'); addPipe(0, lev, d / 2, w, 'x'); addPipe(-w / 2, lev, 0, d, 'z'); addPipe(w / 2, lev, 0, d, 'z'); });
+            const cornersX = [-w / 2, w / 2]; const cornersZ = [-d / 2, d / 2]; levels.forEach(lev => { cornersX.forEach(cx => { cornersZ.forEach(cz => { addJoint(cx, lev, cz); }); }); });
 
-                function mountPoster(px, py, pz, ry, width, height, pipeYLevel, specificUrl = null) {
-                    let data;
-                    if (specificUrl) { data = { wallUrl: specificUrl, fullUrl: specificUrl, meta: ARTWORK_DB[80], id: 80 }; }
-                    else { data = getNextImage(); }
-
-                    const mat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.4, side: THREE.DoubleSide });
-                    const tex = textureLoader.load(data.wallUrl, (t) => { t.colorSpace = THREE.SRGBColorSpace; mat.map = t; mat.needsUpdate = true; });
-                    const mesh = new THREE.Mesh(new THREE.PlaneGeometry(2.0, 2.5), mat); mesh.position.set(px, py, pz); mesh.rotation.y = ry;
-                    const stringMat = new THREE.LineBasicMaterial({ color: 0x111111 }); const topOfPosterY = 2.5 / 2; const distToPipe = (pipeYLevel - 0.05) - (py + topOfPosterY);
-                    const pointsL = [new THREE.Vector3(-1 + 0.15, topOfPosterY, 0), new THREE.Vector3(-1 + 0.15, topOfPosterY + distToPipe, 0)]; const pointsR = [new THREE.Vector3(1 - 0.15, topOfPosterY, 0), new THREE.Vector3(1 - 0.15, topOfPosterY + distToPipe, 0)];
-                    mesh.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pointsL), stringMat)); mesh.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pointsR), stringMat));
-
-                    mesh.userData = {
-                        type: 'poster',
-                        url: data.fullUrl,
-                        title: data.meta.title || "",
-                        artist: data.meta.artist,
-                        handle: data.meta.handle,
-                        customHTML: data.meta.customHTML
-                    };
-                    revolvingStage.add(mesh); postersArray.push(mesh); clickableObjects.push(mesh);
-                }
-                const topPipeLevel = 3.3; const posterCenterY = 3.5 / 2; const d2 = 4; const w2 = 4;
-                mountPoster(0, posterCenterY, d2 / 2, 0, 2, 2.5, topPipeLevel); mountPoster(-w2 / 2, posterCenterY, 0, Math.PI / 2, 2, 2.5, topPipeLevel); mountPoster(0, posterCenterY, -d2 / 2, Math.PI, 2.5, 1.8, topPipeLevel); mountPoster(w2 / 2, posterCenterY, 0, -Math.PI / 2, 2, 2.5, topPipeLevel, 'assets/image80.jpeg');
-                revolvingStage.add(structureGroup);
+            function mountPoster(px, py, pz, ry, pipeYLevel, id) {
+                const mesh = makePoster(id, px, py, pz, ry, 2.0, 2.5, roomIndex, revolvingStage, true);
+                const stringMat = new THREE.LineBasicMaterial({ color: 0x111111 }); const topOfPosterY = 2.5 / 2; const distToPipe = (pipeYLevel - 0.05) - (py + topOfPosterY);
+                const pointsL = [new THREE.Vector3(-1 + 0.15, topOfPosterY, 0), new THREE.Vector3(-1 + 0.15, topOfPosterY + distToPipe, 0)]; const pointsR = [new THREE.Vector3(1 - 0.15, topOfPosterY, 0), new THREE.Vector3(1 - 0.15, topOfPosterY + distToPipe, 0)];
+                mesh.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pointsL), stringMat)); mesh.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pointsR), stringMat));
             }
+            const topPipeLevel = 3.3; const posterCenterY = 3.5 / 2; const d2 = 4; const w2 = 4;
+            mountPoster(0, posterCenterY, d2 / 2, 0, topPipeLevel, nextWorkId());
+            mountPoster(-w2 / 2, posterCenterY, 0, Math.PI / 2, topPipeLevel, nextWorkId());
+            mountPoster(0, posterCenterY, -d2 / 2, Math.PI, topPipeLevel, nextWorkId());
+            mountPoster(w2 / 2, posterCenterY, 0, -Math.PI / 2, topPipeLevel, SCAFFOLD_WORK_ID);
+            revolvingStage.add(structureGroup);
             addToRoom(revolvingStage, roomIndex);
         }
 
-        function fixMaterial(object) { object.traverse((child) => { if (child.isMesh) { if (!isSimplifiedView) child.castShadow = true; child.receiveShadow = !isSimplifiedView; if (child.material) { child.material.metalness = 0; child.material.roughness = 0.8; } } }); }
+        // --- 3D MODELS ---
+        // Стиснені моделі (meshopt + WebP): 26 МБ → ~3 МБ, для мобілки ще й менші текстури
+        function fixMaterial(object) {
+            object.traverse((child) => {
+                if (!child.isMesh) return;
+                child.castShadow = !LITE; child.receiveShadow = !LITE;
+                const old = child.material;
+                if (!old || Array.isArray(old)) return;
+                if (LITE) {
+                    child.material = new THREE.MeshLambertMaterial({ map: old.map, color: old.color, vertexColors: old.vertexColors, transparent: old.transparent, alphaTest: old.alphaTest, side: old.side });
+                    old.dispose();
+                } else {
+                    old.metalness = 0; old.roughness = 0.8;
+                }
+            });
+        }
+
+        function createGLTFLoader() {
+            const loader = new GLTFLoader();
+            loader.setMeshoptDecoder(MeshoptDecoder);
+            return loader;
+        }
+        const modelUrl = (filename) => asset((SMALL ? '3d_m/' : '3d/') + filename);
 
         const modelFiles = ['1.glb', '2.glb', '3.glb', '4.glb', '5.glb', '6.glb', '8.glb'];
 
         function loadAllModels(roomCenterX, roomCenterZ, roomIndex) {
-            // Setup GLTFLoader with DRACO
-            const gltfLoader = new GLTFLoader(manager);
-            gltfLoader.setDRACOLoader(dracoLoader);
-            gltfLoader.setKTX2Loader(ktx2Loader);
+            const gltfLoader = createGLTFLoader();
 
             modelFiles.forEach((filename, index) => {
                 const angle = (index / modelFiles.length) * Math.PI * 2;
                 const radius = 5;
                 const offsetX = Math.cos(angle) * radius; const offsetZ = Math.sin(angle) * radius;
-                const fullPath = `assets/3d/${filename}`;
 
                 const meta = MODEL_DB[filename];
 
-                gltfLoader.load(fullPath, (gltf) => {
+                gltfLoader.load(modelUrl(filename), (gltf) => {
                     const object = gltf.scene;
                     fixMaterial(object);
 
@@ -1434,9 +1411,7 @@
                     addToRoom(object, roomIndex); collidableObjects.push({ box: new THREE.Box3().setFromObject(object) }); clickableObjects.push(object);
 
                     if (filename === '6.glb') {
-                        const loader9 = new GLTFLoader();
-                        loader9.setDRACOLoader(dracoLoader); // Also for sub-loads
-                        loader9.load('assets/3d/9.glb', (gltf9) => {
+                        gltfLoader.load(modelUrl('9.glb'), (gltf9) => {
                             const obj9 = gltf9.scene; fixMaterial(obj9); obj9.userData = object.userData;
                             const smallScale = (((1.9 / 4.0) * 1.4) / 3.0) * 1.5; obj9.scale.set(smallScale, smallScale, smallScale); obj9.rotation.set(0, 0, 0); animatedModels.push(obj9);
                             const box6 = new THREE.Box3().setFromObject(object); const topY = box6.max.y; obj9.updateMatrixWorld(); const box9 = new THREE.Box3().setFromObject(obj9); const heightOffset9 = -box9.min.y;
@@ -1444,15 +1419,14 @@
                             addToRoom(obj9, roomIndex); clickableObjects.push(obj9);
                         });
                     }
-                }, undefined, (e) => { console.error("Model fail", filename); });
+                }, undefined, (e) => { console.error("Model fail", filename, e); });
             });
         }
 
         function createHangingModel7(x, z, roomCeiling, roomIndex) {
-            const gltfLoader = new GLTFLoader(manager);
-            gltfLoader.setDRACOLoader(dracoLoader);
+            const gltfLoader = createGLTFLoader();
             const meta = MODEL_DB['7.glb'];
-            gltfLoader.load('assets/3d/7.glb', (gltf) => {
+            gltfLoader.load(modelUrl('7.glb'), (gltf) => {
                 const object = gltf.scene; fixMaterial(object); object.scale.set(1.4, 1.4, 1.4); object.rotation.set(0, 0, 0); const hangY = 3.0; object.position.set(x, hangY, z);
                 object.userData = {
                     type: 'sculpture',
@@ -1462,125 +1436,101 @@
                 };
                 addToRoom(object, roomIndex); collidableObjects.push({ box: new THREE.Box3().setFromObject(object) }); clickableObjects.push(object);
                 const cableLen = roomCeiling - hangY; const cableGeo = new THREE.CylinderGeometry(0.01, 0.01, cableLen); cableGeo.translate(0, cableLen / 2, 0); const cable = new THREE.Mesh(cableGeo, cableMat); cable.position.set(x, hangY, z); addToRoom(cable, roomIndex);
-            });
+            }, undefined, (e) => { console.error("Model fail", '7.glb', e); });
         }
 
         // --- WORLD GENERATION ---
-        const roomsCount = isSimplifiedView ? 4 : 5;
-        const roomSize = 20; const roomHeight = 6; const whiteFloorL = roomSize * (roomsCount - (isSimplifiedView ? 0 : 1));
-        const floor1 = new THREE.Mesh(new THREE.PlaneGeometry(roomSize, whiteFloorL), floorMat); floor1.rotation.x = -Math.PI / 2; floor1.position.z = -whiteFloorL / 2 + roomSize / 2; floor1.receiveShadow = !isSimplifiedView; scene.add(floor1);
-        const zLastRoom = -((roomsCount - 1) * roomSize); let benchPosition = new THREE.Vector3(0, -9999, 0);
-        if (!isSimplifiedView) { const floor2 = new THREE.Mesh(new THREE.PlaneGeometry(roomSize, roomSize), darkFloorMat); floor2.rotation.x = -Math.PI / 2; floor2.position.z = zLastRoom; scene.add(floor2); }
+        // Однакова для всіх пристроїв: 4 білі зали + кінозал.
+        // 0: телевізор · 1: скульптури · 2: риштування, що обертається · 3: телевізор і завіса · 4: кінозал з лавкою
+        const roomsCount = 5; const sculptureRoom = 1;
+        const roomSize = 20; const roomHeight = 6; const whiteFloorL = roomSize * (roomsCount - 1);
+        const floor1 = new THREE.Mesh(new THREE.PlaneGeometry(roomSize, whiteFloorL), floorMat); floor1.rotation.x = -Math.PI / 2; floor1.position.z = -whiteFloorL / 2 + roomSize / 2; floor1.receiveShadow = !LITE; scene.add(floor1);
+        const zLastRoom = -((roomsCount - 1) * roomSize); const benchPosition = new THREE.Vector3(0, -9999, 0);
+        const floor2 = new THREE.Mesh(new THREE.PlaneGeometry(roomSize, roomSize), darkFloorMat); floor2.rotation.x = -Math.PI / 2; floor2.position.z = zLastRoom; scene.add(floor2);
+
+        const sidePosterW = 2.6; const sidePosterH = 3.25; const endPosterW = 2.2; const endPosterH = 2.75; const posterY = 2.7;
+
+        // Стіна з дверима: по дві роботи з кожного боку від проходу (або по одній, якщо pair = false)
+        function hangEndWall(z, ry, roomIndex, pair) {
+            const offsets = pair ? [-1.3, 1.3] : [0];
+            [-6, 6].forEach(cx => offsets.forEach(dx => makePoster(nextWorkId(), cx + dx, posterY, z, ry, endPosterW, endPosterH, roomIndex)));
+        }
 
         for (let i = 0; i < roomsCount; i++) {
             const zCenter = -(i * roomSize);
             const isLastRoom = (i === roomsCount - 1);
-            const useDarkMaterials = (!isSimplifiedView && isLastRoom);
 
-            if (!useDarkMaterials) {
-                if (isSimplifiedView) { const roomLight = new THREE.PointLight(0xffffff, 1.5, 25); roomLight.position.set(0, 5, zCenter); addToRoom(roomLight, i); }
+            if (!isLastRoom) {
+                if (LITE) { const roomLight = new THREE.PointLight(0xffffff, 1.5, 25); roomLight.position.set(0, 5, zCenter); addToRoom(roomLight, i); }
                 else { const rectLightLeft = new THREE.RectAreaLight(0xffffff, 6.0, roomSize - 2, 0.5); rectLightLeft.position.set(-8, 5.5, zCenter); rectLightLeft.lookAt(-20, 1, zCenter); addToRoom(rectLightLeft, i); const rectLightRight = new THREE.RectAreaLight(0xffffff, 6.0, roomSize - 2, 0.5); rectLightRight.position.set(8, 5.5, zCenter); rectLightRight.lookAt(20, 1, zCenter); addToRoom(rectLightRight, i); const fillLight = new THREE.PointLight(0xffffff, 2, 20); fillLight.position.set(0, 5, zCenter); addToRoom(fillLight, i); }
             }
 
-            createBox(-roomSize / 2, roomHeight / 2, zCenter, 0.5, roomHeight, roomSize, true, useDarkMaterials, null, i);
-            createBox(roomSize / 2, roomHeight / 2, zCenter, 0.5, roomHeight, roomSize, true, useDarkMaterials, null, i);
+            createBox(-roomSize / 2, roomHeight / 2, zCenter, 0.5, roomHeight, roomSize, true, isLastRoom, null, i);
+            createBox(roomSize / 2, roomHeight / 2, zCenter, 0.5, roomHeight, roomSize, true, isLastRoom, null, i);
 
-            if (!useDarkMaterials) { const ceiling = new THREE.Mesh(new THREE.PlaneGeometry(roomSize, roomSize), wallMat); ceiling.rotation.x = Math.PI / 2; ceiling.position.set(0, roomHeight, zCenter); addToRoom(ceiling, i); }
+            const ceiling = new THREE.Mesh(new THREE.PlaneGeometry(roomSize, roomSize), isLastRoom ? darkWallMat : wallMat); ceiling.rotation.x = Math.PI / 2; ceiling.position.set(0, roomHeight, zCenter); addToRoom(ceiling, i);
 
-            // Generate basic walls
             if (i === 0) {
-                createBox(0, roomHeight / 2, zCenter + roomSize / 2, roomSize, roomHeight, 0.5, true, useDarkMaterials, null, i); createDoorWall(zCenter - roomSize / 2, roomSize, roomHeight, useDarkMaterials, i);
+                createBox(0, roomHeight / 2, zCenter + roomSize / 2, roomSize, roomHeight, 0.5, true, false, null, i); createDoorWall(zCenter - roomSize / 2, roomSize, roomHeight, false, i);
             } else if (isLastRoom) {
-                createBox(0, roomHeight / 2, zCenter - roomSize / 2, roomSize, roomHeight, 0.5, true, useDarkMaterials, null, i);
-                if (useDarkMaterials) {
-                    const darkCeiling = new THREE.Mesh(new THREE.PlaneGeometry(roomSize, roomSize), darkWallMat); darkCeiling.rotation.x = Math.PI / 2; darkCeiling.position.set(0, roomHeight, zCenter); addToRoom(darkCeiling, i); benchPosition.set(0, 0.4, zCenter); createBox(0, 0.4, zCenter, 3.5, 0.8, 1.5, true, false, benchMat, i);
-                }
+                createBox(0, roomHeight / 2, zCenter - roomSize / 2, roomSize, roomHeight, 0.5, true, true, null, i);
+                benchPosition.set(0, 0.4, zCenter); createBox(0, 0.4, zCenter, 3.5, 0.8, 1.5, true, false, benchMat, i);
             } else {
                 createDoorWall(zCenter - roomSize / 2, roomSize, roomHeight, false, i);
             }
 
-            if (isSimplifiedView) {
-                // ... Simplified View Logic ...
-                const posterW = 1.9; const posterH = 2.5; const yPos = 2.7; const gap = 0.22;
-                const sideTotalW = (6 * posterW) + (5 * gap);
-                const sideStartZ = zCenter + (sideTotalW / 2) - (posterW / 2);
-
-                for (let k = 0; k < 6; k++) {
-                    const zPos = sideStartZ - (k * (posterW + gap));
-                    addMobilePoster(-9.7, yPos, zPos, Math.PI / 2, posterW, posterH, i);
-                }
-                for (let k = 0; k < 6; k++) {
-                    const zPos = sideStartZ - (k * (posterW + gap));
-                    addMobilePoster(9.7, yPos, zPos, -Math.PI / 2, posterW, posterH, i);
-                }
-
-                const doorOffset = (posterW + gap) / 2;
-
-                if (i < roomsCount - 1) {
-                    addMobilePoster(-6 - doorOffset, yPos, zCenter - roomSize / 2 + 0.3, 0, posterW, posterH, i);
-                    addMobilePoster(-6 + doorOffset, yPos, zCenter - roomSize / 2 + 0.3, 0, posterW, posterH, i);
-                    addMobilePoster(6 - doorOffset, yPos, zCenter - roomSize / 2 + 0.3, 0, posterW, posterH, i);
-                    addMobilePoster(6 + doorOffset, yPos, zCenter - roomSize / 2 + 0.3, 0, posterW, posterH, i);
-                } else {
-                    const endTotalW = (5 * posterW) + (4 * gap);
-                    const endStartX = - (endTotalW / 2) + (posterW / 2);
-                    for (let k = 0; k < 5; k++) {
-                        const xPos = endStartX + (k * (posterW + gap));
-                        addMobilePoster(xPos, yPos, zCenter - roomSize / 2 + 0.3, 0, posterW, posterH, i);
-                    }
-                }
-
-                if (i > 0) {
-                    addMobilePoster(-6 - doorOffset, yPos, zCenter + roomSize / 2 - 0.3, Math.PI, posterW, posterH, i);
-                    addMobilePoster(-6 + doorOffset, yPos, zCenter + roomSize / 2 - 0.3, Math.PI, posterW, posterH, i);
-                    addMobilePoster(6 - doorOffset, yPos, zCenter + roomSize / 2 - 0.3, Math.PI, posterW, posterH, i);
-                    addMobilePoster(6 + doorOffset, yPos, zCenter + roomSize / 2 - 0.3, Math.PI, posterW, posterH, i);
-                }
-
-                if (i === 0 || i === 2 || i === 3) createHangingTV(0, zCenter, roomHeight, 0, i);
-                if (i === 3) createHangingTV(0, zCenter, roomHeight, Math.PI, i);
-
-            } else {
-                // ... High End Logic ...
-                const isDarkRoom = useDarkMaterials;
-                if (!isDarkRoom) {
-                    if (i === 0) { createHangingTV(0, zCenter, roomHeight, 0, i); }
-                    else if (i === 1) { if (!isLowEnd) { loadAllModels(0, zCenter, i); createHangingModel7(0, zCenter, roomHeight, i); } }
-                    else if (i === 2) { createScaffoldingStructure(0, zCenter, i); }
-                    else {
-                        let rotation = (i === 3) ? 0 : Math.random() * Math.PI; createHangingTV(0, zCenter, roomHeight, rotation, i);
-                        if (i === 3) { createCurtain(0, zCenter - roomSize / 2, i); }
-                    }
-                    if (!(isMobile && i === roomsCount - 1)) {
-                        const standardW = 2.6; const standardH = 3.25; const postersPerSide = 6; const availableWidth = 14; const step = availableWidth / (postersPerSide - 1);
-                        for (let k = 0; k < postersPerSide; k++) { const zPos = (zCenter + availableWidth / 2) - (k * step); addPoster(-9.7, 2.7, zPos, Math.PI / 2, standardW, standardH, i); addPoster(9.7, 2.7, zPos, -Math.PI / 2, standardW, standardH, i); }
-                        addPoster(-6.0, 2.7, zCenter - roomSize / 2 + 0.3, 0, 2.2, 2.8, i);
-                        addPoster(6.0, 2.7, zCenter - roomSize / 2 + 0.3, 0, 2.2, 2.8, i);
-                        if (i > 0) {
-                            addPoster(-6.0, 2.7, zCenter + roomSize / 2 - 0.3, Math.PI, 2.2, 2.8, i);
-                            addPoster(6.0, 2.7, zCenter + roomSize / 2 - 0.3, Math.PI, 2.2, 2.8, i);
-                        }
-                    }
-                } else {
-                    const projW = 9.0; const projH = 5.06; const wallDist = (roomSize / 2) - 0.4;
-                    createProjection(0, 3, zCenter - wallDist, projW, projH, 0, videoTex1, i);
-                    if (!isMobile) { createProjection(-wallDist, 3, zCenter, projW, projH, Math.PI / 2, videoTex1, i); createProjection(wallDist, 3, zCenter, projW, projH, -Math.PI / 2, videoTex1, i); }
-                }
+            if (isLastRoom) {
+                const projW = 9.0; const projH = 5.06; const wallDist = (roomSize / 2) - 0.4;
+                createProjection(0, 3, zCenter - wallDist, projW, projH, 0, i);
+                createProjection(-wallDist, 3, zCenter, projW, projH, Math.PI / 2, i);
+                createProjection(wallDist, 3, zCenter, projW, projH, -Math.PI / 2, i);
+                continue;
             }
+
+            if (i === 0) createHangingTV(0, zCenter, roomHeight, 0, i);
+            else if (i === 2) createScaffoldingStructure(0, zCenter, i);
+            else if (i === 3) { createHangingTV(0, zCenter, roomHeight, 0, i); createCurtain(0, zCenter - roomSize / 2, i); }
+            // Скульптури зали 1 вантажаться у фоні після першої зали, див. startBackgroundLoading
+
+            // Бічні стіни: по 6 робіт
+            const postersPerSide = 6; const availableWidth = 14; const step = availableWidth / (postersPerSide - 1);
+            for (let k = 0; k < postersPerSide; k++) {
+                const zPos = (zCenter + availableWidth / 2) - (k * step);
+                makePoster(nextWorkId(), -9.7, posterY, zPos, Math.PI / 2, sidePosterW, sidePosterH, i);
+                makePoster(nextWorkId(), 9.7, posterY, zPos, -Math.PI / 2, sidePosterW, sidePosterH, i);
+            }
+            // Передня стіна: у першій залі й біля завіси по одній роботі з боку, в інших по дві
+            hangEndWall(zCenter - roomSize / 2 + 0.3, 0, i, !(i === 0 || i === 3));
+            // Задня стіна
+            if (i > 0) hangEndWall(zCenter + roomSize / 2 - 0.3, Math.PI, i, true);
+            // Стіна за спиною на старті — одна робота по центру
+            else makePoster(nextWorkId(), 0, posterY, zCenter + roomSize / 2 - 0.3, Math.PI, endPosterW, endPosterH, i);
+        }
+
+        if (nextWorkIndex !== WORK_IDS.length) console.warn(`Місць на стінах: ${nextWorkIndex}, робіт: ${WORK_IDS.length}`);
+
+        // Перша зала — частина екрана завантаження
+        posters.filter(p => p.room === 0).forEach(p => loadPoster(p, criticalLoader, true));
+
+        let backgroundStarted = false;
+        function startBackgroundLoading() {
+            if (backgroundStarted) return;
+            backgroundStarted = true;
+            updatePosterWindow(0);
+            loadAllModels(0, -sculptureRoom * roomSize, sculptureRoom);
+            createHangingModel7(0, -sculptureRoom * roomSize, roomHeight, sculptureRoom);
         }
 
         // --- FOLLOWER & LIGHTS ---
-        let isFollowing = true; let follower = null;
-        if (!isSimplifiedView) {
-            const followerTex = textureLoader.load('assets/gerb.jpeg', undefined, undefined, (err) => console.error("Missing gerb.png")); followerTex.colorSpace = THREE.SRGBColorSpace;
-            const followerGeo = new THREE.PlaneGeometry(3, 3); const followerMat = new THREE.MeshBasicMaterial({ map: followerTex, side: THREE.DoubleSide, transparent: true });
-            follower = new THREE.Mesh(followerGeo, followerMat); follower.position.set(0, 2.5, 12); follower.userData = { type: 'follower', title: "Watcher", desc: "Click to toggle following" };
-            scene.add(follower); interactiveObjects.push(follower); clickableObjects.push(follower);
-        }
+        let isFollowing = true;
+        const followerTex = criticalLoader.load('assets/gerb.jpeg', undefined, undefined, () => console.error("Missing gerb.jpeg")); followerTex.colorSpace = THREE.SRGBColorSpace;
+        const followerGeo = new THREE.PlaneGeometry(3, 3); const followerMat = new THREE.MeshBasicMaterial({ map: followerTex, side: THREE.DoubleSide, transparent: true });
+        const follower = new THREE.Mesh(followerGeo, followerMat); follower.position.set(0, 2.5, 12); follower.userData = { type: 'follower', title: "Watcher", desc: "Click to toggle following" };
+        scene.add(follower); clickableObjects.push(follower);
 
-        const ambientLight = new THREE.AmbientLight(0xffffff, isSimplifiedView ? 1.6 : 0.6); scene.add(ambientLight);
+        const ambientLight = new THREE.AmbientLight(0xffffff, LITE ? 1.6 : 0.6); scene.add(ambientLight);
 
-        if (!isSimplifiedView) {
+        if (!LITE) {
             const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 1.2); hemiLight.position.set(0, 20, 0); scene.add(hemiLight); const dirLight = new THREE.DirectionalLight(0xffffff, 1.0); dirLight.position.set(5, 10, 7); dirLight.castShadow = true; dirLight.shadow.mapSize.width = 512; dirLight.shadow.mapSize.height = 512; scene.add(dirLight);
         }
         else { const dirLightMobile = new THREE.DirectionalLight(0xffffff, 0.8); dirLightMobile.position.set(5, 10, 7); scene.add(dirLightMobile); }
@@ -1589,11 +1539,37 @@
         const controls = new PointerLockControls(camera, document.body);
         const startScreen = document.getElementById('start-screen'); const startBtn = document.getElementById('start-btn'); const sitHint = document.getElementById('sit-hint'); const mobileSitBtn = document.getElementById('mobile-sit-btn'); const viewBtn = document.getElementById('view-btn');
         const modal = document.getElementById('artwork-modal'); const modalClose = document.getElementById('modal-close-btn'); const infoBtn = document.getElementById('info-btn'); const infoModal = document.getElementById('info-modal'); const infoCloseBtn = document.getElementById('info-close-btn'); const controlsHint = document.getElementById('controls-hint');
-        const raycaster = new THREE.Raycaster(); const center = new THREE.Vector2(0, 0); const cursor = document.getElementById('cursor');
-        let isModalOpen = false; let isSitting = false; let isGameActive = false; let currentTarget = null; let frameCount = 0;
+        const cursor = document.getElementById('cursor');
+        let isModalOpen = false; let isSitting = false; let isGameActive = false; let currentTarget = null; let frameCount = 0; let modalOpenedAt = 0;
+
+        function setDisplay(el, value) { if (el.style.display !== value) el.style.display = value; }
+
+        // Промінь бачить лише в межах 8 м і не пробиває стіни (раніше можна було «клацнути» роботу з сусідньої зали)
+        const raycaster = new THREE.Raycaster(); raycaster.far = 8;
+        const pointerNdc = new THREE.Vector2();
+        const VIEWABLE_TYPES = new Set(['poster', 'tv-link', 'sculpture', 'projection']);
+        const pickTargets = clickableObjects.concat(occluders);
+        function pickAt(ndcX, ndcY) {
+            pointerNdc.set(ndcX, ndcY);
+            raycaster.setFromCamera(pointerNdc, camera);
+            // Моделі дозавантажуються у фоні, тому список збираємо щоразу
+            if (pickTargets.length !== clickableObjects.length + occluders.length) { pickTargets.length = 0; pickTargets.push(...clickableObjects, ...occluders); }
+            const intersects = raycaster.intersectObjects(pickTargets);
+            if (!intersects.length) return null;
+            let obj = intersects[0].object; while (!obj.userData.type && obj.parent) { obj = obj.parent; }
+            return obj.userData.type ? obj : null;
+        }
+
+        function activate(obj) {
+            if (!obj) return false;
+            if (VIEWABLE_TYPES.has(obj.userData.type)) { openModal(obj.userData); return true; }
+            if (obj.userData.type === 'follower') { isFollowing = !isFollowing; return true; }
+            return false;
+        }
 
         function startGame(e) {
             e.preventDefault(); e.stopPropagation();
+            if (isGameActive) return;
             startScreen.style.display = 'none'; isGameActive = true; infoBtn.style.display = 'flex';
 
             setTimeout(() => {
@@ -1606,16 +1582,10 @@
 
             if (!isMobile) controlsHint.style.display = 'block';
             bgMusic.play().catch(e => console.log("Audio block", e));
-
-            // Video 1 will play LATER via Lazy Load logic.
-            // Video 2 is small, play it now.
-            if (!isSimplifiedView) {
-                video2.play().catch(e => console.log("Video2 block", e));
-            }
+            // Відео телевізора коротке, запускаємо одразу, поки є жест користувача
+            video2.play().catch(e => console.log("Video2 block", e));
 
             if (!isMobile) { controls.lock(); }
-
-            if (isSimplifiedView) { checkRoomLoad(0); }
         }
 
         startBtn.addEventListener('click', startGame); startBtn.addEventListener('touchstart', startGame);
@@ -1624,32 +1594,69 @@
         infoCloseBtn.addEventListener('click', closeInfoModal); infoCloseBtn.addEventListener('touchstart', (e) => { e.stopPropagation(); closeInfoModal(); });
 
         const stickContainer = document.getElementById('stick-container'); const stickKnob = stickContainer.querySelector('.stick-knob');
-        let moveTouchId = null; let lookTouchId = null; let lookStartX = 0; let lookStartY = 0; let moveVector = { x: 0, y: 0 }; let stickCenter = { x: 0, y: 0 };
+        let moveTouchId = null; let lookTouchId = null; let lookLastX = 0; let lookLastY = 0; let moveVector = { x: 0, y: 0 }; let stickCenter = { x: 0, y: 0 };
 
         if (isMobile) {
-            function handleTouchStart(e) { if (!isGameActive) return; for (let i = 0; i < e.changedTouches.length; i++) { const t = e.changedTouches[i]; const halfWidth = window.innerWidth / 2; if (isModalOpen) continue; if (moveTouchId === null && t.clientX < halfWidth) { moveTouchId = t.identifier; stickContainer.style.display = 'block'; stickContainer.style.left = (t.clientX - 50) + 'px'; stickContainer.style.top = (t.clientY - 50) + 'px'; stickCenter = { x: t.clientX, y: t.clientY }; stickKnob.style.transform = `translate(-50%, -50%)`; } else if (lookTouchId === null && t.clientX > halfWidth) { if (e.target.id === 'mobile-sit-btn' || e.target.id === 'view-btn' || e.target.id === 'modal-close-btn' || e.target.id === 'info-btn' || e.target.id === 'info-close-btn' || e.target.closest('#artwork-modal') || e.target.closest('#info-modal')) continue; lookTouchId = t.identifier; lookStartX = t.clientX; lookStartY = t.clientY; } } }
-            function handleTouchMove(e) { if (!isGameActive || isModalOpen) return; e.preventDefault(); for (let i = 0; i < e.changedTouches.length; i++) { const t = e.changedTouches[i]; if (t.identifier === moveTouchId) { const maxDist = 50; let dx = t.clientX - stickCenter.x; let dy = t.clientY - stickCenter.y; const dist = Math.sqrt(dx * dx + dy * dy); if (dist > maxDist) { const ratio = maxDist / dist; dx *= ratio; dy *= ratio; } stickKnob.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`; moveVector.x = dx / maxDist; moveVector.y = dy / maxDist; } else if (t.identifier === lookTouchId) { const deltaX = (t.clientX - lookStartX) * 0.3; camera.rotation.y -= deltaX * 0.015; lookStartX = t.clientX; lookStartY = t.clientY; } } }
-            function handleTouchEnd(e) { for (let i = 0; i < e.changedTouches.length; i++) { const t = e.changedTouches[i]; if (t.identifier === moveTouchId) { moveTouchId = null; moveVector = { x: 0, y: 0 }; stickContainer.style.display = 'none'; } if (t.identifier === lookTouchId) { lookTouchId = null; } } }
-            document.addEventListener('touchstart', handleTouchStart, { passive: false }); document.addEventListener('touchmove', handleTouchMove, { passive: false }); document.addEventListener('touchend', handleTouchEnd);
-            document.addEventListener('click', () => { if (isModalOpen && modal.style.display === 'flex') closeModal(); });
-            mobileSitBtn.addEventListener('touchstart', (e) => { e.stopPropagation(); toggleSit(); });
+            const LOOK_SPEED = 0.0045; const PITCH_LIMIT = 1.1;
+            const TAP_SLOP = 12; const TAP_MAX_MS = 350;
+            const touchStarts = new Map();
+            const isUiTarget = (el) => !!el.closest('#artwork-modal, #info-modal, #promo-banner, #mobile-sit-btn, #view-btn, #info-btn');
+
+            function handleTouchStart(e) {
+                if (!isGameActive || isModalOpen || isUiTarget(e.target)) return;
+                for (const t of e.changedTouches) {
+                    touchStarts.set(t.identifier, { x: t.clientX, y: t.clientY, time: performance.now(), moved: false });
+                    if (moveTouchId === null && t.clientX < window.innerWidth / 2) {
+                        moveTouchId = t.identifier; stickContainer.style.display = 'block'; stickContainer.style.left = (t.clientX - 50) + 'px'; stickContainer.style.top = (t.clientY - 50) + 'px'; stickCenter = { x: t.clientX, y: t.clientY }; stickKnob.style.transform = `translate(-50%, -50%)`;
+                    } else if (lookTouchId === null && t.clientX >= window.innerWidth / 2) {
+                        lookTouchId = t.identifier; lookLastX = t.clientX; lookLastY = t.clientY;
+                    }
+                }
+            }
+            function handleTouchMove(e) {
+                if (!isGameActive || isModalOpen) return;
+                e.preventDefault();
+                for (const t of e.changedTouches) {
+                    const start = touchStarts.get(t.identifier);
+                    if (start && Math.hypot(t.clientX - start.x, t.clientY - start.y) > TAP_SLOP) start.moved = true;
+                    if (t.identifier === moveTouchId) {
+                        const maxDist = 50; let dx = t.clientX - stickCenter.x; let dy = t.clientY - stickCenter.y; const dist = Math.sqrt(dx * dx + dy * dy); if (dist > maxDist) { const ratio = maxDist / dist; dx *= ratio; dy *= ratio; } stickKnob.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`; moveVector.x = dx / maxDist; moveVector.y = dy / maxDist;
+                    } else if (t.identifier === lookTouchId) {
+                        camera.rotation.y -= (t.clientX - lookLastX) * LOOK_SPEED;
+                        camera.rotation.x = THREE.MathUtils.clamp(camera.rotation.x - (t.clientY - lookLastY) * LOOK_SPEED, -PITCH_LIMIT, PITCH_LIMIT);
+                        lookLastX = t.clientX; lookLastY = t.clientY;
+                    }
+                }
+            }
+            function handleTouchEnd(e) {
+                for (const t of e.changedTouches) {
+                    const start = touchStarts.get(t.identifier); touchStarts.delete(t.identifier);
+                    if (t.identifier === moveTouchId) { moveTouchId = null; moveVector = { x: 0, y: 0 }; stickContainer.style.display = 'none'; }
+                    if (t.identifier === lookTouchId) { lookTouchId = null; }
+                    // Короткий дотик без руху — тап по тому, що під пальцем
+                    if (e.type === 'touchend' && start && !start.moved && performance.now() - start.time < TAP_MAX_MS && isGameActive && !isModalOpen) {
+                        const obj = pickAt((t.clientX / window.innerWidth) * 2 - 1, -(t.clientY / window.innerHeight) * 2 + 1);
+                        // preventDefault гасить синтетичний click, який інакше одразу закрив би вікно
+                        if (activate(obj)) e.preventDefault();
+                    }
+                }
+            }
+            document.addEventListener('touchstart', handleTouchStart, { passive: false });
+            document.addEventListener('touchmove', handleTouchMove, { passive: false });
+            document.addEventListener('touchend', handleTouchEnd, { passive: false });
+            document.addEventListener('touchcancel', handleTouchEnd);
+            document.addEventListener('click', (e) => {
+                if (isModalOpen && modal.style.display === 'flex' && performance.now() - modalOpenedAt > 400 && !e.target.closest('#modal-info')) closeModal();
+            });
+            // click, а не touchstart: iOS дозволяє ввімкнути звук відео лише з «повноцінного» жесту
+            mobileSitBtn.addEventListener('click', (e) => { e.stopPropagation(); toggleSit(); });
             viewBtn.addEventListener('touchstart', (e) => { e.preventDefault(); e.stopPropagation(); if (currentTarget) openModal(currentTarget.userData); });
         } else {
-            document.addEventListener('click', (e) => { if (isGameActive) { if (isModalOpen) { if (modal.style.display === 'flex' && !e.target.closest('#modal-info') && e.target.id !== 'modal-img') closeModal(); } else { if (controls.isLocked) checkIntersectionAndClick(); else controls.lock(); } } });
-        }
-
-        function checkIntersectionAndClick() {
-            raycaster.setFromCamera(center, camera); const objectsToCheck = clickableObjects; const intersects = raycaster.intersectObjects(objectsToCheck);
-            if (intersects.length > 0 && intersects[0].distance < 8) {
-                let obj = intersects[0].object; while (!obj.userData.type && obj.parent) { obj = obj.parent; }
-                if (obj.userData.type === 'poster' || obj.userData.type === 'tv-link' || obj.userData.type === 'sculpture' || obj.userData.type === 'projection') {
-                    if (isMobile) { currentTarget = obj; viewBtn.style.display = 'block'; } else { openModal(obj.userData); }
-                } else if (obj.userData.type === 'follower') { isFollowing = !isFollowing; }
-            } else { if (isMobile) { viewBtn.style.display = 'none'; currentTarget = null; } }
+            document.addEventListener('click', (e) => { if (isGameActive) { if (isModalOpen) { if (modal.style.display === 'flex' && !e.target.closest('#modal-info') && e.target.id !== 'modal-img') closeModal(); } else { if (controls.isLocked) activate(pickAt(0, 0)); else controls.lock(); } } });
         }
 
         function openModal(data) {
-            isModalOpen = true;
+            isModalOpen = true; modalOpenedAt = performance.now();
             if (!isMobile) controls.unlock();
             const imgEl = document.getElementById('modal-img');
 
@@ -1657,13 +1664,13 @@
                 imgEl.classList.add('no-image');
             } else {
                 imgEl.classList.remove('no-image');
-                if (data.id === 4) {
-                    imgEl.src = 'assets/image4 3.jpeg';
-                } else if (data.url) {
-                    imgEl.src = data.url;
-                } else {
-                    imgEl.src = 'assets/share.jpg';
-                }
+                // Прибираємо попередню картину, щоб вона не блимала, поки вантажиться нова
+                imgEl.classList.add('is-loading');
+                imgEl.removeAttribute('src');
+                imgEl.onload = () => imgEl.classList.remove('is-loading');
+                imgEl.onerror = () => imgEl.classList.remove('is-loading');
+                imgEl.alt = [data.title, data.artist].filter(Boolean).join(' — ') || 'Робота з виставки';
+                imgEl.src = data.url || 'assets/share.jpg';
             }
 
             const titleEl = document.getElementById('modal-title');
@@ -1699,80 +1706,131 @@
             modal.style.display = 'flex';
             viewBtn.style.display = 'none';
             infoBtn.style.display = 'none';
+            mobileSitBtn.style.display = 'none';
         }
 
         function closeModal() { isModalOpen = false; modal.style.display = 'none'; if (!isMobile) controls.lock(); infoBtn.style.display = 'flex'; }
-        function openInfoModal() { isModalOpen = true; if (!isMobile) controls.unlock(); infoModal.style.display = 'flex'; infoBtn.style.display = 'none'; viewBtn.style.display = 'none'; }
+        function openInfoModal() { isModalOpen = true; modalOpenedAt = performance.now(); if (!isMobile) controls.unlock(); infoModal.style.display = 'flex'; infoBtn.style.display = 'none'; viewBtn.style.display = 'none'; mobileSitBtn.style.display = 'none'; }
         function closeInfoModal() { isModalOpen = false; infoModal.style.display = 'none'; if (!isMobile) controls.lock(); infoBtn.style.display = 'flex'; }
-        function toggleSit() { if (isSitting) { isSitting = false; camera.position.y = 1.7; camera.fov = (isMobile && aspect < 1) ? 95 : 70; camera.updateProjectionMatrix(); bgMusic.volume = 0.65; if (video1 && !isMobile) video1.muted = true; if (isMobile) mobileSitBtn.style.display = 'none'; } else { const dist = camera.position.distanceTo(new THREE.Vector3(benchPosition.x, camera.position.y, benchPosition.z)); if (dist < 5.0) { isSitting = true; camera.position.set(benchPosition.x, benchPosition.y + 1.2, benchPosition.z); velocity.set(0, 0, 0); camera.lookAt(0, 3, benchPosition.z - 20); camera.fov = (isMobile && aspect < 1) ? 60 : 40; camera.updateProjectionMatrix(); bgMusic.volume = 0.1; if (video1 && !isMobile) { video1.muted = false; video1.volume = 1.0; } if (isMobile) { mobileSitBtn.style.display = 'flex'; mobileSitBtn.innerText = "UP"; } } } }
+
+        const benchFlat = new THREE.Vector3();
+        function distToBench() { benchFlat.set(benchPosition.x, camera.position.y, benchPosition.z); return camera.position.distanceTo(benchFlat); }
+
+        function toggleSit() {
+            if (isSitting) {
+                isSitting = false; camera.position.y = 1.7; camera.fov = baseFov(); camera.updateProjectionMatrix(); bgMusic.volume = 0.65;
+                video1.muted = true;
+                mobileSitBtn.innerText = "SIT";
+            } else {
+                if (distToBench() >= 5.0) return;
+                isSitting = true; camera.position.set(benchPosition.x, benchPosition.y + 1.2, benchPosition.z); velocity.set(0, 0, 0); camera.lookAt(0, 3, benchPosition.z - 20); camera.fov = sitFov(); camera.updateProjectionMatrix(); bgMusic.volume = 0.1;
+                video1.muted = false; video1.volume = 1.0;
+                // Якщо автозапуск відео заблокували (режим енергозбереження), тут є жест — пробуємо ще раз
+                if (isVideo1Loading && video1.paused) playVideo1();
+                mobileSitBtn.innerText = "UP";
+            }
+        }
 
         const move = { f: false, b: false, l: false, r: false, shift: false }; const velocity = new THREE.Vector3(); let canJump = false;
         document.addEventListener('keydown', (e) => { const code = e.code; if (code === 'KeyW' || code === 'ArrowUp') move.f = true; if (code === 'KeyS' || code === 'ArrowDown') move.b = true; if (code === 'KeyA' || code === 'ArrowLeft') move.l = true; if (code === 'KeyD' || code === 'ArrowRight') move.r = true; if (code === 'ShiftLeft') move.shift = true; if (code === 'Space' && canJump && !isSitting) { velocity.y += 12; canJump = false; } if (code === 'KeyC') toggleSit(); if (code === 'KeyI') { if (!isMobile) { if (isModalOpen && infoModal.style.display === 'flex') { closeInfoModal(); } else if (!isModalOpen) { openInfoModal(); } else if (isModalOpen && modal.style.display === 'flex') { closeModal(); openInfoModal(); } } } });
         document.addEventListener('keyup', (e) => { const code = e.code; if (code === 'KeyW' || code === 'ArrowUp') move.f = false; if (code === 'KeyS' || code === 'ArrowDown') move.b = false; if (code === 'KeyA' || code === 'ArrowLeft') move.l = false; if (code === 'KeyD' || code === 'ArrowRight') move.r = false; if (code === 'ShiftLeft') move.shift = false; });
 
-        let prevTime = performance.now(); let lastRoomIndex = -1;
-        function animate() {
-            requestAnimationFrame(animate); if (!isGameActive) return;
+        // --- ADAPTIVE QUALITY ---
+        // Після старту міряємо реальний FPS; якщо пристрій не тягне — знижуємо роздільність рендеру
+        let perfFrames = 0; let perfSum = 0; let perfDone = false;
+        function trackPerformance(delta) {
+            if (perfDone) return;
+            perfFrames++;
+            if (perfFrames <= 60) return; // перші кадри — компіляція шейдерів
+            perfSum += delta;
+            if (perfFrames < 180) return;
+            perfDone = true;
+            const avgFrame = perfSum / 120;
+            if (avgFrame > 1 / 40 && renderer.getPixelRatio() > 1) {
+                renderer.setPixelRatio(1);
+                renderer.setSize(window.innerWidth, window.innerHeight);
+                console.log(`Low FPS (${Math.round(1 / avgFrame)}), pixel ratio → 1`);
+            }
+        }
 
-            // --- LAZY LOAD CHECK ---
-            // Trigger load when deeper than Z -30 (Room 2 entry)
-            if (!isVideo1Loading && camera.position.z < -30) {
-                isVideo1Loading = true;
-                const v1 = document.getElementById('video1');
-                const source = v1.querySelector('source');
-                if (source.dataset.src) {
-                    source.src = source.dataset.src;
-                    v1.load();
-                    v1.oncanplay = () => {
-                        v1.play().then(() => {
-                            const realVideoTex = new THREE.VideoTexture(v1);
-                            realVideoTex.colorSpace = THREE.SRGBColorSpace;
-                            video1Meshes.forEach(mesh => {
-                                mesh.material.map = realVideoTex;
-                                mesh.material.needsUpdate = true;
-                            });
-                        }).catch(e => console.log("Autoplay prevented", e));
-                    };
+        const tmpDirection = new THREE.Vector3(); const tmpForward = new THREE.Vector3(); const tmpRight = new THREE.Vector3(); const tmpStep = new THREE.Vector3(); const playerBox = new THREE.Box3();
+
+        let prevTime = performance.now(); let lastRoomIndex = 0;
+        function animate() {
+            requestAnimationFrame(animate);
+            const time = performance.now(); const delta = Math.min((time - prevTime) / 1000, 0.1); prevTime = time;
+
+            processUploads();
+            if (!isGameActive) return;
+            // Під відкритим вікном сцена стоїть, перемальовувати її нема сенсу
+            if (isModalOpen) return;
+            frameCount++;
+
+            maybeLoadVideo1();
+
+            if (revolvingStage) { revolvingStage.rotation.y += 0.1 * delta; }
+            animatedModels.forEach(model => { model.rotation.y -= 1.0 * delta; });
+
+            if (isFollowing) {
+                follower.lookAt(camera.position);
+                if (follower.position.distanceTo(camera.position) > 3.0) {
+                    tmpStep.subVectors(camera.position, follower.position).normalize().multiplyScalar(3.5 * delta);
+                    follower.position.add(tmpStep);
                 }
             }
+            follower.position.y = 2.5 + Math.sin(time * 0.002) * 0.2;
 
-            const time = performance.now(); const delta = Math.min((time - prevTime) / 1000, 0.1);
-            if (!isSimplifiedView) { if (revolvingStage) { revolvingStage.rotation.y += 0.1 * delta; } animatedModels.forEach(model => { model.rotation.y -= 1.0 * delta; }); } else { animatedModels.forEach(model => { model.rotation.y -= 1.0 * delta; }); }
-            if (follower && isFollowing) { follower.lookAt(camera.position); const dist = follower.position.distanceTo(camera.position); if (dist > 3.0) { const direction = new THREE.Vector3().subVectors(camera.position, follower.position).normalize(); follower.position.add(direction.multiplyScalar(3.5 * delta)); follower.position.y = 2.5 + Math.sin(time * 0.002) * 0.2; } } else if (follower && !isFollowing) { follower.position.y = 2.5 + Math.sin(time * 0.002) * 0.2; }
             if (!isSitting) {
-                const distToBench = camera.position.distanceTo(new THREE.Vector3(benchPosition.x, camera.position.y, benchPosition.z));
-                if (!isMobile && distToBench < 5.0 && !isSimplifiedView) { sitHint.style.display = 'block'; } else { sitHint.style.display = 'none'; if (isMobile) mobileSitBtn.style.display = 'none'; }
-                velocity.x -= velocity.x * 10.0 * delta; velocity.z -= velocity.z * 10.0 * delta; velocity.y -= 30.0 * delta; const speed = (move.shift ? 150 : 72); const direction = new THREE.Vector3();
+                const nearBench = distToBench() < 5.0;
+                if (isMobile) setDisplay(mobileSitBtn, nearBench ? 'flex' : 'none');
+                else setDisplay(sitHint, nearBench ? 'block' : 'none');
+
+                velocity.x -= velocity.x * 10.0 * delta; velocity.z -= velocity.z * 10.0 * delta; velocity.y -= 30.0 * delta; const speed = (move.shift ? 150 : 72);
                 if (isMobile) {
-                    const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion); forward.y = 0; forward.normalize();
-                    const right = new THREE.Vector3(1, 0, 0).applyQuaternion(camera.quaternion); right.y = 0; right.normalize();
+                    tmpForward.set(0, 0, -1).applyQuaternion(camera.quaternion); tmpForward.y = 0; tmpForward.normalize();
+                    tmpRight.set(1, 0, 0).applyQuaternion(camera.quaternion); tmpRight.y = 0; tmpRight.normalize();
                     if (moveVector.x !== 0 || moveVector.y !== 0) {
-                        // FIXED: Inverted Y (forward.x * -moveVector.y) to fix backward movement when pushing forward
-                        velocity.x += (right.x * moveVector.x - forward.x * moveVector.y) * speed * delta;
-                        velocity.z += (right.z * moveVector.x - forward.z * moveVector.y) * speed * delta;
+                        // Джойстик: вгору (y < 0) — вперед
+                        velocity.x += (tmpRight.x * moveVector.x - tmpForward.x * moveVector.y) * speed * delta;
+                        velocity.z += (tmpRight.z * moveVector.x - tmpForward.z * moveVector.y) * speed * delta;
                     }
+                    tmpStep.set(velocity.x * delta, 0, velocity.z * delta);
+                    camera.position.add(tmpStep);
                 } else {
-                    direction.z = Number(move.f) - Number(move.b); direction.x = Number(move.r) - Number(move.l); direction.normalize(); if (move.f || move.b) velocity.z -= direction.z * speed * delta; if (move.l || move.r) velocity.x -= direction.x * speed * delta; controls.moveRight(-velocity.x * delta); controls.moveForward(-velocity.z * delta);
+                    tmpDirection.z = Number(move.f) - Number(move.b); tmpDirection.x = Number(move.r) - Number(move.l); tmpDirection.normalize(); if (move.f || move.b) velocity.z -= tmpDirection.z * speed * delta; if (move.l || move.r) velocity.x -= tmpDirection.x * speed * delta; controls.moveRight(-velocity.x * delta); controls.moveForward(-velocity.z * delta);
                 }
-                if (isMobile) { camera.position.add(new THREE.Vector3(velocity.x * delta, 0, velocity.z * delta)); } camera.position.y += velocity.y * delta; if (camera.position.y < 1.7) { velocity.y = 0; camera.position.y = 1.7; canJump = true; } if (camera.position.y < -10) { camera.position.set(0, 1.7, 8); velocity.set(0, 0, 0); }
-                const pPos = camera.position; const pBox = new THREE.Box3(new THREE.Vector3(pPos.x - 0.4, pPos.y - 1, pPos.z - 0.4), new THREE.Vector3(pPos.x + 0.4, pPos.y + 1, pPos.z + 0.4)); let hit = false;
-                for (let obj of collidableObjects) { if (obj.box && pBox.intersectsBox(obj.box)) hit = true; if (obj.customType === 'cylinder') { const dist = Math.sqrt(Math.pow(pPos.x - obj.position.x, 2) + Math.pow(pPos.z - obj.position.z, 2)); if (dist < obj.radius && Math.abs(pPos.y - obj.position.y) < 2.0) hit = true; } }
-                if (hit) { if (isMobile) { camera.position.sub(new THREE.Vector3(velocity.x * delta, 0, velocity.z * delta)); } else { controls.moveForward(velocity.z * delta); controls.moveRight(velocity.x * delta); } }
+                camera.position.y += velocity.y * delta; if (camera.position.y < 1.7) { velocity.y = 0; camera.position.y = 1.7; canJump = true; } if (camera.position.y < -10) { camera.position.set(0, 1.7, 8); velocity.set(0, 0, 0); }
 
-                if (isSimplifiedView) {
-                    const currentRoom = Math.max(0, Math.round(-camera.position.z / 20));
-                    if (currentRoom !== lastRoomIndex) { lastRoomIndex = currentRoom; checkRoomLoad(currentRoom); }
+                const pPos = camera.position;
+                playerBox.min.set(pPos.x - 0.4, pPos.y - 1, pPos.z - 0.4); playerBox.max.set(pPos.x + 0.4, pPos.y + 1, pPos.z + 0.4);
+                let hit = false;
+                for (const obj of collidableObjects) { if (playerBox.intersectsBox(obj.box)) { hit = true; break; } }
+                if (hit) { if (isMobile) { camera.position.sub(tmpStep); } else { controls.moveForward(velocity.z * delta); controls.moveRight(velocity.x * delta); } }
+            } else {
+                setDisplay(sitHint, 'none');
+                velocity.set(0, 0, 0);
+            }
 
-                    if (isMobile) {
-                        frameCount++; if (frameCount % 5 === 0 && !isModalOpen) checkIntersectionAndClick();
-                    }
-                }
-            } else { sitHint.style.display = 'none'; velocity.set(0, 0, 0); }
-            if (!isMobile) { raycaster.setFromCamera(center, camera); const objectsToCheck = clickableObjects; const intersects = raycaster.intersectObjects(objectsToCheck); if (intersects.length > 0 && intersects[0].distance < 8) cursor.classList.add('hover-active'); else cursor.classList.remove('hover-active'); }
-            prevTime = time; renderer.render(scene, camera);
+            const currentRoom = Math.min(roomsCount - 1, Math.max(0, Math.round(-camera.position.z / roomSize)));
+            if (currentRoom !== lastRoomIndex) { lastRoomIndex = currentRoom; if (SMALL) updatePosterWindow(currentRoom); }
+
+            // Промінь по центру екрана — не кожен кадр, цього й так досить для курсора
+            if (!isMobile && frameCount % 3 === 0) {
+                const obj = pickAt(0, 0);
+                cursor.classList.toggle('hover-active', !!obj);
+                if (obj && obj.userData.type === 'poster') prefetchFull(obj.userData.url);
+            }
+            if (isMobile && frameCount % 6 === 0) {
+                const obj = pickAt(0, 0);
+                if (obj && VIEWABLE_TYPES.has(obj.userData.type)) { currentTarget = obj; setDisplay(viewBtn, 'block'); if (obj.userData.type === 'poster') prefetchFull(obj.userData.url); }
+                else { currentTarget = null; setDisplay(viewBtn, 'none'); }
+            }
+
+            renderer.render(scene, camera);
+            trackPerformance(delta);
         }
         animate();
-        window.addEventListener('resize', () => { const asp = window.innerWidth / window.innerHeight; camera.aspect = asp; camera.fov = (isMobile && asp < 1) ? 95 : 70; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight); });
+        window.addEventListener('resize', () => { camera.aspect = window.innerWidth / window.innerHeight; camera.fov = isSitting ? sitFov() : baseFov(); camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight); });
     </script>
 </body>
 

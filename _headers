@@ -6,3 +6,7 @@
 
 /peeping/vendor/*
   Cache-Control: public, max-age=31536000, immutable
+
+# Оптимізовані асети галереї /gallery25: версія міняється суфіксом ?v= у розмітці
+/assets/g25/*
+  Cache-Control: public, max-age=31536000, immutable

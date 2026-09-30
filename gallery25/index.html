@@ -934,8 +934,10 @@
 
         const ASSET_DIR = 'assets/g25/'; const ASSET_VERSION = '?v=1';
         const asset = (path) => ASSET_DIR + path + ASSET_VERSION;
-        const wallUrl = (id) => asset(`${SMALL ? 'wall_m' : 'wall'}/image${id}.webp`);
-        const fullUrl = (id) => asset(`full/image${id}.webp`);
+        // Картини мають власну версію: v2 — обрізано білу лінію знизу, що була ще в оригіналах
+        const IMAGE_VERSION = '?v=2';
+        const wallUrl = (id) => `${ASSET_DIR}${SMALL ? 'wall_m' : 'wall'}/image${id}.webp${IMAGE_VERSION}`;
+        const fullUrl = (id) => `${ASSET_DIR}full/image${id}.webp${IMAGE_VERSION}`;
 
         if (isMobile) {
             const titles = document.querySelectorAll('.title-font');
